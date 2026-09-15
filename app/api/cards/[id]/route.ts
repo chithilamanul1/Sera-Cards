@@ -1,7 +1,14 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
+import { cookies } from 'next/headers';
+
 function isAuthorized(request: Request) {
+  const session = cookies().get('admin_session');
+  if (session && session.value === 'authenticated') {
+    return true;
+  }
+  
   const authHeader = request.headers.get('x-admin-secret');
   return authHeader === process.env.ADMIN_SECRET;
 }

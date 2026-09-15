@@ -72,12 +72,6 @@ export function Hero({ config }: HeroProps) {
                 aria-hidden
               />
             </a>
-            <a
-              href="/admin"
-              className="focus-ring inline-flex items-center gap-2 rounded-full border border-gold-500/30 bg-gold-500/10 px-6 py-3.5 text-sm font-medium text-gold-300 transition-[transform,border-color,background-color] duration-150 ease-smooth hover:border-gold-500/50 hover:bg-gold-500/20 active:scale-[0.97]"
-            >
-              🚀 Profile Studio Software
-            </a>
           </motion.div>
 
           <motion.ul

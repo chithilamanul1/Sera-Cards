@@ -9,7 +9,6 @@ const links = [
   { href: '#compare', label: 'Compare' },
   { href: '#features', label: 'Features' },
   { href: '#pricing', label: 'Pricing' },
-  { href: '/admin', label: 'Profile Studio' },
 ]
 
 export function Nav() {

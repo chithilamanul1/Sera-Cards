@@ -58,5 +58,14 @@ export default function middleware(req: NextRequest) {
   }
 
   // Root domain requests
+  
+  // Admin route protection
+  if (url.pathname.startsWith('/admin')) {
+    const session = req.cookies.get('admin_session');
+    if (!session || session.value !== 'authenticated') {
+      return NextResponse.redirect(new URL('/login', req.url));
+    }
+  }
+
   return NextResponse.next();
 }

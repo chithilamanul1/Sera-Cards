@@ -4,7 +4,14 @@ import prisma from '@/lib/prisma';
 const OWNER_WA = (process.env.OWNER_WHATSAPP_NUMBER || '').replace(/[^0-9]/g, '');
 const RATE_LIMIT_MAP = new Map<string, number>();
 
+import { cookies } from 'next/headers';
+
 function isAuthorized(request: Request) {
+  const session = cookies().get('admin_session');
+  if (session && session.value === 'authenticated') {
+    return true;
+  }
+  
   const authHeader = request.headers.get('x-admin-secret');
   return authHeader === process.env.ADMIN_SECRET;
 }

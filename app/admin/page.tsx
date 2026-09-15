@@ -130,20 +130,13 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (secret.trim()) {
-      sessionStorage.setItem('adminSecret', secret);
-      setIsAuthenticated(true);
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+      window.location.href = '/login';
+    } catch (error) {
+      toast.error('Failed to log out');
     }
-  };
-
-  const handleLogout = () => {
-    sessionStorage.removeItem('adminSecret');
-    setSecret('');
-    setIsAuthenticated(false);
-    setCards([]);
-    setLeads([]);
   };
 
   // Switch presets with friendly default data
@@ -203,7 +196,6 @@ export default function AdminDashboard() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-admin-secret': secret,
         },
         body: JSON.stringify({ slug: targetSlug, html_content: finalHtml }),
       });
@@ -224,7 +216,6 @@ export default function AdminDashboard() {
     try {
       const res = await fetch(`/api/cards/${id}`, {
         method: 'DELETE',
-        headers: { 'x-admin-secret': secret },
       });
       if (!res.ok) throw new Error('Failed to delete');
       toast.success('Card deleted');
@@ -238,38 +229,6 @@ export default function AdminDashboard() {
     navigator.clipboard.writeText(text);
     toast.success(`Copied ${label}!`);
   };
-
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-zinc-950 text-zinc-50 flex items-center justify-center p-4">
-        <form onSubmit={handleLogin} className="w-full max-w-sm bg-zinc-900 p-8 rounded-2xl border border-zinc-800 shadow-2xl">
-          <div className="text-center mb-6">
-            <span className="text-xs uppercase tracking-widest text-emerald-400 font-bold">Dynamic Profile Platform</span>
-            <h1 className="text-2xl font-bold mt-1 text-white">Sera Studio</h1>
-          </div>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-xs uppercase font-medium text-zinc-400 mb-1">Admin Password</label>
-              <input
-                type="password"
-                value={secret}
-                onChange={(e) => setSecret(e.target.value)}
-                className="w-full px-4 py-2.5 bg-zinc-950 border border-zinc-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 text-zinc-100 placeholder-zinc-600"
-                placeholder="Enter password..."
-                required
-              />
-            </div>
-            <button
-              type="submit"
-              className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-medium transition-colors shadow-lg"
-            >
-              Sign In to Studio
-            </button>
-          </div>
-        </form>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-50 p-4 md:p-8">
