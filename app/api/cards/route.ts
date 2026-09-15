@@ -65,8 +65,8 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json(card);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Failed to upsert card:', error);
-    return NextResponse.json({ error: 'Failed to save card' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to save card', details: error.message || String(error) }, { status: 500 });
   }
 }

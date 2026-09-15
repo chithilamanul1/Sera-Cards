@@ -200,12 +200,15 @@ export default function AdminDashboard() {
         body: JSON.stringify({ slug: targetSlug, html_content: finalHtml }),
       });
 
-      if (!res.ok) throw new Error('Failed to deploy');
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.details || errData.error || 'Failed to deploy');
+      }
 
       toast.success(`Profile https://${targetSlug}.${rootDomain} is LIVE!`);
       fetchCards();
-    } catch (error) {
-      toast.error('Failed to deploy card');
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to deploy card');
     } finally {
       setIsSubmitting(false);
     }
@@ -488,29 +491,63 @@ export default function AdminDashboard() {
                       </div>
                     </div>
 
-                    {/* Media URLs */}
+                    {/* Media URLs (Upload or Paste) */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
                         <label className="block text-xs text-zinc-400 font-medium mb-1">
-                          {selectedPreset === 'company_profile' ? 'Company Logo URL' : 'Profile Photo URL'}
+                          {selectedPreset === 'company_profile' ? 'Company Logo' : 'Profile Photo'}
                         </label>
-                        <input
-                          type="url"
-                          value={templateForm.avatarUrl}
-                          onChange={(e) => setTemplateForm({ ...templateForm, avatarUrl: e.target.value })}
-                          placeholder="https://..."
-                          className="w-full px-3.5 py-2 bg-zinc-950 border border-zinc-800 rounded-xl text-sm text-white"
-                        />
+                        <div className="space-y-2">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                const reader = new FileReader();
+                                reader.onload = (ev) => {
+                                  setTemplateForm({ ...templateForm, avatarUrl: ev.target?.result as string });
+                                };
+                                reader.readAsDataURL(file);
+                              }
+                            }}
+                            className="w-full text-xs text-zinc-400 file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:bg-emerald-950 file:text-emerald-400 hover:file:bg-emerald-900 cursor-pointer"
+                          />
+                          <input
+                            type="text"
+                            value={templateForm.avatarUrl}
+                            onChange={(e) => setTemplateForm({ ...templateForm, avatarUrl: e.target.value })}
+                            placeholder="Or paste URL..."
+                            className="w-full px-3.5 py-1.5 bg-zinc-950 border border-zinc-800 rounded-lg text-[10px] text-zinc-500 truncate focus:text-white"
+                          />
+                        </div>
                       </div>
                       <div>
-                        <label className="block text-xs text-zinc-400 font-medium mb-1">Cover Banner URL (Company)</label>
-                        <input
-                          type="url"
-                          value={templateForm.coverUrl || ''}
-                          onChange={(e) => setTemplateForm({ ...templateForm, coverUrl: e.target.value })}
-                          placeholder="https://..."
-                          className="w-full px-3.5 py-2 bg-zinc-950 border border-zinc-800 rounded-xl text-sm text-white"
-                        />
+                        <label className="block text-xs text-zinc-400 font-medium mb-1">Cover Banner (Company)</label>
+                        <div className="space-y-2">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                const reader = new FileReader();
+                                reader.onload = (ev) => {
+                                  setTemplateForm({ ...templateForm, coverUrl: ev.target?.result as string });
+                                };
+                                reader.readAsDataURL(file);
+                              }
+                            }}
+                            className="w-full text-xs text-zinc-400 file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:bg-emerald-950 file:text-emerald-400 hover:file:bg-emerald-900 cursor-pointer"
+                          />
+                          <input
+                            type="text"
+                            value={templateForm.coverUrl || ''}
+                            onChange={(e) => setTemplateForm({ ...templateForm, coverUrl: e.target.value })}
+                            placeholder="Or paste URL..."
+                            className="w-full px-3.5 py-1.5 bg-zinc-950 border border-zinc-800 rounded-lg text-[10px] text-zinc-500 truncate focus:text-white"
+                          />
+                        </div>
                       </div>
                     </div>
 
