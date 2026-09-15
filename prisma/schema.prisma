@@ -13,4 +13,17 @@ model Client {
   htmlContent String   @map("html_content")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  leads       Lead[]
+}
+
+model Lead {
+  id         String   @id @default(cuid())
+  clientSlug String   @map("client_slug")
+  name       String
+  phone      String
+  notes      String?
+  createdAt  DateTime @default(now())
+  client     Client?  @relation(fields: [clientSlug], references: [slug], onDelete: Cascade)
+
+  @@index([clientSlug])
 }
