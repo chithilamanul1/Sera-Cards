@@ -50,7 +50,10 @@ export default function AdminDashboard() {
     bio: 'Pioneering NFC dynamic business cards and digital solutions in Sri Lanka.',
     location: 'Colombo, Sri Lanka',
     website: 'https://seranex.lk',
+    googleReviewUrl: '',
     lankaQrText: 'Bank of Ceylon: 0008392810 / LankaQR: SERANEX-PAY',
+    instagram: '',
+    linkedin: '',
   });
 
   // Programmer Modal State
@@ -671,7 +674,78 @@ export default function AdminDashboard() {
                   className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg text-sm text-white"
                 />
               </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs text-zinc-400 block mb-1">Location</label>
+                  <input
+                    type="text"
+                    value={templateForm.location}
+                    onChange={(e) => setTemplateForm({ ...templateForm, location: e.target.value })}
+                    placeholder="Colombo, Sri Lanka"
+                    className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg text-sm text-white"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-zinc-400 block mb-1">Website URL</label>
+                  <input
+                    type="url"
+                    value={templateForm.website}
+                    onChange={(e) => setTemplateForm({ ...templateForm, website: e.target.value })}
+                    placeholder="https://..."
+                    className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg text-sm text-white"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs text-zinc-400 block mb-1">
+                  ⭐ Google Review URL <span className="text-zinc-600 font-normal">(optional — boosts review count)</span>
+                </label>
+                <input
+                  type="url"
+                  value={templateForm.googleReviewUrl || ''}
+                  onChange={(e) => setTemplateForm({ ...templateForm, googleReviewUrl: e.target.value })}
+                  placeholder="https://g.page/r/YOUR_CODE/review"
+                  className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg text-sm text-white"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs text-zinc-400 block mb-1">📸 Instagram URL <span className="text-zinc-600">(optional)</span></label>
+                  <input
+                    type="url"
+                    value={templateForm.instagram || ''}
+                    onChange={(e) => setTemplateForm({ ...templateForm, instagram: e.target.value })}
+                    placeholder="https://instagram.com/..."
+                    className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg text-sm text-white"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-zinc-400 block mb-1">💼 LinkedIn URL <span className="text-zinc-600">(optional)</span></label>
+                  <input
+                    type="url"
+                    value={templateForm.linkedin || ''}
+                    onChange={(e) => setTemplateForm({ ...templateForm, linkedin: e.target.value })}
+                    placeholder="https://linkedin.com/in/..."
+                    className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg text-sm text-white"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs text-zinc-400 block mb-1">💳 LankaQR / Payment Details <span className="text-zinc-600">(optional)</span></label>
+                <input
+                  type="text"
+                  value={templateForm.lankaQrText || ''}
+                  onChange={(e) => setTemplateForm({ ...templateForm, lankaQrText: e.target.value })}
+                  placeholder="Bank of Ceylon: 000XXXXX / LankaQR: YOUR-MERCHANT"
+                  className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg text-sm text-white"
+                />
+              </div>
             </div>
+
 
             <div className="flex justify-end gap-3 pt-4 border-t border-zinc-800">
               <button

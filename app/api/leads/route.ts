@@ -1,13 +1,31 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
-// Helper to check admin authorization
+const OWNER_WA = (process.env.OWNER_WHATSAPP_NUMBER || '').replace(/[^0-9]/g, '');
+const RATE_LIMIT_MAP = new Map<string, number>();
+
 function isAuthorized(request: Request) {
   const authHeader = request.headers.get('x-admin-secret');
   return authHeader === process.env.ADMIN_SECRET;
 }
 
-// GET /api/leads - Fetch captured leads (admin only)
+// Simple in-memory rate limiter: max 3 submissions per phone per 10 minutes
+function isRateLimited(phone: string): boolean {
+  const key = phone.replace(/[^0-9]/g, '').slice(-9);
+  const now = Date.now();
+  const last = RATE_LIMIT_MAP.get(key) ?? 0;
+  if (now - last < 10 * 60 * 1000) return true;
+  RATE_LIMIT_MAP.set(key, now);
+  // Cleanup old entries every 100 calls
+  if (RATE_LIMIT_MAP.size > 100) {
+    for (const [k, t] of RATE_LIMIT_MAP) {
+      if (now - t > 10 * 60 * 1000) RATE_LIMIT_MAP.delete(k);
+    }
+  }
+  return false;
+}
+
+// GET /api/leads — Fetch all leads (admin only), optionally filter by ?slug=
 export async function GET(request: Request) {
   if (!isAuthorized(request)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -20,7 +38,7 @@ export async function GET(request: Request) {
     const leads = await prisma.lead.findMany({
       where: slug ? { clientSlug: slug } : undefined,
       orderBy: { createdAt: 'desc' },
-      take: 100,
+      take: 200,
     });
     return NextResponse.json(leads);
   } catch (error) {
@@ -29,27 +47,43 @@ export async function GET(request: Request) {
   }
 }
 
-// POST /api/leads - Public 2-way lead capture from digital card
+// POST /api/leads — Public 2-way lead capture from any digital card
 export async function POST(request: Request) {
   try {
     const body = await request.json();
     const { slug, name, phone, notes } = body;
 
     if (!slug || !name || !phone) {
-      return NextResponse.json({ error: 'Missing required fields: slug, name, or phone' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Missing required fields: slug, name, or phone' },
+        { status: 400 }
+      );
     }
 
-    const cleanSlug = String(slug).toLowerCase().trim();
-    const cleanName = String(name).trim().slice(0, 100);
-    const cleanPhone = String(phone).trim().slice(0, 30);
-    const cleanNotes = notes ? String(notes).trim().slice(0, 500) : null;
+    const cleanSlug   = String(slug).toLowerCase().trim();
+    const cleanName   = String(name).trim().slice(0, 100);
+    const cleanPhone  = String(phone).trim().slice(0, 30);
+    const cleanNotes  = notes ? String(notes).trim().slice(0, 500) : null;
 
-    // Check if client exists
-    const client = await prisma.client.findUnique({
+    // Rate-limit by phone number
+    if (isRateLimited(cleanPhone)) {
+      return NextResponse.json(
+        { error: 'Too many submissions. Please wait a few minutes.' },
+        { status: 429 }
+      );
+    }
+
+    // Verify the card slug exists
+    const card = await prisma.client.findUnique({
       where: { slug: cleanSlug },
-      select: { id: true, slug: true },
+      select: { id: true },
     });
 
+    if (!card) {
+      return NextResponse.json({ error: 'Card not found' }, { status: 404 });
+    }
+
+    // Persist the lead
     const lead = await prisma.lead.create({
       data: {
         clientSlug: cleanSlug,
@@ -59,13 +93,29 @@ export async function POST(request: Request) {
       },
     });
 
-    // Formulate a pre-formatted WhatsApp alert notification string
-    const alertMessage = `🔥 *New Lead Alert on Sera Cards!*%0A%0A*Name:* ${encodeURIComponent(cleanName)}%0A*Phone:* ${encodeURIComponent(cleanPhone)}%0A*Card Slug:* ${cleanSlug}${cleanNotes ? `%0A*Note:* ${encodeURIComponent(cleanNotes)}` : ''}%0A%0ASent via Sera Cards Lead Capture Engine`;
+    // Build WhatsApp deep-link for the owner notification
+    // (owner can tap this URL from their phone to open a pre-filled chat)
+    const waText = [
+      `🔥 *New Lead Alert — Sera Cards*`,
+      ``,
+      `*Name:* ${cleanName}`,
+      `*Phone:* ${cleanPhone}`,
+      `*Card:* ${cleanSlug}`,
+      cleanNotes ? `*Note:* ${cleanNotes}` : null,
+      ``,
+      `_(Lead captured via ${cleanSlug}'s digital Sera Card)_`,
+    ]
+      .filter(Boolean)
+      .join('\n');
+
+    const ownerNotifyUrl = OWNER_WA
+      ? `https://wa.me/${OWNER_WA}?text=${encodeURIComponent(waText)}`
+      : null;
 
     return NextResponse.json({
       success: true,
       leadId: lead.id,
-      alertMessage,
+      ownerNotifyUrl,
       message: 'Contact shared successfully!',
     });
   } catch (error) {

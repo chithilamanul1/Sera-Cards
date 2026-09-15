@@ -7,6 +7,7 @@ function isAuthorized(request: Request) {
   return authHeader === process.env.ADMIN_SECRET;
 }
 
+// GET /api/cards — List all cards with lead counts
 export async function GET(request: Request) {
   if (!isAuthorized(request)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -20,7 +21,10 @@ export async function GET(request: Request) {
         slug: true,
         createdAt: true,
         updatedAt: true,
-      }
+        _count: {
+          select: { leads: true },
+        },
+      },
     });
     return NextResponse.json(cards);
   } catch (error) {
@@ -29,6 +33,7 @@ export async function GET(request: Request) {
   }
 }
 
+// POST /api/cards — Create or update (upsert) a card by slug
 export async function POST(request: Request) {
   if (!isAuthorized(request)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
