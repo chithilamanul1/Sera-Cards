@@ -51,7 +51,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { slug, name, phone, notes } = body;
+    const { slug, name, phone, notes, ownerWhatsapp } = body;
 
     if (!slug || !name || !phone) {
       return NextResponse.json(
@@ -94,22 +94,24 @@ export async function POST(request: Request) {
     });
 
     // Build WhatsApp deep-link for the owner notification
-    // (owner can tap this URL from their phone to open a pre-filled chat)
+    // Dynamic per profile: uses the specific card owner's WhatsApp number!
+    const targetOwnerWhatsapp = (ownerWhatsapp ? String(ownerWhatsapp).replace(/[^0-9]/g, '') : '') || OWNER_WA;
+
     const waText = [
       `🔥 *New Lead Alert — Sera Cards*`,
       ``,
       `*Name:* ${cleanName}`,
       `*Phone:* ${cleanPhone}`,
-      `*Card:* ${cleanSlug}`,
+      `*Card Profile:* ${cleanSlug}`,
       cleanNotes ? `*Note:* ${cleanNotes}` : null,
       ``,
-      `_(Lead captured via ${cleanSlug}'s digital Sera Card)_`,
+      `_(Captured live on your Sera digital profile)_`,
     ]
       .filter(Boolean)
       .join('\n');
 
-    const ownerNotifyUrl = OWNER_WA
-      ? `https://wa.me/${OWNER_WA}?text=${encodeURIComponent(waText)}`
+    const ownerNotifyUrl = targetOwnerWhatsapp
+      ? `https://wa.me/${targetOwnerWhatsapp}?text=${encodeURIComponent(waText)}`
       : null;
 
     return NextResponse.json({

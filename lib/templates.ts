@@ -49,7 +49,7 @@ export const TEMPLATE_PRESETS = [
 
 // ─── Shared Lead Capture Script & Modal ──────────────────────────────────────
 
-function buildLeadCaptureScript(slug: string, name: string): string {
+function buildLeadCaptureScript(slug: string, name: string, waNumber: string): string {
   return `
 async function submitLead(e) {
   e.preventDefault();
@@ -64,7 +64,7 @@ async function submitLead(e) {
     var res = await fetch('/api/leads', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ slug: '${slug}', name: name, phone: phone, notes: notes })
+      body: JSON.stringify({ slug: '${slug}', ownerWhatsapp: '${waNumber}', name: name, phone: phone, notes: notes })
     });
     var data = await res.json();
     if (res.ok && data.success) {
@@ -73,7 +73,7 @@ async function submitLead(e) {
         '<p style="font-size:2rem;margin:0 0 0.5rem 0;">✓</p>' +
         '<p style="font-weight:700;color:#10b981;font-size:1.05rem;">Contact Shared!</p>' +
         '<p style="font-size:0.8rem;color:#94a3b8;margin-top:0.4rem;">${name.split(' ')[0]} will be in touch soon.</p>' +
-        (data.ownerNotifyUrl ? '<a href="' + data.ownerNotifyUrl + '" target="_blank" style="display:inline-block;margin-top:1.25rem;padding:0.6rem 1.2rem;background:#25d366;color:#fff;border-radius:999px;font-size:0.8rem;font-weight:600;text-decoration:none;">📲 Notify on WhatsApp</a>' : '') +
+        (data.ownerNotifyUrl ? '<a href="' + data.ownerNotifyUrl + '" target="_blank" style="display:inline-block;margin-top:1.25rem;padding:0.75rem 1.4rem;background:#25d366;color:#fff;border-radius:999px;font-size:0.85rem;font-weight:700;text-decoration:none;box-shadow:0 4px 14px rgba(37,211,102,0.4);">📲 Chat with ${name.split(' ')[0]} on WhatsApp</a>' : '') +
         '</div>';
     } else {
       btn.textContent = 'Try Again';
@@ -117,10 +117,9 @@ function buildLeadModal(data: TemplateData): string {
 
 export function generateTemplateHtml(presetId: string, data: TemplateData): string {
   const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'serenex.lk';
-  const fullUrl = `https://${data.slug || 'yourname'}.${rootDomain}`;
-  const leadScript = buildLeadCaptureScript(data.slug, data.name);
-  const leadModal = buildLeadModal(data);
   const waNumber = data.whatsapp.replace(/[^0-9]/g, '');
+  const leadScript = buildLeadCaptureScript(data.slug, data.name, waNumber);
+  const leadModal = buildLeadModal(data);
 
   // ════════════════════════════════════════════════════════════════
   // 1. PERSONAL VIP (Kosala Fernando Profile Layout)
