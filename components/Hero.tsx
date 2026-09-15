@@ -2,7 +2,7 @@
 
 import React from 'react'
 import { motion } from 'framer-motion'
-import { ArrowRightIcon, CloudIcon, SmartphoneIcon, WalletMinimalIcon } from 'lucide-react'
+import { ArrowRightIcon, CloudIcon, SmartphoneIcon, WalletIcon } from 'lucide-react'
 import { CardFlip } from './CardFlip'
 import type { CardConfig } from '../types/card'
 
@@ -12,7 +12,7 @@ interface HeroProps {
 
 const badges = [
   { icon: SmartphoneIcon, label: '100% compatible with iOS & Android' },
-  { icon: WalletMinimalIcon, label: 'Zero monthly fees' },
+  { icon: WalletIcon, label: 'Zero monthly fees' },
   { icon: CloudIcon, label: 'Instant cloud updates' },
 ]
 

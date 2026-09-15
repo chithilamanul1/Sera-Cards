@@ -16,7 +16,7 @@
     "@prisma/client": "^6.0.0",
     "prisma": "^6.0.0",
     "react-hot-toast": "^2.4.1",
-    "lucide-react": "^0.292.0",
+    "lucide-react": "^0.450.0",
     "framer-motion": "^11.18.2"
   },
   "devDependencies": {
