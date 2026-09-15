@@ -29,9 +29,9 @@ export const TEMPLATE_PRESETS = [
   },
   {
     id: 'company_profile',
-    name: 'Company / Business (Aura Living)',
-    badge: 'Corporate & Catalog',
-    description: 'Verified business header, cover banner, logo card, trust badges, segmented tabs (Services, Contact, LankaQR billing), and review booster.',
+    name: 'Company Profile (Aura Living)',
+    badge: 'Corporate & Portfolio',
+    description: 'Cinematic cover, verified badges, interactive portfolio carousel, core services, business hours, and LankaQR scan & pay.',
   },
   {
     id: 'executive',
@@ -47,9 +47,49 @@ export const TEMPLATE_PRESETS = [
   },
 ];
 
+// ─── Pure String Helpers ─────────────────────────────────────────────────────
+
+function cleanUrl(url?: string): string {
+  if (!url) return '';
+  return url.replace('https://', '').replace('http://', '').replace(/\/$/, '');
+}
+
+function safeVcfName(name?: string): string {
+  if (!name) return 'contact';
+  return name.trim().split(' ').join('_').replace(/[^a-zA-Z0-9_-]/g, '');
+}
+
+function escapeSingleQuote(str?: string): string {
+  if (!str) return '';
+  return str.split("'").join("\\'");
+}
+
+function getVCardPayload(data: TemplateData, fullUrl: string): string {
+  const nameToUse = data.name || data.company || 'Contact';
+  const parts = nameToUse.trim().split(/\s+/);
+  const firstName = parts[0] || '';
+  const lastName = parts.slice(1).join(' ');
+  const lines = [
+    'BEGIN:VCARD',
+    'VERSION:3.0',
+    `N:${escapeSingleQuote(lastName)};${escapeSingleQuote(firstName)};;;`,
+    `FN:${escapeSingleQuote(nameToUse)}`,
+    `ORG:${escapeSingleQuote(data.company || '')}`,
+    `TITLE:${escapeSingleQuote(data.title || '')}`,
+    `TEL;TYPE=CELL,VOICE:${data.phone || ''}`,
+    `EMAIL;TYPE=INTERNET:${data.email || ''}`,
+    `URL:${fullUrl}`,
+    data.location ? `ADR;TYPE=WORK:;;${escapeSingleQuote(data.location)};;;;` : '',
+    'NOTE:SERA Smart Card Digital Profile',
+    'END:VCARD',
+  ].filter(Boolean);
+  return lines.join('\\n');
+}
+
 // ─── Shared Lead Capture Script & Modal ──────────────────────────────────────
 
 function buildLeadCaptureScript(slug: string, name: string, waNumber: string): string {
+  const firstName = (name || 'Friend').trim().split(/\s+/)[0] || 'Friend';
   return `
 async function submitLead(e) {
   e.preventDefault();
@@ -72,8 +112,8 @@ async function submitLead(e) {
         '<div style="text-align:center;padding:2rem 0;">' +
         '<p style="font-size:2rem;margin:0 0 0.5rem 0;">✓</p>' +
         '<p style="font-weight:700;color:#10b981;font-size:1.05rem;">Contact Shared!</p>' +
-        '<p style="font-size:0.8rem;color:#94a3b8;margin-top:0.4rem;">${name.split(' ')[0]} will be in touch soon.</p>' +
-        (data.ownerNotifyUrl ? '<a href="' + data.ownerNotifyUrl + '" target="_blank" style="display:inline-block;margin-top:1.25rem;padding:0.75rem 1.4rem;background:#25d366;color:#fff;border-radius:999px;font-size:0.85rem;font-weight:700;text-decoration:none;box-shadow:0 4px 14px rgba(37,211,102,0.4);">📲 Chat with ${name.split(' ')[0]} on WhatsApp</a>' : '') +
+        '<p style="font-size:0.8rem;color:#94a3b8;margin-top:0.4rem;">${firstName} will be in touch soon.</p>' +
+        (data.ownerNotifyUrl ? '<a href="' + data.ownerNotifyUrl + '" target="_blank" style="display:inline-block;margin-top:1.25rem;padding:0.75rem 1.4rem;background:#25d366;color:#fff;border-radius:999px;font-size:0.85rem;font-weight:700;text-decoration:none;box-shadow:0 4px 14px rgba(37,211,102,0.4);">📲 Chat with ${firstName} on WhatsApp</a>' : '') +
         '</div>';
     } else {
       btn.textContent = 'Try Again';
@@ -96,11 +136,12 @@ function toggleLeadModal(show) {
 }
 
 function buildLeadModal(data: TemplateData): string {
+  const firstName = (data.name || data.company || 'Us').trim().split(/\s+/)[0] || 'Us';
   return `
 <div id="leadModal" style="position:fixed;inset:0;background:rgba(0,0,0,0.85);display:none;align-items:flex-end;justify-content:center;z-index:9999;backdrop-filter:blur(4px);" onclick="if(event.target===this)toggleLeadModal(false)">
   <div style="width:100%;max-width:448px;background:#111116;border-top-left-radius:24px;border-top-right-radius:24px;border:1px solid rgba(255,255,255,0.1);padding:1.75rem;text-align:left;color:#fff;">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;">
-      <h3 style="margin:0;font-size:1.1rem;font-weight:700;color:#fff;">Connect with ${data.name.split(' ')[0]}</h3>
+      <h3 style="margin:0;font-size:1.1rem;font-weight:700;color:#fff;">Connect with ${firstName}</h3>
       <button onclick="toggleLeadModal(false)" style="background:none;border:none;color:#94a3b8;font-size:1.5rem;cursor:pointer;line-height:1;">&times;</button>
     </div>
     <form id="leadForm" onsubmit="submitLead(event)">
@@ -117,9 +158,11 @@ function buildLeadModal(data: TemplateData): string {
 
 export function generateTemplateHtml(presetId: string, data: TemplateData): string {
   const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'serenex.lk';
+  const fullUrl = `https://${data.slug || 'yourname'}.${rootDomain}`;
   const waNumber = data.whatsapp.replace(/[^0-9]/g, '');
-  const leadScript = buildLeadCaptureScript(data.slug, data.name, waNumber);
+  const leadScript = buildLeadCaptureScript(data.slug, data.name || data.company, waNumber);
   const leadModal = buildLeadModal(data);
+  const vcardPayload = getVCardPayload(data, fullUrl);
 
   // ════════════════════════════════════════════════════════════════
   // 1. PERSONAL VIP (Kosala Fernando Profile Layout)
@@ -145,7 +188,6 @@ export function generateTemplateHtml(presetId: string, data: TemplateData): stri
 </head>
 <body class="bg-slate-950 text-slate-100 flex justify-center min-h-screen">
 
-  <!-- Mobile Container Frame -->
   <div class="w-full max-w-md bg-white text-slate-900 min-h-screen relative flex flex-col justify-between overflow-x-hidden shadow-2xl">
 
     <!-- Top Navigation -->
@@ -160,16 +202,14 @@ export function generateTemplateHtml(presetId: string, data: TemplateData): stri
 
     <!-- Hero Section (Full Viewport Profile) -->
     <div class="relative h-[65vh] w-full bg-slate-800 flex items-end">
-      <!-- Background Profile Image -->
       <img src="${avatarUrl}" 
            alt="${data.name}" 
            class="absolute inset-0 w-full h-full object-cover object-top"
            onerror="this.src='https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=800&q=80'">
       
-      <!-- Gradient Overlay for Legibility -->
       <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent"></div>
 
-      <!-- Floating Vertical Social Icons (Right) -->
+      <!-- Floating Vertical Social Icons -->
       <div class="absolute right-4 bottom-24 z-20 flex flex-col gap-2.5 bg-black/40 backdrop-blur-md p-2 rounded-2xl border border-white/10 text-white shadow-xl">
         ${data.facebook ? `<a href="${data.facebook}" target="_blank" class="w-8 h-8 flex items-center justify-center rounded-full hover:text-cyan-400 transition"><i class="fab fa-facebook-f text-sm"></i></a>` : ''}
         <a href="https://wa.me/${waNumber}" target="_blank" class="w-8 h-8 flex items-center justify-center rounded-full hover:text-green-400 transition"><i class="fab fa-whatsapp text-sm"></i></a>
@@ -182,7 +222,7 @@ export function generateTemplateHtml(presetId: string, data: TemplateData): stri
       <!-- Profile Bio Details -->
       <div class="relative z-20 p-5 text-white w-full pr-16 pb-6">
         <h1 class="text-2xl font-bold tracking-tight">${data.name}</h1>
-        <p class="text-xs font-semibold text-slate-300 mt-0.5">${data.title} · ${data.company}</p>
+        <p class="text-xs font-semibold text-slate-300 mt-0.5">${data.title} &middot; ${data.company}</p>
         ${data.bio ? `<p class="text-xs text-slate-400 mt-2 line-clamp-2 leading-relaxed">${data.bio}</p>` : ''}
         <div class="flex justify-center mt-3 text-slate-400 animate-bounce">
           <i class="fas fa-chevron-up text-xs"></i>
@@ -193,9 +233,8 @@ export function generateTemplateHtml(presetId: string, data: TemplateData): stri
     <!-- Bottom Action & Details Card -->
     <div class="bg-white rounded-t-3xl -mt-5 relative z-20 px-5 pt-6 pb-20 shadow-2xl flex-1 flex flex-col justify-between">
       
-      <!-- 3 Primary Action Buttons (Save, Connect, Share) -->
+      <!-- 3 Primary Action Buttons -->
       <div class="grid grid-cols-3 gap-3 mb-6">
-        <!-- Save Contact Button -->
         <button id="saveBtn" onclick="triggerSaveContact()" class="flex flex-col items-center justify-center p-3 bg-slate-50 hover:bg-slate-100 rounded-2xl border border-slate-200 transition active:scale-95 shadow-sm">
           <div id="saveIcon">
             <i class="fas fa-arrow-down-to-bracket text-orange-500 text-lg mb-1"></i>
@@ -203,13 +242,11 @@ export function generateTemplateHtml(presetId: string, data: TemplateData): stri
           <span id="saveText" class="text-xs font-semibold text-slate-700">Save</span>
         </button>
 
-        <!-- Connect Button (Opens Lead Capture or WhatsApp) -->
         <button onclick="toggleLeadModal(true)" class="flex flex-col items-center justify-center p-3 bg-slate-50 hover:bg-slate-100 rounded-2xl border border-slate-200 transition active:scale-95 shadow-sm">
           <i class="fas fa-handshake text-orange-500 text-lg mb-1"></i>
           <span class="text-xs font-semibold text-slate-700">Connect</span>
         </button>
 
-        <!-- Share Button -->
         <button onclick="shareProfile()" class="flex flex-col items-center justify-center p-3 bg-slate-50 hover:bg-slate-100 rounded-2xl border border-slate-200 transition active:scale-95 shadow-sm">
           <i class="fas fa-share-nodes text-orange-500 text-lg mb-1"></i>
           <span class="text-xs font-semibold text-slate-700">Share</span>
@@ -218,7 +255,6 @@ export function generateTemplateHtml(presetId: string, data: TemplateData): stri
 
       <!-- Contact Info Rows -->
       <div class="space-y-3">
-        <!-- Mobile -->
         <a href="tel:${data.phone}" class="flex items-center justify-between p-3.5 bg-slate-50/80 rounded-2xl border border-slate-100 hover:bg-slate-100/80 transition">
           <div>
             <p class="text-[10px] text-slate-400 uppercase font-semibold">Mobile Number</p>
@@ -227,7 +263,6 @@ export function generateTemplateHtml(presetId: string, data: TemplateData): stri
           <i class="fas fa-phone text-slate-400 text-sm"></i>
         </a>
 
-        <!-- WhatsApp -->
         <a href="https://wa.me/${waNumber}?text=Hi%20${encodeURIComponent(data.name)},%20I%20just%20tapped%20your%20SERA%20Card!" target="_blank" class="flex items-center justify-between p-3.5 bg-slate-50/80 rounded-2xl border border-slate-100 hover:bg-slate-100/80 transition">
           <div>
             <p class="text-[10px] text-slate-400 uppercase font-semibold">WhatsApp</p>
@@ -236,7 +271,6 @@ export function generateTemplateHtml(presetId: string, data: TemplateData): stri
           <i class="fab fa-whatsapp text-emerald-500 text-base"></i>
         </a>
 
-        <!-- Email -->
         <a href="mailto:${data.email}" class="flex items-center justify-between p-3.5 bg-slate-50/80 rounded-2xl border border-slate-100 hover:bg-slate-100/80 transition">
           <div>
             <p class="text-[10px] text-slate-400 uppercase font-semibold">Email</p>
@@ -246,17 +280,15 @@ export function generateTemplateHtml(presetId: string, data: TemplateData): stri
         </a>
 
         ${data.website ? `
-        <!-- Website -->
         <a href="${data.website}" target="_blank" class="flex items-center justify-between p-3.5 bg-slate-50/80 rounded-2xl border border-slate-100 hover:bg-slate-100/80 transition">
           <div>
             <p class="text-[10px] text-slate-400 uppercase font-semibold">Website</p>
-            <p class="text-xs font-semibold text-slate-800 mt-0.5">${data.website.replace(/https?:\\/\\//, '')}</p>
+            <p class="text-xs font-semibold text-slate-800 mt-0.5">${cleanUrl(data.website)}</p>
           </div>
           <i class="fas fa-globe text-slate-400 text-sm"></i>
         </a>` : ''}
 
         ${data.location ? `
-        <!-- Address -->
         <div class="flex items-center justify-between p-3.5 bg-slate-50/80 rounded-2xl border border-slate-100">
           <div>
             <p class="text-[10px] text-slate-400 uppercase font-semibold">Address</p>
@@ -265,7 +297,6 @@ export function generateTemplateHtml(presetId: string, data: TemplateData): stri
           <i class="fas fa-location-dot text-slate-400 text-sm"></i>
         </div>` : ''}
 
-        <!-- Company -->
         <div class="flex items-center justify-between p-3.5 bg-slate-50/80 rounded-2xl border border-slate-100">
           <div>
             <p class="text-[10px] text-slate-400 uppercase font-semibold">Company</p>
@@ -275,14 +306,12 @@ export function generateTemplateHtml(presetId: string, data: TemplateData): stri
         </div>
       </div>
 
-      <!-- LankaQR Section (if provided) -->
       ${data.lankaQrText ? `
       <div class="mt-5 p-3.5 bg-slate-50 rounded-2xl border border-slate-100 text-center">
         <p class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">💳 LankaQR & Bank Details</p>
         <p class="text-xs font-mono text-slate-700 mt-1">${data.lankaQrText}</p>
       </div>` : ''}
 
-      <!-- Footer -->
       <div class="mt-8 text-center text-[10px] text-slate-400">
         Verified Digital Identity &middot; Powered by <a href="https://${rootDomain}" target="_blank" class="font-bold text-slate-700">Sera Cards</a>
       </div>
@@ -293,42 +322,30 @@ export function generateTemplateHtml(presetId: string, data: TemplateData): stri
 
   ${leadModal}
 
-  <!-- JavaScript: vCard Generation, Share & Lead Capture -->
   <script>
     ${leadScript}
 
     function triggerSaveContact() {
-      const icon = document.getElementById('saveIcon');
-      const text = document.getElementById('saveText');
+      var icon = document.getElementById('saveIcon');
+      var text = document.getElementById('saveText');
 
       icon.innerHTML = '<i class="fas fa-circle-notch fa-spin text-orange-500 text-lg mb-1"></i>';
       text.innerText = 'Loading...';
 
-      setTimeout(() => {
-        const vcardData = \`BEGIN:VCARD
-VERSION:3.0
-N:${data.name.split(' ').slice(1).join(' ')};${data.name.split(' ')[0]};;;
-FN:${data.name}
-ORG:${data.company}
-TITLE:${data.title}
-TEL;TYPE=CELL,VOICE:${data.phone}
-EMAIL;TYPE=WORK,INTERNET:${data.email}
-URL:${fullUrl}
-${data.location ? `ADR;TYPE=WORK:;;${data.location};;;;\\n` : ''}NOTE:SERA Smart Card Contact
-END:VCARD\`;
-
-        const blob = new Blob([vcardData], { type: 'text/vcard;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
+      setTimeout(function() {
+        var vcardData = "${vcardPayload}";
+        var blob = new Blob([vcardData], { type: 'text/vcard;charset=utf-8;' });
+        var url = URL.createObjectURL(blob);
         
-        const downloadLink = document.createElement('a');
+        var downloadLink = document.createElement('a');
         downloadLink.href = url;
-        downloadLink.setAttribute('download', '${(data.slug || data.name.replace(/\\s+/g, '_'))}.vcf');
+        downloadLink.setAttribute('download', '${safeVcfName(data.slug || data.name)}.vcf');
         document.body.appendChild(downloadLink);
         downloadLink.click();
         document.body.removeChild(downloadLink);
         URL.revokeObjectURL(url);
 
-        setTimeout(() => {
+        setTimeout(function() {
           icon.innerHTML = '<i class="fas fa-arrow-down-to-bracket text-orange-500 text-lg mb-1"></i>';
           text.innerText = 'Save';
         }, 1000);
@@ -338,8 +355,8 @@ END:VCARD\`;
     function shareProfile() {
       if (navigator.share) {
         navigator.share({
-          title: '${data.name} - SERA Card',
-          text: 'Connect with ${data.name} (${data.title} at ${data.company})',
+          title: '${escapeSingleQuote(data.name)} - SERA Card',
+          text: 'Connect with ${escapeSingleQuote(data.name)} (${escapeSingleQuote(data.title)} at ${escapeSingleQuote(data.company)})',
           url: window.location.href
         });
       } else {
@@ -356,7 +373,7 @@ END:VCARD\`;
   // 2. COMPANY / BUSINESS PROFILE (Aura Living Interiors Layout)
   // ════════════════════════════════════════════════════════════════
   if (presetId === 'company_profile') {
-    const coverUrl = data.coverUrl || 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=800&q=80';
+    const coverUrl = data.coverUrl || 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=800&q=80';
     const logoUrl = data.avatarUrl || 'https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?auto=format&fit=crop&w=200&q=80';
 
     return `<!DOCTYPE html>
@@ -364,124 +381,148 @@ END:VCARD\`;
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>${data.company} | SERA Business Profile</title>
+  <title>${data.company} | SERA Business</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-    body { font-family: 'Plus Jakarta Sans', sans-serif; }
-    .tab-content { display: none; }
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; }
+    .hide-scroll::-webkit-scrollbar { display: none; }
+    .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+    .tab-content { display: none; animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
     .tab-content.active { display: block; }
+    @keyframes slideUp { 
+      from { opacity: 0; transform: translateY(10px); } 
+      to { opacity: 1; transform: translateY(0); } 
+    }
   </style>
 </head>
-<body class="bg-slate-950 text-slate-100 flex justify-center min-h-screen">
+<body class="text-slate-900 flex justify-center min-h-screen">
 
-  <!-- Mobile Frame Container -->
-  <div class="w-full max-w-md bg-white text-slate-900 min-h-screen relative flex flex-col justify-between overflow-x-hidden shadow-2xl">
+  <div class="w-full max-w-md bg-[#f8fafc] relative flex flex-col overflow-x-hidden shadow-[0_0_50px_rgba(0,0,0,0.1)] min-h-screen">
 
-    <!-- Top Navigation -->
-    <header class="absolute top-0 left-0 right-0 z-30 flex justify-between items-center px-5 py-4 bg-gradient-to-b from-black/60 to-transparent">
-      <div class="bg-white/95 backdrop-blur-md px-3 py-1 rounded-xl shadow-md flex items-center gap-2">
-        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
-        <span class="text-[11px] font-bold text-slate-800 uppercase tracking-wider">Open Now</span>
+    <!-- Sticky Glass Header -->
+    <header class="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-md z-50 flex justify-between items-center px-5 py-4 transition-all" id="header">
+      <div class="bg-white/70 backdrop-blur-lg px-3 py-1.5 rounded-full shadow-sm border border-white/50 flex items-center gap-2">
+        <span class="relative flex h-2.5 w-2.5">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+        </span>
+        <span class="text-[10px] font-bold text-slate-800 uppercase tracking-widest">Available Now</span>
       </div>
-      <a href="https://${rootDomain}" target="_blank" class="bg-black/40 backdrop-blur-md text-white border border-white/20 text-xs font-semibold px-3.5 py-1.5 rounded-full hover:bg-black/60 transition">
-        GET SERA CARD
-      </a>
+      <button onclick="shareCompany()" class="w-9 h-9 rounded-full bg-white/70 backdrop-blur-lg border border-white/50 text-slate-700 flex items-center justify-center hover:bg-white transition shadow-sm">
+        <i class="fas fa-share-nodes text-sm"></i>
+      </button>
     </header>
 
-    <div>
-      <!-- Company Cover Banner -->
-      <div class="relative h-48 w-full bg-slate-800">
-        <img src="${coverUrl}" 
-             alt="${data.company} Cover" 
-             class="w-full h-full object-cover">
-        <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
-      </div>
+    <!-- Cinematic Cover Section -->
+    <div class="relative w-full h-[35vh] bg-slate-900">
+      <img src="${coverUrl}" alt="Office Cover" class="absolute inset-0 w-full h-full object-cover opacity-90">
+      <div class="absolute inset-0 bg-gradient-to-t from-[#f8fafc] via-transparent to-black/40"></div>
+    </div>
 
-      <!-- Business Identity Header -->
-      <div class="px-5 relative z-20 -mt-12">
-        <div class="flex justify-between items-end">
-          <!-- Company Logo -->
-          <div class="w-24 h-24 rounded-2xl bg-white p-1.5 shadow-xl border border-slate-100">
-            <img src="${logoUrl}" 
-                 alt="${data.company} Logo" 
-                 class="w-full h-full object-cover rounded-xl"
-                 onerror="this.src='https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?auto=format&fit=crop&w=200&q=80'">
+    <!-- Main Identity Card -->
+    <div class="px-5 relative z-20 -mt-16">
+      <div class="bg-white p-5 rounded-3xl shadow-[0_10px_40px_rgba(0,0,0,0.06)] border border-slate-100">
+        <div class="flex justify-between items-start">
+          <div class="w-20 h-20 rounded-2xl bg-white p-1 shadow-md border border-slate-100 -mt-12 relative z-30">
+            <img src="${logoUrl}" alt="Logo" class="w-full h-full object-cover rounded-xl" onerror="this.src='https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?auto=format&fit=crop&w=200&q=80'">
           </div>
-
-          <!-- Quick Action Buttons -->
-          <div class="flex gap-2 mb-1">
-            <a href="https://wa.me/${waNumber}?text=Hi%20${encodeURIComponent(data.company)},%20I'd%20like%20to%20request%20a%20quotation!" target="_blank" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-md transition flex items-center gap-1.5">
-              <i class="fab fa-whatsapp text-sm"></i> Inquire
-            </a>
-            <button onclick="shareCompany()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 w-10 h-10 rounded-xl flex items-center justify-center border border-slate-200 transition">
-              <i class="fas fa-share-nodes text-sm"></i>
-            </button>
+          <div class="flex gap-2">
+            <span class="bg-amber-50 text-amber-600 px-2.5 py-1 rounded-lg text-[10px] font-bold border border-amber-100 flex items-center gap-1">
+              <i class="fas fa-star text-amber-400"></i> 4.9
+            </span>
+            <span class="bg-blue-50 text-blue-600 px-2.5 py-1 rounded-lg text-[10px] font-bold border border-blue-100">
+              <i class="fas fa-circle-check"></i> Verified
+            </span>
           </div>
         </div>
 
-        <!-- Business Details -->
-        <div class="mt-3">
-          <div class="flex items-center gap-2">
-            <h1 class="text-xl font-extrabold text-slate-900 tracking-tight">${data.company}</h1>
-            <i class="fas fa-certificate text-cyan-500 text-sm" title="Verified Business"></i>
-          </div>
-          <p class="text-xs font-semibold text-cyan-600 mt-0.5">${data.title || 'Official Business Profile'}</p>
-          ${data.bio ? `<p class="text-xs text-slate-500 mt-1.5 leading-relaxed">${data.bio}</p>` : ''}
+        <div class="mt-4">
+          <h1 class="text-2xl font-extrabold tracking-tight text-slate-900">${data.company}</h1>
+          <p class="text-xs font-semibold text-cyan-600 mt-1 uppercase tracking-wider">${data.title || 'Premium Architecture Studio'}</p>
+          <p class="text-xs text-slate-500 mt-3 leading-relaxed">
+            ${data.bio || 'Award-winning architectural and interior design studio based in Colombo. We transform luxury residential and commercial spaces with sustainable materials and modern aesthetics.'}
+          </p>
         </div>
 
-        <!-- Rating & Quick Trust Metrics -->
-        <div class="grid grid-cols-3 gap-2 mt-4 pt-3 border-t border-slate-100 text-center">
-          <div class="bg-slate-50 p-2 rounded-xl border border-slate-100">
-            <p class="text-xs font-bold text-slate-800">4.9 ★</p>
-            <p class="text-[10px] text-slate-400">120+ Reviews</p>
-          </div>
-          <div class="bg-slate-50 p-2 rounded-xl border border-slate-100">
-            <p class="text-xs font-bold text-slate-800">8+ Yrs</p>
-            <p class="text-[10px] text-slate-400">Experience</p>
-          </div>
-          <div class="bg-slate-50 p-2 rounded-xl border border-slate-100">
-            <p class="text-xs font-bold text-slate-800">${data.location ? data.location.split(',')[0] : 'Colombo'}</p>
-            <p class="text-[10px] text-slate-400">Location</p>
-          </div>
-        </div>
-
-        <!-- Primary Corporate CTAs -->
-        <div class="grid grid-cols-3 gap-2.5 mt-4">
-          <button id="saveBizBtn" onclick="downloadCompanyVCF()" class="flex flex-col items-center justify-center p-2.5 bg-slate-900 text-white hover:bg-slate-800 rounded-xl transition shadow-sm">
-            <i class="fas fa-address-card text-cyan-400 text-base mb-1"></i>
-            <span class="text-[11px] font-semibold">Save Contact</span>
-          </button>
-          <a href="tel:${data.phone}" class="flex flex-col items-center justify-center p-2.5 bg-slate-50 hover:bg-slate-100 text-slate-700 rounded-xl border border-slate-200 transition shadow-sm">
-            <i class="fas fa-phone-volume text-emerald-600 text-base mb-1"></i>
-            <span class="text-[11px] font-semibold">Call Hotline</span>
+        <div class="grid grid-cols-2 gap-3 mt-5">
+          <a href="https://wa.me/${waNumber}" target="_blank" class="flex items-center justify-center gap-2 bg-slate-900 text-white py-3 rounded-xl text-xs font-bold hover:bg-slate-800 transition active:scale-95 shadow-md">
+            <i class="fab fa-whatsapp text-sm text-emerald-400"></i> Chat on WhatsApp
           </a>
-          <button onclick="toggleLeadModal(true)" class="flex flex-col items-center justify-center p-2.5 bg-slate-50 hover:bg-slate-100 text-slate-700 rounded-xl border border-slate-200 transition shadow-sm">
-            <i class="fas fa-handshake text-orange-500 text-base mb-1"></i>
-            <span class="text-[11px] font-semibold">Connect</span>
-          </button>
+          <a href="mailto:${data.email}" class="flex items-center justify-center gap-2 bg-slate-50 text-slate-700 py-3 rounded-xl text-xs font-bold border border-slate-200 hover:bg-slate-100 transition active:scale-95">
+            <i class="fas fa-envelope text-sm"></i> Email Us
+          </a>
         </div>
+      </div>
+    </div>
 
-        <!-- Segmented Tab Navigation -->
-        <div class="mt-6 flex bg-slate-100 p-1 rounded-xl border border-slate-200">
-          <button onclick="switchTab('services', this)" class="tab-btn flex-1 py-1.5 text-xs font-bold text-slate-900 bg-white rounded-lg shadow-sm">Services</button>
-          <button onclick="switchTab('contact', this)" class="tab-btn flex-1 py-1.5 text-xs font-medium text-slate-500 hover:text-slate-900">Contact</button>
-          <button onclick="switchTab('pay', this)" class="tab-btn flex-1 py-1.5 text-xs font-medium text-slate-500 hover:text-slate-900">Pay / LankaQR</button>
-        </div>
+    <!-- Segmented Navigation -->
+    <div class="px-5 mt-6 sticky top-20 z-40">
+      <div class="flex bg-white/80 backdrop-blur-xl p-1.5 rounded-2xl border border-slate-200/60 shadow-sm">
+        <button onclick="switchTab('portfolio', this)" class="tab-btn flex-1 py-2 text-xs font-bold text-slate-900 bg-slate-100 rounded-xl shadow-sm transition-all">Portfolio</button>
+        <button onclick="switchTab('details', this)" class="tab-btn flex-1 py-2 text-xs font-semibold text-slate-500 hover:text-slate-900 rounded-xl transition-all">Details</button>
+        <button onclick="switchTab('payment', this)" class="tab-btn flex-1 py-2 text-xs font-semibold text-slate-500 hover:text-slate-900 rounded-xl transition-all">Payment</button>
+      </div>
+    </div>
 
-        <!-- TAB 1: SERVICES / CATALOG -->
-        <div id="tab-services" class="tab-content active mt-4 space-y-2.5 pb-8">
-          <div class="flex items-center justify-between p-3 bg-slate-50 rounded-2xl border border-slate-100">
-            <div>
-              <h4 class="text-xs font-bold text-slate-800">Primary Services & Solutions</h4>
-              <p class="text-[10px] text-slate-500 mt-0.5">Professional consultations and turnkey delivery</p>
-            </div>
-            <a href="https://wa.me/${waNumber}?text=Quote%20Request%20for%20Services" class="text-xs text-cyan-600 font-bold hover:underline">Get Quote &rarr;</a>
+    <!-- TABS CONTAINER -->
+    <div class="mt-2 pb-32">
+      
+      <!-- 1. PORTFOLIO & SERVICES TAB -->
+      <div id="tab-portfolio" class="tab-content active">
+        <div class="mt-4">
+          <div class="px-5 flex justify-between items-end mb-3">
+            <h3 class="text-sm font-extrabold text-slate-900">Featured Projects</h3>
+            <span class="text-[10px] font-bold text-cyan-600 uppercase tracking-wider">Showcase</span>
           </div>
+          <div class="flex overflow-x-auto gap-4 px-5 pb-4 hide-scroll snap-x">
+            <div class="relative w-64 h-40 rounded-2xl shrink-0 snap-center overflow-hidden shadow-md group">
+              <img src="https://images.unsplash.com/photo-1600607686527-6fb886090705?auto=format&fit=crop&w=600&q=80" alt="Project 1" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+              <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex flex-col justify-end p-4">
+                <p class="text-white font-bold text-sm">Havelock City Penthouse</p>
+                <p class="text-slate-300 text-[10px]">Residential Fit-out</p>
+              </div>
+            </div>
+            <div class="relative w-64 h-40 rounded-2xl shrink-0 snap-center overflow-hidden shadow-md group">
+              <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=600&q=80" alt="Project 2" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+              <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex flex-col justify-end p-4">
+                <p class="text-white font-bold text-sm">TechCorp Headquarters</p>
+                <p class="text-slate-300 text-[10px]">Commercial Design</p>
+              </div>
+            </div>
+            <div class="relative w-64 h-40 rounded-2xl shrink-0 snap-center overflow-hidden shadow-md group">
+              <img src="https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=600&q=80" alt="Project 3" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+              <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex flex-col justify-end p-4">
+                <p class="text-white font-bold text-sm">Galle Fort Villa</p>
+                <p class="text-slate-300 text-[10px]">Restoration</p>
+              </div>
+            </div>
+          </div>
+        </div>
 
-          <!-- Google Review Booster Card -->
-          ${data.googleReviewUrl ? `
+        <div class="px-5 mt-4">
+          <h3 class="text-sm font-extrabold text-slate-900 mb-3">Our Core Services</h3>
+          <div class="space-y-3">
+            <div class="bg-white p-3 rounded-2xl shadow-sm border border-slate-100 flex gap-4 items-center">
+              <img src="https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&w=150&q=80" class="w-16 h-16 rounded-xl object-cover">
+              <div class="flex-1">
+                <h4 class="text-xs font-bold text-slate-900">3D Architectural Rendering</h4>
+                <p class="text-[10px] text-slate-500 mt-1 line-clamp-2">High-fidelity CGI representations of your future space before construction begins.</p>
+              </div>
+            </div>
+            <div class="bg-white p-3 rounded-2xl shadow-sm border border-slate-100 flex gap-4 items-center">
+              <img src="https://images.unsplash.com/photo-1581858726788-75bc5f6a952d?auto=format&fit=crop&w=150&q=80" class="w-16 h-16 rounded-xl object-cover">
+              <div class="flex-1">
+                <h4 class="text-xs font-bold text-slate-900">Turnkey Furniture Sourcing</h4>
+                <p class="text-[10px] text-slate-500 mt-1 line-clamp-2">Importing and manufacturing custom luxury furniture tailored to your blueprint.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        ${data.googleReviewUrl ? `
+        <div class="px-5 mt-4">
           <a href="${data.googleReviewUrl}" target="_blank" class="block p-3.5 bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-200 rounded-2xl transition hover:border-amber-300">
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-2">
@@ -490,118 +531,126 @@ END:VCARD\`;
               </div>
               <span class="text-xs text-amber-600 font-extrabold">★★★★★</span>
             </div>
-          </a>` : ''}
-        </div>
-
-        <!-- TAB 2: CORPORATE CONTACT -->
-        <div id="tab-contact" class="tab-content mt-4 space-y-2.5 pb-8">
-          <a href="mailto:${data.email}" class="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
-            <div>
-              <p class="text-[10px] uppercase font-semibold text-slate-400">General Inquiries</p>
-              <p class="text-xs font-semibold text-slate-800 mt-0.5">${data.email}</p>
-            </div>
-            <i class="fas fa-envelope text-slate-400 text-sm"></i>
           </a>
+        </div>` : ''}
+      </div>
 
-          ${data.website ? `
-          <a href="${data.website}" target="_blank" class="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
+      <!-- 2. DETAILS & CONTACT TAB -->
+      <div id="tab-details" class="tab-content px-5 pt-4">
+        <h3 class="text-sm font-extrabold text-slate-900 mb-3">Key Contact</h3>
+        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex justify-between items-center mb-6">
+          <div class="flex items-center gap-3">
+            <img src="${data.avatarUrl || 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=150&q=80'}" class="w-12 h-12 rounded-full object-cover border-2 border-slate-50">
             <div>
-              <p class="text-[10px] uppercase font-semibold text-slate-400">Official Website</p>
-              <p class="text-xs font-semibold text-slate-800 mt-0.5">${data.website.replace(/https?:\\/\\//, '')}</p>
+              <p class="text-sm font-bold text-slate-900">${data.name || data.company}</p>
+              <p class="text-[10px] font-semibold text-slate-500">${data.title || 'Principal Architect'}</p>
             </div>
-            <i class="fas fa-globe text-slate-400 text-sm"></i>
-          </a>` : ''}
-
-          ${data.location ? `
-          <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
-            <div>
-              <p class="text-[10px] uppercase font-semibold text-slate-400">Office Address</p>
-              <p class="text-xs font-semibold text-slate-800 mt-0.5">${data.location}</p>
-            </div>
-            <i class="fas fa-building text-slate-400 text-sm"></i>
-          </div>` : ''}
+          </div>
+          <a href="tel:${data.phone}" class="w-8 h-8 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center hover:bg-slate-200"><i class="fas fa-phone text-xs"></i></a>
         </div>
 
-        <!-- TAB 3: BILLING & LANKAQR -->
-        <div id="tab-pay" class="tab-content mt-4 pb-8 space-y-3">
-          <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200 text-center">
-            <p class="text-xs font-bold text-slate-800 mb-2">Scan & Pay via LankaQR</p>
-            <div class="w-40 h-40 mx-auto bg-white p-2 rounded-xl border border-slate-200 shadow-sm flex items-center justify-center">
-              <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(data.lankaQrText || data.company)}" alt="LankaQR" class="w-full h-full object-contain">
+        <h3 class="text-sm font-extrabold text-slate-900 mb-3">Company Details</h3>
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 divide-y divide-slate-100">
+          <a href="https://maps.google.com" target="_blank" class="flex items-center gap-4 p-4 hover:bg-slate-50 transition">
+            <div class="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0"><i class="fas fa-location-dot"></i></div>
+            <div>
+              <p class="text-[10px] text-slate-400 uppercase tracking-widest font-bold">Studio Location</p>
+              <p class="text-sm font-bold text-slate-900">${data.location || '45/2 Ward Place, Colombo 07'}</p>
             </div>
-            <p class="text-[10px] text-slate-400 mt-2">Compatible with BOC SmartPay, Commercial Bank Q+, Flash, and all CEFT apps.</p>
-          </div>
-
-          ${data.lankaQrText ? `
-          <div class="p-3 bg-slate-50 rounded-xl border border-slate-100 text-xs">
-            <div class="flex justify-between items-center">
-              <div>
-                <p class="text-[10px] text-slate-400 uppercase font-semibold">Payment / Bank Details</p>
-                <p class="font-mono text-slate-800 mt-0.5 text-[11px]">${data.lankaQrText}</p>
+          </a>
+          <div class="flex items-center gap-4 p-4">
+            <div class="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0"><i class="fas fa-clock"></i></div>
+            <div class="w-full">
+              <p class="text-[10px] text-slate-400 uppercase tracking-widest font-bold">Business Hours</p>
+              <div class="flex justify-between mt-1 text-sm text-slate-700">
+                <span>Mon - Fri:</span> <span class="font-bold">09:00 AM - 06:00 PM</span>
               </div>
-              <button onclick="navigator.clipboard.writeText('${data.lankaQrText.replace(/'/g, "\\'")}'); alert('Payment info copied!');" class="bg-white px-2.5 py-1.5 rounded-lg border border-slate-200 text-[10px] font-bold text-slate-700">
-                Copy
+              <div class="flex justify-between mt-1 text-sm text-slate-700">
+                <span>Saturday:</span> <span class="font-bold">10:00 AM - 02:00 PM</span>
+              </div>
+            </div>
+          </div>
+          ${data.website ? `
+          <a href="${data.website}" target="_blank" class="flex items-center gap-4 p-4 hover:bg-slate-50 transition">
+            <div class="w-10 h-10 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center shrink-0"><i class="fas fa-globe"></i></div>
+            <div>
+              <p class="text-[10px] text-slate-400 uppercase tracking-widest font-bold">Website</p>
+              <p class="text-sm font-bold text-slate-900">${cleanUrl(data.website)}</p>
+            </div>
+          </a>` : ''}
+        </div>
+      </div>
+
+      <!-- 3. PAYMENT & LANKAQR TAB -->
+      <div id="tab-payment" class="tab-content px-5 pt-4">
+        <div class="bg-white p-6 rounded-3xl shadow-[0_10px_30px_rgba(0,0,0,0.05)] border border-slate-100 text-center">
+          <div class="inline-block bg-slate-50 text-slate-600 px-3 py-1 rounded-full text-[10px] font-bold tracking-widest uppercase mb-4 border border-slate-200">
+            Official Merchant
+          </div>
+          <h3 class="text-lg font-extrabold text-slate-900 mb-4">Scan & Pay (LankaQR)</h3>
+          
+          <div class="w-56 h-56 mx-auto bg-white p-3 rounded-2xl border-2 border-slate-100 shadow-sm mb-6">
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(data.lankaQrText || data.company)}" alt="LankaQR" class="w-full h-full">
+          </div>
+          
+          <div class="bg-slate-50 p-4 rounded-2xl text-left border border-slate-100">
+            <p class="text-[10px] text-slate-400 uppercase tracking-widest font-bold">Bank Transfer</p>
+            <p class="font-bold text-slate-900 text-sm mt-1">${data.company}</p>
+            <div class="flex justify-between items-center mt-1">
+              <p class="font-mono text-slate-600 text-xs">${data.lankaQrText || 'Commercial Bank: 1000 8492 1198'}</p>
+              <button onclick="navigator.clipboard.writeText('${escapeSingleQuote(data.lankaQrText || '100084921198')}'); alert('Account Number Copied!');" class="text-[10px] bg-white border border-slate-200 px-3 py-1.5 rounded-lg font-bold text-slate-700 hover:bg-slate-100 shadow-sm">
+                COPY
               </button>
             </div>
-          </div>` : ''}
+          </div>
         </div>
-
       </div>
+
     </div>
 
-    <!-- Persistent Footer -->
-    <footer class="p-4 border-t border-slate-100 text-center bg-white">
-      <p class="text-[10px] text-slate-400">Verified Business Identity • Powered by <a href="https://${rootDomain}" target="_blank" class="font-bold text-slate-700">Sera Cards</a></p>
-    </footer>
+    <!-- Floating Bottom Action Bar -->
+    <div class="fixed bottom-6 left-1/2 -translate-x-1/2 w-[calc(100%-2.5rem)] max-w-[380px] z-50">
+      <button onclick="downloadCompanyVCF()" class="w-full py-4 bg-slate-900 text-white rounded-2xl font-bold text-sm shadow-[0_15px_30px_rgba(15,23,42,0.3)] hover:bg-slate-800 transition active:scale-95 flex items-center justify-center gap-2 border border-slate-800">
+        <i class="fas fa-address-book text-cyan-400"></i> Save to Contacts
+      </button>
+    </div>
 
   </div>
 
   ${leadModal}
 
-  <!-- JavaScript: Tabs, vCard & Share -->
   <script>
     ${leadScript}
 
     function switchTab(tabId, element) {
-      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-      document.querySelectorAll('.tab-btn').forEach(el => {
-        el.classList.remove('bg-white', 'text-slate-900', 'font-bold', 'shadow-sm');
-        el.classList.add('text-slate-500', 'font-medium');
+      document.querySelectorAll('.tab-content').forEach(function(el) { el.classList.remove('active'); });
+      document.querySelectorAll('.tab-btn').forEach(function(el) {
+        el.classList.remove('bg-slate-100', 'text-slate-900', 'shadow-sm');
+        el.classList.add('text-slate-500');
       });
-
-      document.getElementById('tab-' + tabId).classList.add('active');
-      element.classList.add('bg-white', 'text-slate-900', 'font-bold', 'shadow-sm');
-      element.classList.remove('text-slate-500', 'font-medium');
+      var target = document.getElementById('tab-' + tabId);
+      if (target) target.classList.add('active');
+      if (element) {
+        element.classList.add('bg-slate-100', 'text-slate-900', 'shadow-sm');
+        element.classList.remove('text-slate-500');
+      }
     }
 
     function downloadCompanyVCF() {
-      const vcard = \`BEGIN:VCARD
-VERSION:3.0
-ORG:${data.company}
-FN:${data.company}
-TEL;TYPE=WORK,VOICE:${data.phone}
-EMAIL;TYPE=WORK:${data.email}
-URL:${data.website || fullUrl}
-${data.location ? `ADR;TYPE=WORK:;;${data.location};;;;\\n` : ''}NOTE:Official Verified Business Profile
-END:VCARD\`;
-
-      const blob = new Blob([vcard], { type: 'text/vcard;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
+      var vcard = "${vcardPayload}";
+      var blob = new Blob([vcard], { type: 'text/vcard;charset=utf-8;' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
       a.href = url;
-      a.download = '${(data.slug || data.company.replace(/\\s+/g, '_'))}.vcf';
+      a.download = '${safeVcfName(data.slug || data.company)}.vcf';
       document.body.appendChild(a);
       a.click();
-      document.body.removeChild(a);
+      setTimeout(function() { document.body.removeChild(a); URL.revokeObjectURL(url); }, 1000);
     }
 
     function shareCompany() {
       if (navigator.share) {
-        navigator.share({
-          title: '${data.company}',
-          text: 'Check out ${data.company} on Sera Cards',
-          url: window.location.href
-        });
+        navigator.share({ title: '${escapeSingleQuote(data.company)}', url: window.location.href });
       } else {
         navigator.clipboard.writeText(window.location.href);
         alert('Link copied to clipboard!');
@@ -675,12 +724,12 @@ END:VCARD\`;
   <script>
     ${leadScript}
     function downloadVCard() {
-      var lines = ['BEGIN:VCARD','VERSION:3.0','FN:${data.name}','ORG:${data.company}','TITLE:${data.title}','TEL;TYPE=CELL,VOICE:${data.phone}','EMAIL;TYPE=INTERNET:${data.email}','URL:${fullUrl}','END:VCARD'].join('\\n');
-      var blob = new Blob([lines], { type: 'text/vcard;charset=utf-8;' });
+      var vcard = "${vcardPayload}";
+      var blob = new Blob([vcard], { type: 'text/vcard;charset=utf-8;' });
       var url = URL.createObjectURL(blob);
       var a = document.createElement('a');
       a.href = url;
-      a.download = '${data.slug || 'contact'}.vcf';
+      a.download = '${safeVcfName(data.slug || data.name)}.vcf';
       document.body.appendChild(a);
       a.click();
       setTimeout(function() { document.body.removeChild(a); URL.revokeObjectURL(url); }, 1000);
@@ -739,12 +788,12 @@ END:VCARD\`;
   <script>
     ${leadScript}
     function downloadVCard() {
-      var lines = ['BEGIN:VCARD','VERSION:3.0','FN:${data.name}','ORG:${data.company}','TITLE:${data.title}','TEL;TYPE=CELL,VOICE:${data.phone}','EMAIL;TYPE=INTERNET:${data.email}','URL:${fullUrl}','END:VCARD'].join('\\n');
-      var blob = new Blob([lines], { type: 'text/vcard;charset=utf-8;' });
+      var vcard = "${vcardPayload}";
+      var blob = new Blob([vcard], { type: 'text/vcard;charset=utf-8;' });
       var url = URL.createObjectURL(blob);
       var a = document.createElement('a');
       a.href = url;
-      a.download = '${data.slug || 'contact'}.vcf';
+      a.download = '${safeVcfName(data.slug || data.name)}.vcf';
       document.body.appendChild(a);
       a.click();
       setTimeout(function() { document.body.removeChild(a); URL.revokeObjectURL(url); }, 1000);
@@ -752,5 +801,4 @@ END:VCARD\`;
   </script>
 </body>
 </html>`;
-  }
 }
