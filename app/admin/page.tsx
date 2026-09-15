@@ -37,23 +37,27 @@ export default function AdminDashboard() {
 
   // Template Injector State
   const [showTemplateModal, setShowTemplateModal] = useState<boolean>(false);
-  const [selectedPreset, setSelectedPreset] = useState<string>('executive');
+  const [selectedPreset, setSelectedPreset] = useState<string>('personal_hero');
   const [templateForm, setTemplateForm] = useState<TemplateData>({
     slug: '',
-    name: 'Chithila Manul',
-    title: 'Founder & CEO',
-    company: 'Seranex Solutions',
-    phone: '+94728382638',
-    whatsapp: '94728382638',
-    email: 'info@seranex.lk',
-    avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop',
-    bio: 'Pioneering NFC dynamic business cards and digital solutions in Sri Lanka.',
-    location: 'Colombo, Sri Lanka',
-    website: 'https://seranex.lk',
+    name: 'Kosala Fernando',
+    title: 'CEO & Founder',
+    company: 'CODEAERON',
+    phone: '+94711691008',
+    whatsapp: '947711691008',
+    email: 'kosala.codeaeron@gmail.com',
+    avatarUrl: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=800&q=80',
+    coverUrl: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=800&q=80',
+    bio: "Hi! I'm Kosala Fernando. I'm the CEO & Founder of CODEAERON.",
+    location: 'No 113A, Hakmana Road, Matara',
+    website: 'https://www.codeaeron.com',
     googleReviewUrl: '',
-    lankaQrText: 'Bank of Ceylon: 0008392810 / LankaQR: SERANEX-PAY',
-    instagram: '',
-    linkedin: '',
+    lankaQrText: 'Bank of Ceylon: 0008392810 / LankaQR: CODEAERON-PAY',
+    facebook: 'https://facebook.com',
+    instagram: 'https://instagram.com',
+    linkedin: 'https://linkedin.com',
+    tiktok: '',
+    snapchat: '',
   });
 
   // Programmer Modal State
@@ -538,7 +542,7 @@ export default function AdminDashboard() {
       {/* ── Modal 1: Template Injector ── */}
       {showTemplateModal && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 shadow-2xl">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto p-6 shadow-2xl">
             <div className="flex justify-between items-center mb-6 pb-4 border-b border-zinc-800">
               <div>
                 <h3 className="text-xl font-bold text-zinc-100">Template Injector</h3>
@@ -552,8 +556,8 @@ export default function AdminDashboard() {
               </button>
             </div>
 
-            {/* Presets Selector */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+            {/* Presets Selector (4 Presets) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
               {TEMPLATE_PRESETS.map((p) => {
                 const active = selectedPreset === p.id;
                 return (
@@ -654,19 +658,31 @@ export default function AdminDashboard() {
                 </div>
               </div>
 
-              <div>
-                <label className="text-xs text-zinc-400 block mb-1">Avatar / Photo URL</label>
-                <input
-                  type="url"
-                  value={templateForm.avatarUrl}
-                  onChange={(e) => setTemplateForm({ ...templateForm, avatarUrl: e.target.value })}
-                  placeholder="https://..."
-                  className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg text-sm text-white"
-                />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs text-zinc-400 block mb-1">Avatar / Profile Photo URL</label>
+                  <input
+                    type="url"
+                    value={templateForm.avatarUrl}
+                    onChange={(e) => setTemplateForm({ ...templateForm, avatarUrl: e.target.value })}
+                    placeholder="https://images.unsplash.com/..."
+                    className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg text-sm text-white"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-zinc-400 block mb-1">Cover Banner URL <span className="text-zinc-600">(Company Profile)</span></label>
+                  <input
+                    type="url"
+                    value={templateForm.coverUrl || ''}
+                    onChange={(e) => setTemplateForm({ ...templateForm, coverUrl: e.target.value })}
+                    placeholder="https://images.unsplash.com/..."
+                    className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg text-sm text-white"
+                  />
+                </div>
               </div>
 
               <div>
-                <label className="text-xs text-zinc-400 block mb-1">Short Bio</label>
+                <label className="text-xs text-zinc-400 block mb-1">Short Bio / Tagline</label>
                 <input
                   type="text"
                   value={templateForm.bio}
@@ -677,7 +693,7 @@ export default function AdminDashboard() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs text-zinc-400 block mb-1">Location</label>
+                  <label className="text-xs text-zinc-400 block mb-1">Location / Address</label>
                   <input
                     type="text"
                     value={templateForm.location}
@@ -711,9 +727,19 @@ export default function AdminDashboard() {
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
-                  <label className="text-xs text-zinc-400 block mb-1">📸 Instagram URL <span className="text-zinc-600">(optional)</span></label>
+                  <label className="text-xs text-zinc-400 block mb-1">Facebook URL</label>
+                  <input
+                    type="url"
+                    value={templateForm.facebook || ''}
+                    onChange={(e) => setTemplateForm({ ...templateForm, facebook: e.target.value })}
+                    placeholder="https://facebook.com/..."
+                    className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg text-sm text-white"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-zinc-400 block mb-1">📸 Instagram URL</label>
                   <input
                     type="url"
                     value={templateForm.instagram || ''}
@@ -723,7 +749,7 @@ export default function AdminDashboard() {
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-zinc-400 block mb-1">💼 LinkedIn URL <span className="text-zinc-600">(optional)</span></label>
+                  <label className="text-xs text-zinc-400 block mb-1">💼 LinkedIn URL</label>
                   <input
                     type="url"
                     value={templateForm.linkedin || ''}
