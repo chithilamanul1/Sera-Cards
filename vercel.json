@@ -1,0 +1,28 @@
+{
+  "buildCommand": "prisma generate && prisma db push && next build",
+  "installCommand": "npm install",
+  "framework": "nextjs",
+  "outputDirectory": ".next",
+  "regions": ["sin1"],
+  "env": {
+    "DATABASE_URL": "@database_url",
+    "ADMIN_SECRET": "@admin_secret",
+    "NEXT_PUBLIC_ROOT_DOMAIN": "@next_public_root_domain"
+  },
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Frame-Options", "value": "DENY" },
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
+      ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/c/:slug",
+      "destination": "/c/:slug"
+    }
+  ]
+}
