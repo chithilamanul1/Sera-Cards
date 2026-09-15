@@ -1,7 +1,5 @@
-import type { NextConfig } from 'next'
-
-const nextConfig: NextConfig = {
-  // Allow wildcard subdomains for seranex.lk and serenex.lk
+/** @type {import('next').NextConfig} */
+const nextConfig = {
   async headers() {
     return [
       {

@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request, { params }: { params: { slug: string } }) {
   try {
-    const { slug } = await params;
+    const { slug } = params;
     const cleanSlug = slug.toLowerCase().trim();
 
     const client = await prisma.client.findUnique({
