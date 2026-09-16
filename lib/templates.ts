@@ -34,6 +34,12 @@ export const TEMPLATE_PRESETS = [
     description: 'Cinematic cover, verified badges, interactive portfolio carousel, core services, business hours, and LankaQR scan & pay.',
   },
   {
+    id: 'professional_portfolio',
+    name: 'Professional Portfolio',
+    badge: 'Clean & Modern',
+    description: 'Minimal white portfolio page with tabbed navigation (Home, Projects, Experience, About, Contact), service cards, and trusted-by section.',
+  },
+  {
     id: 'executive',
     name: 'Executive Lux',
     badge: 'Luxury & Corporate',
@@ -662,7 +668,224 @@ export function generateTemplateHtml(presetId: string, data: TemplateData): stri
   }
 
   // ════════════════════════════════════════════════════════════════
-  // 3. EXECUTIVE LUX (Dark & Gold Card)
+  // 3. PROFESSIONAL PORTFOLIO (Clean White Minimal Portfolio)
+  // ════════════════════════════════════════════════════════════════
+  if (presetId === 'professional_portfolio') {
+    const avatarUrl = data.avatarUrl || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop';
+
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${data.name} | Portfolio</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: #fafaf9; color: #1c1917; min-height: 100vh; }
+    .container { max-width: 720px; margin: 0 auto; padding: 0 1.5rem; }
+
+    /* Header */
+    .profile-header { text-align: center; padding: 3.5rem 0 2rem; }
+    .avatar { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; margin: 0 auto 1.25rem; display: block; border: 3px solid #e7e5e4; }
+    .profile-name { font-size: 1.75rem; font-weight: 700; letter-spacing: -0.02em; color: #1c1917; margin-bottom: 0.35rem; }
+    .profile-tagline { font-size: 0.9rem; color: #78716c; }
+
+    /* Tabs */
+    .tabs { display: flex; justify-content: center; gap: 0.25rem; margin: 1.5rem 0 2.5rem; background: #f5f5f4; border-radius: 999px; padding: 0.3rem; max-width: 480px; margin-left: auto; margin-right: auto; }
+    .tab { padding: 0.55rem 1.2rem; border-radius: 999px; font-size: 0.8rem; font-weight: 500; color: #78716c; cursor: pointer; border: none; background: transparent; transition: all 0.2s; }
+    .tab.active { background: #fff; color: #1c1917; font-weight: 600; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+    .tab-contact { border: 1.5px solid #d6d3d1 !important; color: #1c1917 !important; font-weight: 600 !important; }
+
+    /* Tab content */
+    .tab-panel { display: none; animation: fadeIn 0.3s ease; }
+    .tab-panel.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Section */
+    .section-title { font-size: 1.75rem; font-weight: 700; letter-spacing: -0.02em; line-height: 1.2; margin-bottom: 0.75rem; }
+    .section-subtitle { font-size: 0.9rem; color: #78716c; line-height: 1.6; max-width: 480px; margin-bottom: 1.5rem; }
+
+    /* Service Cards */
+    .services-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.75rem; margin-bottom: 2.5rem; }
+    .service-card { background: #f5f5f4; border-radius: 16px; padding: 1.25rem; border: 1px solid #e7e5e4; }
+    .service-card p { font-size: 0.82rem; color: #57534e; line-height: 1.5; }
+
+    /* Contact section */
+    .contact-grid { display: grid; gap: 0.75rem; }
+    .contact-item { display: flex; align-items: center; gap: 1rem; padding: 1rem 1.25rem; background: #fff; border: 1px solid #e7e5e4; border-radius: 16px; text-decoration: none; color: #1c1917; transition: all 0.15s; }
+    .contact-item:hover { border-color: #a8a29e; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+    .contact-icon { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; }
+    .contact-label { font-size: 0.7rem; color: #a8a29e; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; }
+    .contact-value { font-size: 0.88rem; font-weight: 600; color: #1c1917; margin-top: 0.1rem; }
+
+    /* Buttons */
+    .btn-row { display: flex; gap: 0.75rem; margin-top: 1.5rem; }
+    .btn { flex: 1; padding: 0.85rem; border-radius: 14px; font-size: 0.85rem; font-weight: 600; text-align: center; text-decoration: none; cursor: pointer; border: none; transition: all 0.15s; }
+    .btn-dark { background: #1c1917; color: #fff; }
+    .btn-dark:hover { background: #292524; }
+    .btn-outline { background: #fff; color: #1c1917; border: 1.5px solid #d6d3d1; }
+    .btn-outline:hover { border-color: #a8a29e; }
+
+    /* Footer */
+    .page-footer { text-align: center; padding: 3rem 0 2rem; font-size: 0.72rem; color: #a8a29e; }
+    .page-footer a { color: #78716c; text-decoration: none; font-weight: 600; }
+
+    /* Social Icons */
+    .social-row { display: flex; justify-content: center; gap: 0.75rem; margin-top: 1.25rem; }
+    .social-link { width: 36px; height: 36px; border-radius: 10px; background: #f5f5f4; border: 1px solid #e7e5e4; display: flex; align-items: center; justify-content: center; color: #57534e; text-decoration: none; font-size: 0.9rem; transition: all 0.15s; }
+    .social-link:hover { background: #e7e5e4; color: #1c1917; }
+  </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+  <div class="container">
+    <!-- Profile Header -->
+    <div class="profile-header">
+      <img src="${avatarUrl}" alt="${data.name}" class="avatar" onerror="this.src='https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop'">
+      <h1 class="profile-name">${data.name}</h1>
+      <p class="profile-tagline">${data.title}. ${data.company}. ✨</p>
+
+      <div class="social-row">
+        ${data.linkedin ? '<a href="' + data.linkedin + '" target="_blank" class="social-link"><i class="fab fa-linkedin-in"></i></a>' : ''}
+        ${data.instagram ? '<a href="' + data.instagram + '" target="_blank" class="social-link"><i class="fab fa-instagram"></i></a>' : ''}
+        ${data.facebook ? '<a href="' + data.facebook + '" target="_blank" class="social-link"><i class="fab fa-facebook-f"></i></a>' : ''}
+        <a href="https://wa.me/${waNumber}" target="_blank" class="social-link"><i class="fab fa-whatsapp"></i></a>
+        <a href="mailto:${data.email}" class="social-link"><i class="fas fa-envelope"></i></a>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('home', this)">Home</button>
+      <button class="tab" onclick="switchTab('experience', this)">Experience</button>
+      <button class="tab" onclick="switchTab('about', this)">About</button>
+      <button class="tab tab-contact" onclick="switchTab('contact', this)">Contact</button>
+    </div>
+
+    <!-- HOME TAB -->
+    <div id="panel-home" class="tab-panel active">
+      <h2 class="section-title">${data.bio || 'Turnkey software development, support, and maintenance'}</h2>
+      <p class="section-subtitle">Professional services powered by experience and dedication to delivering results that matter.</p>
+
+      <div class="services-grid">
+        <div class="service-card">
+          <p>Full cycle, from concept to launch and beyond.</p>
+        </div>
+        <div class="service-card">
+          <p>Support, iteration, and maintenance after release.</p>
+        </div>
+        <div class="service-card">
+          <p>Solutions, integrations, and reliable operation.</p>
+        </div>
+      </div>
+
+      ${data.website ? '<div style="margin-bottom:2.5rem"><a href="' + data.website + '" target="_blank" class="btn btn-dark" style="display:inline-block;padding:0.75rem 1.75rem;">Visit Website &rarr;</a></div>' : ''}
+    </div>
+
+    <!-- EXPERIENCE TAB -->
+    <div id="panel-experience" class="tab-panel">
+      <h2 class="section-title">Professional Experience</h2>
+      <p class="section-subtitle">Career highlights and milestones.</p>
+
+      <div style="display:flex;flex-direction:column;gap:0.75rem;">
+        <div class="service-card">
+          <p style="font-weight:600;color:#1c1917;margin-bottom:0.25rem;">${data.title}</p>
+          <p style="font-size:0.78rem;">${data.company}</p>
+        </div>
+        <div class="service-card">
+          <p style="font-weight:600;color:#1c1917;margin-bottom:0.25rem;">Industry Professional</p>
+          <p style="font-size:0.78rem;">Delivering excellence across multiple domains</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ABOUT TAB -->
+    <div id="panel-about" class="tab-panel">
+      <h2 class="section-title">About ${data.name.split(' ')[0]}</h2>
+      <p class="section-subtitle">${data.bio || 'A passionate professional committed to delivering exceptional results.'}</p>
+
+      <div class="services-grid">
+        ${data.location ? '<div class="service-card"><p>📍 Based in ' + data.location + '</p></div>' : ''}
+        ${data.company ? '<div class="service-card"><p>🏢 ' + data.company + '</p></div>' : ''}
+        ${data.website ? '<div class="service-card"><p>🌐 ' + cleanUrl(data.website) + '</p></div>' : ''}
+      </div>
+    </div>
+
+    <!-- CONTACT TAB -->
+    <div id="panel-contact" class="tab-panel">
+      <h2 class="section-title">Get in Touch</h2>
+      <p class="section-subtitle">Let us connect and explore how we can work together.</p>
+
+      <div class="contact-grid">
+        <a href="tel:${data.phone}" class="contact-item">
+          <div class="contact-icon" style="background:#ecfdf5;color:#059669;">📞</div>
+          <div>
+            <p class="contact-label">Phone</p>
+            <p class="contact-value">${data.phone}</p>
+          </div>
+        </a>
+        <a href="https://wa.me/${waNumber}" target="_blank" class="contact-item">
+          <div class="contact-icon" style="background:#f0fdf4;color:#16a34a;">💬</div>
+          <div>
+            <p class="contact-label">WhatsApp</p>
+            <p class="contact-value">Chat Now</p>
+          </div>
+        </a>
+        <a href="mailto:${data.email}" class="contact-item">
+          <div class="contact-icon" style="background:#eff6ff;color:#2563eb;">✉️</div>
+          <div>
+            <p class="contact-label">Email</p>
+            <p class="contact-value">${data.email}</p>
+          </div>
+        </a>
+        ${data.website ? '<a href="' + data.website + '" target="_blank" class="contact-item"><div class="contact-icon" style="background:#faf5ff;color:#9333ea;">🌐</div><div><p class="contact-label">Website</p><p class="contact-value">' + cleanUrl(data.website) + '</p></div></a>' : ''}
+        ${data.location ? '<div class="contact-item"><div class="contact-icon" style="background:#fefce8;color:#ca8a04;">📍</div><div><p class="contact-label">Location</p><p class="contact-value">' + data.location + '</p></div></div>' : ''}
+      </div>
+
+      <div class="btn-row">
+        <button onclick="downloadVCard()" class="btn btn-dark">💾 Save Contact</button>
+        <button onclick="toggleLeadModal(true)" class="btn btn-outline">🤝 Connect</button>
+      </div>
+    </div>
+
+    <div class="page-footer">
+      Verified Digital Identity &middot; Powered by <a href="https://${rootDomain}" target="_blank">Sera Cards</a>
+    </div>
+  </div>
+
+  ${leadModal}
+
+  <script>
+    ${leadScript}
+
+    function switchTab(tabId, element) {
+      document.querySelectorAll('.tab-panel').forEach(function(el) { el.classList.remove('active'); });
+      document.querySelectorAll('.tab').forEach(function(el) { el.classList.remove('active'); });
+      var target = document.getElementById('panel-' + tabId);
+      if (target) target.classList.add('active');
+      if (element) element.classList.add('active');
+    }
+
+    function downloadVCard() {
+      var vcard = "${vcardPayload}";
+      var blob = new Blob([vcard], { type: 'text/vcard;charset=utf-8;' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = '${safeVcfName(data.slug || data.name)}.vcf';
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(function() { document.body.removeChild(a); URL.revokeObjectURL(url); }, 1000);
+    }
+  </script>
+</body>
+</html>`;
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  // 4. EXECUTIVE LUX (Dark & Gold Card)
   // ════════════════════════════════════════════════════════════════
   if (presetId === 'executive') {
     return `<!DOCTYPE html>

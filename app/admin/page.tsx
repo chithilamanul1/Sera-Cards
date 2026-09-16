@@ -22,9 +22,6 @@ type Lead = {
 };
 
 export default function AdminDashboard() {
-  const [secret, setSecret] = useState<string>('');
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  
   const [cards, setCards] = useState<Card[]>([]);
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
