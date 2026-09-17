@@ -29,9 +29,8 @@ export function Nav() {
       }`}
     >
       <div className="mx-auto flex h-16 max-w-content items-center justify-between px-5 sm:px-8">
-        <a href="#top" className="focus-ring flex items-baseline gap-2 rounded-sm">
-          <span className="text-lg font-semibold tracking-tightest text-white">SERA</span>
-          <span className="text-[11px] uppercase tracking-[0.28em] text-accent-400">Cards</span>
+        <a href="#top" className="focus-ring flex items-center gap-2 rounded-sm">
+          <img src="/logo-white.png" alt="Sera Cards" className="h-7 w-auto" />
         </a>
 
         <nav aria-label="Sections" className="hidden items-center gap-8 lg:flex">

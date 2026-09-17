@@ -25,8 +25,12 @@ const quicksand = Quicksand({
 export const metadata: Metadata = {
   title: 'Sera Cards — Smart NFC Business Cards Sri Lanka',
   description:
-    'One tap delivers your entire professional identity to any smartphone. Powered by NFC and dynamic cloud profiles — no apps required. Free island-wide delivery.',
+    'One tap delivers your entire professional identity to any smartphone. Powered by NFC and dynamic cloud profiles — no apps required. Island-wide delivery available.',
   keywords: ['NFC business card', 'digital business card', 'Sri Lanka', 'Seranex', 'smart card'],
+  icons: {
+    icon: '/favicon.png',
+    apple: '/logo-white.png',
+  },
   openGraph: {
     title: 'Sera Cards — The Last Business Card You Will Ever Need',
     description: 'One tap. Your entire professional identity. Powered by NFC.',

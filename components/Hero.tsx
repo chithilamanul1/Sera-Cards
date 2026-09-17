@@ -3,7 +3,7 @@
 import React from 'react'
 import { motion } from 'framer-motion'
 import { ArrowRightIcon, CloudIcon, SmartphoneIcon, SparklesIcon, WalletMinimalIcon } from 'lucide-react'
-import { CardFlip } from './CardFlip'
+
 import type { CardConfig } from '../types/card'
 
 interface HeroProps {
@@ -98,8 +98,12 @@ export function Hero({ config }: HeroProps) {
           aria-hidden
           className="pointer-events-none absolute bottom-[4.5rem] left-1/2 h-px w-[min(80%,620px)] -translate-x-1/2 bg-accent-400/40"
         />
-        <div className="relative">
-          <CardFlip config={config} />
+        <div className="relative flex justify-center">
+          <img 
+            src="/card-mockup.png" 
+            alt="Sera Card Front and Back" 
+            className="w-full max-w-[600px] rounded-[2rem] shadow-[0_30px_70px_-24px_rgba(0,0,0,0.9)]" 
+          />
         </div>
       </motion.div>
 

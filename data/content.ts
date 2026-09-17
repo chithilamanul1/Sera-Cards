@@ -6,6 +6,7 @@ export const brand = {
   email: 'info@seranex.lk',
   address: 'No. 20 A Amuna Rd. Seeduwa',
   priceLkr: 3500,
+  originalPriceLkr: 5000,
 }
 
 export interface Step {
@@ -138,7 +139,7 @@ export const packageIncludes = [
   'Two-way lead exchange inbox',
   'LankaQR & bank payment block',
   'Laser-etched dynamic QR on the reverse',
-  'Free island-wide delivery',
+  'Island-wide delivery available',
   'One-time purchase, zero monthly fees',
 ]
 
