@@ -16,7 +16,7 @@ export function Faq() {
             Questions, answered.
           </h2>
           <p className="mt-4 text-sm leading-relaxed text-white/50">
-            Still unsure? Message us on WhatsApp and we&apos;ll send you a live card to tap before you buy.
+            Still unsure? Message us on WhatsApp and we'll send you a live card to tap before you buy.
           </p>
         </div>
 
@@ -37,7 +37,7 @@ export function Faq() {
                     <motion.span
                       animate={{ rotate: isOpen ? 45 : 0 }}
                       transition={{ duration: 0.18, ease: [0.23, 1, 0.32, 1] }}
-                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-white/12 text-gold-400"
+                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-white/12 text-accent-400"
                     >
                       <PlusIcon className="h-4 w-4" aria-hidden />
                     </motion.span>

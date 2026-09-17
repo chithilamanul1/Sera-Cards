@@ -9,45 +9,10 @@ export function HowItWorks() {
   return (
     <section id="how" aria-labelledby="how-title" className="border-t border-white/[0.07] py-20 lg:py-28">
       <div className="mx-auto max-w-content px-5 sm:px-8">
-        {/* SIMPLE BY DESIGN intro */}
-        <div className="mb-20 grid gap-10 lg:grid-cols-2 lg:gap-16">
-          <div>
-            <motion.p
-              initial={{ opacity: 0, y: 10 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.4 }}
-              className="text-[11px] font-semibold uppercase tracking-[0.25em] text-gold-500"
-            >
-              Simple by design
-            </motion.p>
-            <motion.h2
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.05 }}
-              className="mt-4 text-4xl font-bold leading-[1.1] tracking-tightest text-white sm:text-5xl"
-            >
-              One tap. A lasting connection.
-            </motion.h2>
-          </div>
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            className="flex items-end"
-          >
-            <p className="text-base leading-relaxed text-white/45">
-              No apps, awkward searching, or manual typing. Sera turns an everyday introduction into a polished digital handoff. 
-              Your contact details, portfolio, and payment info &mdash; delivered in a single tap.
-            </p>
-          </motion.div>
-        </div>
-
-        {/* Step cards */}
         <SectionHeading
           id="how-title"
+          eyebrow="Product overview"
+          align="center"
           title="How it works."
           lead="No app to download, no account for them to make, no typing. This is the entire interaction, from handshake to saved contact."
         />
@@ -63,8 +28,8 @@ export function HowItWorks() {
               className="flex flex-col bg-ink-950 p-7 lg:p-9"
             >
               <div className="flex items-center justify-between">
-                <span className="font-serif text-3xl text-gold-500">{String(i + 1).padStart(2, '0')}</span>
-                <span className="rounded-full border border-cyan-500/25 px-2.5 py-1 text-[10px] uppercase tracking-[0.18em] text-cyan-400">
+                <span className="font-serif text-3xl text-accent-400">{String(i + 1).padStart(2, '0')}</span>
+                <span className="rounded-full border border-accent-500/25 px-2.5 py-1 text-[10px] uppercase tracking-[0.18em] text-accent-400">
                   {step.detail}
                 </span>
               </div>

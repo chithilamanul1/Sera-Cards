@@ -11,6 +11,7 @@ export function Comparison() {
       <div className="mx-auto max-w-content px-5 sm:px-8">
         <SectionHeading
           id="compare-title"
+          eyebrow="The comparison"
           title="Traditional paper cards vs. Sera Cards."
           lead="A box of 500 printed cards is a fixed snapshot of one moment in your career. A Sera Card is one card, kept current for years."
         />
@@ -26,7 +27,7 @@ export function Comparison() {
                 <th scope="col" className="w-[39%] px-6 py-4 text-sm font-medium text-white/50">
                   Paper business card
                 </th>
-                <th scope="col" className="w-[39%] bg-gold-500/[0.05] px-6 py-4 text-sm font-semibold text-gold-400">
+                <th scope="col" className="w-[39%] bg-accent-500/[0.07] px-6 py-4 text-sm font-semibold text-accent-400">
                   Sera Card
                 </th>
               </tr>
@@ -43,9 +44,9 @@ export function Comparison() {
                       {row.paper}
                     </span>
                   </td>
-                  <td className="bg-gold-500/[0.04] px-6 py-6 align-top text-sm leading-relaxed text-white/75">
+                  <td className="bg-accent-500/[0.05] px-6 py-6 align-top text-sm leading-relaxed text-white/75">
                     <span className="flex gap-3">
-                      <CheckIcon className="mt-0.5 h-4 w-4 shrink-0 text-gold-400" aria-hidden />
+                      <CheckIcon className="mt-0.5 h-4 w-4 shrink-0 text-accent-400" aria-hidden />
                       {row.sera}
                     </span>
                   </td>
@@ -67,10 +68,10 @@ export function Comparison() {
                     {row.paper}
                   </span>
                 </p>
-                <p className="flex gap-3 rounded-xl bg-gold-500/[0.05] p-3 text-sm leading-relaxed text-white/75">
-                  <CheckIcon className="mt-0.5 h-4 w-4 shrink-0 text-gold-400" aria-hidden />
+                <p className="flex gap-3 rounded-xl bg-accent-500/[0.06] p-3 text-sm leading-relaxed text-white/75">
+                  <CheckIcon className="mt-0.5 h-4 w-4 shrink-0 text-accent-400" aria-hidden />
                   <span>
-                    <span className="block text-xs uppercase tracking-[0.14em] text-gold-400/70">Sera</span>
+                    <span className="block text-xs uppercase tracking-[0.14em] text-accent-400/70">Sera</span>
                     {row.sera}
                   </span>
                 </p>

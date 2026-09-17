@@ -13,7 +13,7 @@ interface CustomizerProps {
 }
 
 const inputClass =
-  'focus-ring mt-2 w-full rounded-xl border border-white/10 bg-ink-900 px-4 py-3 text-sm text-white placeholder-white/30 transition-colors duration-150 ease-smooth hover:border-white/20 focus:border-gold-500'
+  'focus-ring mt-2 w-full rounded-xl border border-white/10 bg-ink-900 px-4 py-3 text-sm text-white placeholder-white/30 transition-colors duration-150 ease-smooth hover:border-white/20 focus:border-accent-500'
 
 export function Customizer({ api }: CustomizerProps) {
   const { config, setBusiness, setTagline, setName, setTitle, setSlug, setMaterial } = api
@@ -26,11 +26,12 @@ export function Customizer({ api }: CustomizerProps) {
     >
       <div
         aria-hidden
-        className="pointer-events-none absolute left-1/2 top-1/3 h-[420px] w-[720px] -translate-x-1/2 rounded-full bg-gold-500/[0.05] blur-[130px]"
+        className="pointer-events-none absolute left-1/2 top-1/3 h-[420px] w-[720px] -translate-x-1/2 rounded-full bg-accent-500/[0.07] blur-[130px]"
       />
       <div className="relative mx-auto max-w-content px-5 sm:px-8">
         <SectionHeading
           id="customize-title"
+          eyebrow="Live customizer"
           align="center"
           title="Design it now. See it instantly."
           lead="Type your details, pick your finish, and watch the card update live. What you build here is exactly what we print and ship."
@@ -129,7 +130,7 @@ export function Customizer({ api }: CustomizerProps) {
                       aria-pressed={active}
                       className={`focus-ring flex items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition-[border-color,background-color,transform] duration-150 ease-smooth active:scale-[0.98] ${
                         active
-                          ? 'border-gold-500 bg-gold-500/[0.08]'
+                          ? 'border-accent-500 bg-accent-500/[0.08]'
                           : 'border-white/10 bg-white/[0.02] hover:border-white/25'
                       }`}
                     >
@@ -139,7 +140,7 @@ export function Customizer({ api }: CustomizerProps) {
                         style={m.swatch}
                       />
                       <span className="min-w-0 flex-1 truncate text-xs font-medium text-white/80">{m.name}</span>
-                      {active ? <CheckIcon className="h-3.5 w-3.5 shrink-0 text-gold-400" aria-hidden /> : null}
+                      {active ? <CheckIcon className="h-3.5 w-3.5 shrink-0 text-accent-400" aria-hidden /> : null}
                     </button>
                   )
                 })}
@@ -150,7 +151,7 @@ export function Customizer({ api }: CustomizerProps) {
               <label htmlFor="card-slug" className="text-xs font-medium uppercase tracking-[0.16em] text-white/45">
                 Your sub-page address
               </label>
-              <div className="mt-2 flex items-stretch overflow-hidden rounded-xl border border-white/10 bg-ink-900 transition-colors duration-150 ease-smooth focus-within:border-gold-500">
+              <div className="mt-2 flex items-stretch overflow-hidden rounded-xl border border-white/10 bg-ink-900 transition-colors duration-150 ease-smooth focus-within:border-accent-500">
                 <input
                   id="card-slug"
                   type="text"
@@ -160,7 +161,7 @@ export function Customizer({ api }: CustomizerProps) {
                   aria-describedby="slug-hint"
                   className="min-w-0 flex-1 bg-transparent px-4 py-3 text-sm text-white placeholder-white/30 outline-none"
                 />
-                <span className="flex items-center gap-1.5 border-l border-white/10 bg-white/[0.03] px-3 font-mono text-xs text-gold-400">
+                <span className="flex items-center gap-1.5 border-l border-white/10 bg-white/[0.03] px-3 font-mono text-xs text-accent-400">
                   <GlobeIcon className="h-3.5 w-3.5" aria-hidden />.{brand.domain}
                 </span>
               </div>
@@ -171,7 +172,7 @@ export function Customizer({ api }: CustomizerProps) {
 
             <a
               href="#pricing"
-              className="focus-ring inline-flex w-full items-center justify-center rounded-full bg-white px-6 py-3.5 text-sm font-semibold text-ink-950 transition-[transform,background-color] duration-150 ease-smooth hover:bg-gold-400 active:scale-[0.98]"
+              className="focus-ring inline-flex w-full items-center justify-center rounded-full bg-accent-500 px-6 py-3.5 text-sm font-semibold text-ink-950 shadow-[0_0_40px_-12px_rgba(18,185,129,0.9)] transition-[transform,background-color] duration-150 ease-smooth hover:bg-accent-400 active:scale-[0.98]"
             >
               Continue to order
             </a>

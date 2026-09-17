@@ -71,35 +71,19 @@ export default function AdminDashboard() {
     return generateTemplateHtml(selectedPreset, { ...templateForm, slug: currentSlug });
   }, [editorMode, rawHtmlContent, selectedPreset, templateForm, slug]);
 
-  // Check session storage on mount
+  // Fetch cards and leads on mount (auth handled by cookies)
   useEffect(() => {
-    const savedSecret = sessionStorage.getItem('adminSecret');
-    if (savedSecret) {
-      setSecret(savedSecret);
-      setIsAuthenticated(true);
-    } else {
-      setLoading(false);
-    }
+    fetchCards();
+    fetchLeads();
   }, []);
-
-  // Fetch cards and leads when authenticated
-  useEffect(() => {
-    if (isAuthenticated && secret) {
-      fetchCards();
-      fetchLeads();
-    }
-  }, [isAuthenticated, secret]);
 
   const fetchCards = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/cards', {
-        headers: { 'x-admin-secret': secret },
-      });
+      const res = await fetch('/api/cards');
       if (!res.ok) {
         if (res.status === 401) {
-          toast.error('Invalid admin secret');
-          handleLogout();
+          window.location.href = '/login';
           return;
         }
         throw new Error('Failed to fetch cards');
@@ -115,9 +99,7 @@ export default function AdminDashboard() {
 
   const fetchLeads = async () => {
     try {
-      const res = await fetch('/api/leads', {
-        headers: { 'x-admin-secret': secret },
-      });
+      const res = await fetch('/api/leads');
       if (res.ok) {
         const data = await res.json();
         setLeads(data);

@@ -1,5 +1,3 @@
-'use client'
-
 import { useCallback, useRef, useState } from 'react'
 import type { CardConfig, MaterialId } from '../types/card'
 

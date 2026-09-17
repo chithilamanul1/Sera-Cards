@@ -36,13 +36,13 @@ export function Pricing({ config }: PricingProps) {
     >
       <div
         aria-hidden
-        className="pointer-events-none absolute left-1/2 top-0 h-[360px] w-[760px] -translate-x-1/2 rounded-full bg-gold-500/[0.07] blur-[130px]"
+        className="pointer-events-none absolute left-1/2 top-0 h-[360px] w-[760px] -translate-x-1/2 rounded-full bg-accent-500/[0.09] blur-[130px]"
       />
       <div className="relative mx-auto max-w-content px-5 sm:px-8">
-        <div className="overflow-hidden rounded-3xl border border-gold-500/25 bg-ink-950/80">
+        <div className="overflow-hidden rounded-3xl border border-accent-500/25 bg-ink-950/80 shadow-[0_0_120px_-60px_rgba(18,185,129,1)]">
           <div className="grid lg:grid-cols-[1.15fr_0.85fr]">
             <div className="p-7 sm:p-10 lg:p-12">
-              <p className="text-[11px] uppercase tracking-[0.28em] text-gold-500">Most popular package</p>
+              <p className="text-[11px] uppercase tracking-[0.28em] text-accent-400">Most popular package</p>
               <h2 id="pricing-title" className="mt-4 text-3xl font-semibold tracking-tightest text-white sm:text-4xl">
                 Sera PVC Pro
               </h2>
@@ -54,7 +54,7 @@ export function Pricing({ config }: PricingProps) {
               <ul className="mt-9 grid gap-3 sm:grid-cols-2">
                 {packageIncludes.map((item) => (
                   <li key={item} className="flex gap-3 text-sm text-white/65">
-                    <CheckIcon className="mt-0.5 h-4 w-4 shrink-0 text-gold-400" aria-hidden />
+                    <CheckIcon className="mt-0.5 h-4 w-4 shrink-0 text-accent-400" aria-hidden />
                     {item}
                   </li>
                 ))}
@@ -69,7 +69,7 @@ export function Pricing({ config }: PricingProps) {
                     {brand.priceLkr.toLocaleString('en-US')}
                   </span>
                 </div>
-                <p className="mt-2 flex items-center gap-2 text-sm text-cyan-400">
+                <p className="mt-2 flex items-center gap-2 text-sm text-accent-400">
                   <TruckIcon className="h-4 w-4" aria-hidden />
                   Free delivery island-wide
                 </p>
@@ -89,7 +89,7 @@ export function Pricing({ config }: PricingProps) {
                   </div>
                   <div className="flex justify-between gap-4">
                     <dt className="text-white/40">Sub-page</dt>
-                    <dd className="truncate font-mono text-xs text-gold-400">
+                    <dd className="truncate font-mono text-xs text-accent-400">
                       {(config.slug || 'yourname')}.{brand.domain}
                     </dd>
                   </div>
@@ -101,7 +101,7 @@ export function Pricing({ config }: PricingProps) {
                   href={buildWhatsappUrl(config)}
                   target="_blank"
                   rel="noreferrer"
-                  className="focus-ring inline-flex w-full items-center justify-center gap-2 rounded-full bg-gold-500 px-6 py-4 text-sm font-semibold text-ink-950 transition-[transform,background-color] duration-150 ease-smooth hover:bg-gold-400 active:scale-[0.98]"
+                  className="focus-ring inline-flex w-full items-center justify-center gap-2 rounded-full bg-accent-500 px-6 py-4 text-sm font-semibold text-ink-950 shadow-[0_0_50px_-12px_rgba(18,185,129,0.9)] transition-[transform,background-color] duration-150 ease-smooth hover:bg-accent-400 active:scale-[0.98]"
                 >
                   Order via WhatsApp
                 </a>

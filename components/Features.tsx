@@ -5,9 +5,8 @@ import { motion } from 'framer-motion'
 import { ArrowLeftRightIcon, GlobeIcon, LockIcon, QrCodeIcon, StarIcon } from 'lucide-react'
 import { features } from '../data/content'
 import { SectionHeading } from './SectionHeading'
-import type { LucideIcon } from 'lucide-react'
 
-const icons: Record<string, LucideIcon> = {
+const icons: Record<string, any> = {
   exchange: ArrowLeftRightIcon,
   payment: QrCodeIcon,
   review: StarIcon,
@@ -24,7 +23,8 @@ export function Features() {
       <div className="mx-auto max-w-content px-5 sm:px-8">
         <SectionHeading
           id="features-title"
-          title="Core capabilities & features."
+          eyebrow="Core capabilities"
+          title="Not just a card. A conversion engine."
           lead="Everything below runs from your cloud portal, and works the second someone taps."
         />
 
@@ -34,10 +34,10 @@ export function Features() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.3 }}
             transition={{ duration: 0.28, ease: [0.23, 1, 0.32, 1] }}
-            className="relative flex flex-col justify-between overflow-hidden rounded-2xl border border-gold-500/25 bg-gold-500/[0.05] p-7 sm:p-9 lg:col-span-2"
+            className="relative flex flex-col justify-between overflow-hidden rounded-2xl border border-accent-500/25 bg-accent-500/[0.06] p-7 shadow-[0_0_80px_-40px_rgba(18,185,129,0.9)] sm:p-9 lg:col-span-2"
           >
             <div className="max-w-xl">
-              <span className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-gold-500 text-ink-950">
+              <span className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-accent-500 text-ink-950">
                 <FeaturedIcon className="h-5 w-5" aria-hidden />
               </span>
               <h3 className="mt-6 text-2xl font-semibold tracking-tight text-white sm:text-3xl">
@@ -51,7 +51,7 @@ export function Features() {
                   {chip}
                 </span>
               ))}
-              <span className="rounded-full bg-cyan-500/15 px-3 py-1.5 text-xs font-medium text-cyan-400">
+              <span className="rounded-full bg-accent-500/15 px-3 py-1.5 text-xs font-medium text-accent-300">
                 → Straight to your inbox
               </span>
             </div>
@@ -68,7 +68,7 @@ export function Features() {
                 transition={{ duration: 0.28, delay: i * 0.04, ease: [0.23, 1, 0.32, 1] }}
                 className="flex gap-4 rounded-2xl border border-white/[0.07] bg-ink-950/50 p-6 transition-colors duration-150 ease-smooth hover:border-white/20"
               >
-                <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/[0.06] text-cyan-400">
+                <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/[0.06] text-accent-400">
                   <Icon className="h-4 w-4" aria-hidden />
                 </span>
                 <div>

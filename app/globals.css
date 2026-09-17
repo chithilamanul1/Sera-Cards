@@ -13,9 +13,10 @@
   --color-ink-800: #16161b;
   --color-ink-700: #1f1f26;
 
-  --color-gold-400: #e0c274;
-  --color-gold-500: #c9a24a;
-  --color-gold-600: #a8832f;
+  --color-accent-300: #7bf0b8;
+  --color-accent-400: #3ee08f;
+  --color-accent-500: #12b981;
+  --color-accent-600: #0a8f63;
 
   --color-cyan-400: #5fe3e0;
   --color-cyan-500: #22c9c6;
@@ -41,8 +42,8 @@ body {
 }
 
 ::selection {
-  background-color: #c9a24a;
-  color: #0a0a0b;
+  background-color: #12b981;
+  color: #04120c;
 }
 
 .preserve-3d {
@@ -59,6 +60,6 @@ body {
 }
 
 .focus-ring:focus-visible {
-  outline: 2px solid #c9a24a;
+  outline: 2px solid #3ee08f;
   outline-offset: 3px;
 }

@@ -1,3 +1,5 @@
+'use client'
+
 import React from 'react'
 import { specs } from '../data/content'
 
@@ -15,7 +17,7 @@ export function TechSpecs() {
         <dl className="mt-12 grid gap-10 border-t border-white/[0.07] pt-10 sm:grid-cols-2 sm:gap-8 lg:grid-cols-4">
           {specs.map((spec) => (
             <div key={spec.label} className="flex flex-col">
-              <dt className="text-xs font-medium uppercase tracking-[0.18em] text-gold-500">{spec.label}</dt>
+              <dt className="text-xs font-medium uppercase tracking-[0.18em] text-accent-400">{spec.label}</dt>
               <dd className="mt-3 flex flex-1 flex-col">
                 <span className="text-lg font-medium text-white">{spec.value}</span>
                 <span className="mt-3 text-sm leading-relaxed text-white/50">{spec.body}</span>

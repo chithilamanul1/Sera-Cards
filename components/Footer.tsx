@@ -1,3 +1,5 @@
+'use client'
+
 import React from 'react'
 import { MailIcon, MapPinIcon } from 'lucide-react'
 import { brand } from '../data/content'
@@ -9,7 +11,7 @@ export function Footer() {
         <div>
           <div className="flex items-baseline gap-2">
             <span className="text-base font-semibold tracking-tightest text-white">SERA</span>
-            <span className="text-[10px] uppercase tracking-[0.28em] text-gold-500">Cards</span>
+            <span className="text-[10px] uppercase tracking-[0.28em] text-accent-400">Cards</span>
           </div>
           <p className="mt-2 text-sm text-white/40">
             NFC smart business cards by Serenex · {brand.domain}
