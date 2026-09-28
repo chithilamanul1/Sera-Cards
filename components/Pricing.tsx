@@ -1,32 +1,22 @@
-'use client'
+'use client';
 
-import React from 'react'
-import { CheckIcon, TruckIcon } from 'lucide-react'
-import { brand, packageIncludes } from '../data/content'
-import { getMaterial } from '../data/materials'
-import type { CardConfig } from '../types/card'
+import React, { useState } from 'react';
+import { CheckIcon, TruckIcon, CreditCardIcon, MessageSquareIcon, SparklesIcon } from 'lucide-react';
+import { brand, packageIncludes } from '../data/content';
+import { getMaterial } from '../data/materials';
+import type { CardConfig } from '../types/card';
+import { OrderModal } from './OrderModal';
 
 interface PricingProps {
-  config: CardConfig
-}
-
-function buildWhatsappUrl(config: CardConfig): string {
-  const material = getMaterial(config.materialId)
-  const message = [
-    `Hi Serenex — I'd like to order a Sera PVC Pro card (LKR ${brand.priceLkr.toLocaleString('en-US')}).`,
-    '',
-    `Brand wordmark (front): ${config.business.trim() || '—'}`,
-    `Tagline (front): ${config.tagline.trim() || '—'}`,
-    `Name on card: ${config.name.trim() || '—'}`,
-    `Designation: ${config.title.trim() || '—'}`,
-    `Finish: ${material.name}`,
-    `Preferred sub-page: ${(config.slug || 'yourname')}.${brand.domain}`,
-  ].join('\n')
-  return `https://wa.me/${brand.whatsapp}?text=${encodeURIComponent(message)}`
+  config: CardConfig;
 }
 
 export function Pricing({ config }: PricingProps) {
-  const material = getMaterial(config.materialId)
+  const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
+  const material = getMaterial(config.materialId);
+
+  const originalPrice = brand.originalPriceLkr || 5000;
+  const currentPrice = brand.priceLkr || 3500;
 
   return (
     <section
@@ -41,17 +31,21 @@ export function Pricing({ config }: PricingProps) {
       <div className="relative mx-auto max-w-content px-5 sm:px-8">
         <div className="overflow-hidden rounded-3xl border border-accent-500/25 bg-ink-950/80 shadow-[0_0_120px_-60px_rgba(18,185,129,1)]">
           <div className="grid lg:grid-cols-[1.15fr_0.85fr]">
+            {/* Left Column: Package Details */}
             <div className="p-7 sm:p-10 lg:p-12">
-              <p className="text-[11px] uppercase tracking-[0.28em] text-accent-400">Most popular package</p>
+              <div className="inline-flex items-center gap-1.5 rounded-full border border-accent-500/30 bg-accent-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-accent-400">
+                <SparklesIcon className="h-3 w-3" />
+                Limited Promotional Offer
+              </div>
               <h2 id="pricing-title" className="mt-4 text-3xl font-semibold tracking-tightest text-white sm:text-4xl">
-                Sera PVC Pro
+                Sera PVC Pro Card
               </h2>
               <p className="mt-4 max-w-lg text-base leading-relaxed text-white/55">
-                One card, printed with your logo, linked to a dashboard you control for life. No subscription,
-                no renewal, no reprints.
+                One card, custom printed with your brand logo, connected to your cloud portal for life.
+                No subscription, no renewal fees, zero reprints.
               </p>
 
-              <ul className="mt-9 grid gap-3 sm:grid-cols-2">
+              <ul className="mt-8 grid gap-3 sm:grid-cols-2">
                 {packageIncludes.map((item) => (
                   <li key={item} className="flex gap-3 text-sm text-white/65">
                     <CheckIcon className="mt-0.5 h-4 w-4 shrink-0 text-accent-400" aria-hidden />
@@ -59,22 +53,32 @@ export function Pricing({ config }: PricingProps) {
                   </li>
                 ))}
               </ul>
+
+              <div className="mt-6 rounded-2xl border border-white/5 bg-white/[0.02] p-4 text-xs text-white/50">
+                <span className="font-semibold text-white/70">Finish Note:</span> Standard ultra-durable
+                high-gloss PVC finish is included at this discounted price. Matte finish is not offered under
+                this promotional package.
+              </div>
             </div>
 
+            {/* Right Column: Pricing & Checkout Actions */}
             <div className="flex flex-col justify-between gap-8 border-t border-white/[0.07] bg-white/[0.02] p-7 sm:p-10 lg:border-l lg:border-t-0 lg:p-12">
               <div>
-                <div className="flex items-baseline gap-2">
+                <div className="flex items-baseline gap-3">
                   <span className="text-sm font-medium text-white/45">LKR</span>
                   <span className="text-5xl font-semibold tracking-tightest text-white">
-                    {brand.priceLkr.toLocaleString('en-US')}
+                    {currentPrice.toLocaleString('en-US')}
+                  </span>
+                  <span className="text-xl text-white/35 line-through">
+                    LKR {originalPrice.toLocaleString('en-US')}
                   </span>
                 </div>
                 <p className="mt-2 flex items-center gap-2 text-sm text-accent-400">
                   <TruckIcon className="h-4 w-4" aria-hidden />
-                  Free delivery island-wide
+                  Island-wide delivery available
                 </p>
 
-                <dl className="mt-8 space-y-3 border-t border-white/[0.07] pt-6 text-sm">
+                <dl className="mt-6 space-y-2.5 border-t border-white/[0.07] pt-5 text-sm">
                   <div className="flex justify-between gap-4">
                     <dt className="text-white/40">Brand on front</dt>
                     <dd className="truncate font-medium text-white">{config.business.trim() || '—'}</dd>
@@ -84,7 +88,7 @@ export function Pricing({ config }: PricingProps) {
                     <dd className="truncate font-medium text-white">{config.name.trim() || '—'}</dd>
                   </div>
                   <div className="flex justify-between gap-4">
-                    <dt className="text-white/40">Finish</dt>
+                    <dt className="text-white/40">Selected Finish</dt>
                     <dd className="font-medium text-white">{material.name}</dd>
                   </div>
                   <div className="flex justify-between gap-4">
@@ -96,23 +100,40 @@ export function Pricing({ config }: PricingProps) {
                 </dl>
               </div>
 
-              <div>
-                <a
-                  href={buildWhatsappUrl(config)}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="focus-ring inline-flex w-full items-center justify-center gap-2 rounded-full bg-accent-500 px-6 py-4 text-sm font-semibold text-ink-950 shadow-[0_0_50px_-12px_rgba(18,185,129,0.9)] transition-[transform,background-color] duration-150 ease-smooth hover:bg-accent-400 active:scale-[0.98]"
+              <div className="space-y-3">
+                <button
+                  type="button"
+                  onClick={() => setIsOrderModalOpen(true)}
+                  className="focus-ring inline-flex w-full items-center justify-center gap-2 rounded-full bg-accent-500 px-6 py-4 text-sm font-semibold text-ink-950 shadow-[0_0_50px_-12px_rgba(18,185,129,0.9)] transition-all duration-150 hover:bg-accent-400 active:scale-[0.98]"
                 >
+                  <CreditCardIcon className="h-4 w-4" />
+                  Order Online (PayHere / Card)
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setIsOrderModalOpen(true)}
+                  className="focus-ring inline-flex w-full items-center justify-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-6 py-3.5 text-sm font-medium text-white transition-all duration-150 hover:border-white/20 hover:bg-white/[0.08]"
+                >
+                  <MessageSquareIcon className="h-4 w-4 text-accent-400" />
                   Order via WhatsApp
-                </a>
-                <p className="mt-3 text-center text-xs text-white/40">
-                  Your name and chosen finish are pre-filled in the message.
+                </button>
+
+                <p className="text-center text-xs text-white/40">
+                  Secure checkout powered by PayHere & instant WhatsApp confirmation.
                 </p>
               </div>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Interactive Order Modal */}
+      <OrderModal
+        isOpen={isOrderModalOpen}
+        onClose={() => setIsOrderModalOpen(false)}
+        initialConfig={config}
+      />
     </section>
-  )
+  );
 }

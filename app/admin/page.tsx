@@ -21,11 +21,36 @@ type Lead = {
   createdAt: string;
 };
 
+type Order = {
+  id: string;
+  orderNumber: string;
+  customerName: string;
+  customerPhone: string;
+  customerEmail: string | null;
+  deliveryAddress: string;
+  city: string | null;
+  brandName: string;
+  tagline: string | null;
+  nameOnCard: string;
+  designation: string | null;
+  slug: string;
+  finish: string;
+  logoUrl: string | null;
+  unitPrice: number;
+  deliveryFee: number;
+  totalAmount: number;
+  paymentMethod: string;
+  paymentStatus: string;
+  orderStatus: string;
+  createdAt: string;
+};
+
 export default function AdminDashboard() {
   const [cards, setCards] = useState<Card[]>([]);
   const [leads, setLeads] = useState<Lead[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [activeTab, setActiveTab] = useState<'studio' | 'cards' | 'leads'>('studio');
+  const [activeTab, setActiveTab] = useState<'studio' | 'cards' | 'leads' | 'orders'>('studio');
   
   // Studio & Builder State
   const [editorMode, setEditorMode] = useState<'visual' | 'raw'>('visual');
@@ -71,10 +96,11 @@ export default function AdminDashboard() {
     return generateTemplateHtml(selectedPreset, { ...templateForm, slug: currentSlug });
   }, [editorMode, rawHtmlContent, selectedPreset, templateForm, slug]);
 
-  // Fetch cards and leads on mount (auth handled by cookies)
+  // Fetch cards, leads, and orders on mount
   useEffect(() => {
     fetchCards();
     fetchLeads();
+    fetchOrders();
   }, []);
 
   const fetchCards = async () => {
@@ -106,6 +132,36 @@ export default function AdminDashboard() {
       }
     } catch (error) {
       console.error('Failed to load leads:', error);
+    }
+  };
+
+  const fetchOrders = async () => {
+    try {
+      const res = await fetch('/api/orders');
+      if (res.ok) {
+        const data = await res.json();
+        setOrders(data);
+      }
+    } catch (error) {
+      console.error('Failed to load orders:', error);
+    }
+  };
+
+  const handleUpdateOrderStatus = async (orderId: string, orderStatus: string, paymentStatus?: string) => {
+    try {
+      const res = await fetch(`/api/orders/${orderId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderStatus, ...(paymentStatus ? { paymentStatus } : {}) }),
+      });
+      if (res.ok) {
+        toast.success(`Order updated to ${orderStatus}`);
+        fetchOrders();
+      } else {
+        toast.error('Failed to update order');
+      }
+    } catch (error) {
+      toast.error('Failed to update order');
     }
   };
 
@@ -258,6 +314,14 @@ export default function AdminDashboard() {
               }`}
             >
               📬 Captured Leads ({leads.length})
+            </button>
+            <button
+              onClick={() => { setActiveTab('orders'); fetchOrders(); }}
+              className={`px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                activeTab === 'orders' ? 'bg-emerald-600 text-white shadow-md' : 'text-zinc-400 hover:text-white'
+              }`}
+            >
+              🛒 Orders ({orders.length})
             </button>
           </div>
 
@@ -855,6 +919,149 @@ export default function AdminDashboard() {
                             target="_blank"
                             rel="noreferrer"
                             className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-lg text-xs font-semibold transition-colors"
+                          >
+                            💬 WhatsApp
+                          </a>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </section>
+        )}
+
+        {/* ══════════════════════════════════════════════════════════════════
+            WORKSPACE 4: CUSTOMER ORDERS (E-COMMERCE & PAYHERE)
+            ══════════════════════════════════════════════════════════════════ */}
+        {activeTab === 'orders' && (
+          <section className="bg-zinc-900/90 border border-zinc-800 rounded-2xl p-6 shadow-xl">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+              <div>
+                <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                  <span>🛒</span> Customer Card Orders
+                </h2>
+                <p className="text-xs text-zinc-400">
+                  Orders placed online via PayHere or WhatsApp checkout with custom artwork & delivery info
+                </p>
+              </div>
+              <button
+                onClick={fetchOrders}
+                className="px-3 py-1.5 text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg transition-colors"
+              >
+                🔄 Refresh Orders
+              </button>
+            </div>
+
+            {orders.length === 0 ? (
+              <div className="py-16 text-center text-zinc-500">
+                <p className="text-3xl mb-2">📦</p>
+                <p>No customer orders yet.</p>
+                <p className="text-xs text-zinc-600 mt-1">
+                  When customers customize and order a card on the homepage, their order appears here.
+                </p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-zinc-800 text-xs uppercase tracking-wider text-zinc-500">
+                      <th className="pb-3 font-semibold">Order #</th>
+                      <th className="pb-3 font-semibold">Customer & Delivery</th>
+                      <th className="pb-3 font-semibold">Card Details</th>
+                      <th className="pb-3 font-semibold">Total & Payment</th>
+                      <th className="pb-3 font-semibold">Status</th>
+                      <th className="pb-3 font-semibold text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="text-sm divide-y divide-zinc-800/60">
+                    {orders.map((order) => (
+                      <tr key={order.id} className="hover:bg-zinc-800/30 transition-colors">
+                        <td className="py-4 align-top">
+                          <span className="font-mono text-xs font-bold text-emerald-400">
+                            {order.orderNumber}
+                          </span>
+                          <p className="text-[11px] text-zinc-500 mt-1">
+                            {new Date(order.createdAt).toLocaleDateString()}
+                          </p>
+                        </td>
+
+                        <td className="py-4 align-top">
+                          <p className="font-semibold text-zinc-100">{order.customerName}</p>
+                          <p className="font-mono text-xs text-zinc-400">{order.customerPhone}</p>
+                          <p className="text-xs text-zinc-500 mt-1 max-w-xs leading-relaxed">
+                            📍 {order.deliveryAddress}{order.city ? `, ${order.city}` : ''}
+                          </p>
+                        </td>
+
+                        <td className="py-4 align-top">
+                          <div className="flex items-start gap-3">
+                            {order.logoUrl && (
+                              <img
+                                src={order.logoUrl}
+                                alt="Logo"
+                                className="w-10 h-10 object-contain rounded-lg border border-zinc-800 bg-black/40 p-1 shrink-0"
+                              />
+                            )}
+                            <div>
+                              <p className="font-medium text-xs text-zinc-200">
+                                <span className="text-zinc-500">Brand:</span> {order.brandName}
+                              </p>
+                              <p className="text-xs text-zinc-400">
+                                <span className="text-zinc-500">Name:</span> {order.nameOnCard}
+                              </p>
+                              <p className="text-[11px] font-mono text-emerald-400 mt-0.5">
+                                {order.slug}.{rootDomain}
+                              </p>
+                              <span className="inline-block mt-1 text-[10px] uppercase font-semibold px-2 py-0.5 rounded bg-zinc-800 text-zinc-400">
+                                {order.finish}
+                              </span>
+                            </div>
+                          </div>
+                        </td>
+
+                        <td className="py-4 align-top">
+                          <p className="font-bold text-white">
+                            LKR {order.totalAmount.toLocaleString()}
+                          </p>
+                          <div className="flex items-center gap-1.5 mt-1">
+                            <span
+                              className={`text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full ${
+                                order.paymentStatus === 'PAID'
+                                  ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                                  : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                              }`}
+                            >
+                              {order.paymentStatus}
+                            </span>
+                            <span className="text-[11px] text-zinc-500">
+                              via {order.paymentMethod}
+                            </span>
+                          </div>
+                        </td>
+
+                        <td className="py-4 align-top">
+                          <select
+                            value={order.orderStatus}
+                            onChange={(e) => handleUpdateOrderStatus(order.id, e.target.value)}
+                            className="bg-zinc-800 border border-zinc-700 text-xs text-zinc-200 rounded-lg px-2 py-1.5 focus:outline-none focus:border-emerald-500"
+                          >
+                            <option value="PENDING">PENDING</option>
+                            <option value="PROCESSING">PROCESSING</option>
+                            <option value="PRINTING">PRINTING</option>
+                            <option value="SHIPPED">SHIPPED</option>
+                            <option value="DELIVERED">DELIVERED</option>
+                            <option value="CANCELLED">CANCELLED</option>
+                          </select>
+                        </td>
+
+                        <td className="py-4 align-top text-right space-y-1.5">
+                          <a
+                            href={`https://wa.me/${order.customerPhone.replace(/[^0-9]/g, '')}?text=Hi%20${encodeURIComponent(order.customerName)},%20we%20have%20received%20your%20Sera%20Card%20order%20(${order.orderNumber})!`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-lg text-xs font-semibold transition-colors"
                           >
                             💬 WhatsApp
                           </a>

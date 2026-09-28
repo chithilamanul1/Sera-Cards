@@ -27,3 +27,47 @@ model Lead {
 
   @@index([clientSlug])
 }
+
+model Order {
+  id               String   @id @default(auto()) @map("_id") @db.ObjectId
+  orderNumber      String   @unique @map("order_number")
+  customerName     String   @map("customer_name")
+  customerPhone    String   @map("customer_phone")
+  customerEmail    String?  @map("customer_email")
+  deliveryAddress  String   @map("delivery_address")
+  city             String?
+  
+  // Card Customization Details
+  brandName        String   @map("brand_name")
+  tagline          String?
+  nameOnCard       String   @map("name_on_card")
+  designation      String?
+  slug             String
+  finish           String   @default("standard")
+  logoUrl          String?  @map("logo_url")
+  
+  // Financials & Payment
+  unitPrice        Float    @default(3500) @map("unit_price")
+  deliveryFee      Float    @default(350) @map("delivery_fee")
+  totalAmount      Float    @default(3850) @map("total_amount")
+  paymentMethod    String   @default("WHATSAPP") @map("payment_method") // "PAYHERE" | "WHATSAPP" | "BANK_TRANSFER"
+  paymentStatus    String   @default("PENDING") @map("payment_status")  // "PENDING" | "PAID" | "FAILED"
+  orderStatus      String   @default("PENDING") @map("order_status")    // "PENDING" | "PROCESSING" | "PRINTING" | "SHIPPED" | "DELIVERED" | "CANCELLED"
+  payherePaymentId String?  @map("payhere_payment_id")
+  notes            String?
+
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  @@index([orderStatus])
+  @@index([paymentStatus])
+}
+
+model AdminUser {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  name         String
+  role         String   @default("SUPER_ADMIN")
+  createdAt    DateTime @default(now()) @map("created_at")
+}
