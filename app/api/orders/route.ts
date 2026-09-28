@@ -69,30 +69,40 @@ export async function POST(request: Request) {
       nameOnCard,
       designation,
       slug,
-      finish = 'Standard High-Gloss PVC',
+      finish = 'Standard PVC',
       logoUrl,
       paymentMethod = 'WHATSAPP',
+      paymentStatus = 'PENDING',
+      fulfillmentStatus = 'ORDER_RECEIVED',
+      customAmount,
+      costPrice = 1500,
+      deliveryFee = 350,
       notes,
+      bio,
+      instagram,
+      linkedin,
+      facebook,
+      tiktok,
     } = body;
 
-    // Validate required fields
-    if (!customerName || !customerPhone || !deliveryAddress || !brandName || !nameOnCard) {
+    // Validate minimum required fields
+    if (!customerName || !customerPhone) {
       return NextResponse.json(
-        { error: 'Please provide all required fields: name, phone, delivery address, and card details.' },
+        { error: 'Please provide at least customer name and WhatsApp phone number.' },
         { status: 400 }
       );
     }
 
-    const cleanSlug = (slug || nameOnCard)
+    const cleanSlug = (slug || nameOnCard || customerName)
       .toLowerCase()
       .trim()
       .replace(/[^a-z0-9-]/g, '')
       .slice(0, 24);
 
-    // Pricing calculation
-    const unitPrice = 3500;
-    const deliveryFee = 350; // Island-wide delivery fee
-    const totalAmount = unitPrice + deliveryFee;
+    // Pricing calculation: Allow customAmount override from friend/admin, else default LKR 3,500
+    const resolvedUnitPrice = customAmount !== undefined ? Number(customAmount) : 3500;
+    const resolvedDelivery = deliveryFee !== undefined ? Number(deliveryFee) : 350;
+    const totalAmount = resolvedUnitPrice + resolvedDelivery;
 
     // Generate unique order number (e.g. SERA-89421)
     const randomSuffix = Math.floor(10000 + Math.random() * 90000);
@@ -105,22 +115,29 @@ export async function POST(request: Request) {
         customerName: customerName.trim(),
         customerPhone: customerPhone.trim(),
         customerEmail: customerEmail ? customerEmail.trim() : null,
-        deliveryAddress: deliveryAddress.trim(),
+        deliveryAddress: deliveryAddress ? deliveryAddress.trim() : 'To be confirmed on WhatsApp',
         city: city ? city.trim() : null,
-        brandName: brandName.trim(),
+        brandName: brandName ? brandName.trim() : customerName.trim(),
         tagline: tagline ? tagline.trim() : null,
-        nameOnCard: nameOnCard.trim(),
-        designation: designation ? designation.trim() : null,
+        nameOnCard: nameOnCard ? nameOnCard.trim() : customerName.trim(),
+        designation: designation ? designation.trim() : 'Professional',
         slug: cleanSlug,
         finish,
         logoUrl: logoUrl || null,
-        unitPrice,
-        deliveryFee,
+        unitPrice: resolvedUnitPrice,
+        costPrice: Number(costPrice) || 1500,
+        deliveryFee: resolvedDelivery,
         totalAmount,
         paymentMethod,
-        paymentStatus: 'PENDING',
-        orderStatus: 'PENDING',
+        paymentStatus,
+        orderStatus: paymentStatus === 'PAID' ? 'PROCESSING' : 'PENDING',
+        fulfillmentStatus,
         notes: notes ? notes.trim() : null,
+        bio: bio ? bio.trim() : null,
+        instagram: instagram ? instagram.trim() : null,
+        linkedin: linkedin ? linkedin.trim() : null,
+        facebook: facebook ? facebook.trim() : null,
+        tiktok: tiktok ? tiktok.trim() : null,
       },
     });
 

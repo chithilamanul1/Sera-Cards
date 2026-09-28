@@ -27,6 +27,13 @@ export function OrderModal({ isOpen, onClose, initialConfig }: OrderModalProps) 
   const [finish, setFinish] = useState('Standard Glossy PVC');
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
 
+  // Digital Profile & Social Media Links
+  const [bio, setBio] = useState('');
+  const [instagram, setInstagram] = useState('');
+  const [linkedin, setLinkedin] = useState('');
+  const [facebook, setFacebook] = useState('');
+  const [tiktok, setTiktok] = useState('');
+
   const [paymentMethod, setPaymentMethod] = useState<'PAYHERE' | 'WHATSAPP'>('PAYHERE');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -82,6 +89,11 @@ export function OrderModal({ isOpen, onClose, initialConfig }: OrderModalProps) 
           slug,
           finish,
           logoUrl: logoPreview,
+          bio,
+          instagram,
+          linkedin,
+          facebook,
+          tiktok,
           paymentMethod,
         }),
       });
@@ -317,17 +329,17 @@ export function OrderModal({ isOpen, onClose, initialConfig }: OrderModalProps) 
 
               {/* Logo / Artwork Upload */}
               <div className="sm:col-span-2">
-                <label className="block text-xs font-medium text-white/70">Upload Logo or Artwork</label>
+                <label className="block text-xs font-medium text-white/70">Upload Logo or Profile Photo</label>
                 <div className="mt-2 flex items-center gap-4">
                   <label className="flex cursor-pointer items-center gap-2 rounded-xl border border-dashed border-white/20 bg-white/[0.02] px-4 py-3 text-xs text-white/70 transition-colors hover:border-emerald-500 hover:text-white">
                     <UploadCloudIcon className="h-4 w-4 text-emerald-400" />
-                    <span>{logoPreview ? 'Change Logo Image' : 'Choose Logo / Graphic file (PNG, JPG)'}</span>
+                    <span>{logoPreview ? 'Change Image' : 'Choose Logo / Photo file (PNG, JPG)'}</span>
                     <input type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
                   </label>
                   {logoPreview && (
                     <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] p-1.5">
                       <img src={logoPreview} alt="Logo preview" className="h-8 w-8 rounded-lg object-contain" />
-                      <span className="text-[11px] text-emerald-400">Logo attached</span>
+                      <span className="text-[11px] text-emerald-400">Image attached</span>
                     </div>
                   )}
                 </div>
@@ -335,9 +347,72 @@ export function OrderModal({ isOpen, onClose, initialConfig }: OrderModalProps) 
             </div>
           </div>
 
-          {/* Section 3: Payment Method Selection */}
+          {/* Section 3: Digital Profile & Social Media Links */}
+          <div className="space-y-4">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-white/40">
+              3. Digital Profile & Social Links (Live on NFC Tap)
+            </h3>
+            <div>
+              <label className="block text-xs font-medium text-white/70">Short Bio / Introduction</label>
+              <textarea
+                rows={2}
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+                placeholder="e.g. Turnkey web & software development solutions for businesses."
+                className="mt-1.5 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-white placeholder-white/20 focus:border-emerald-500 focus:outline-none"
+              />
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div>
+                <label className="block text-xs font-medium text-white/70">Instagram URL / Username</label>
+                <input
+                  type="text"
+                  value={instagram}
+                  onChange={(e) => setInstagram(e.target.value)}
+                  placeholder="https://instagram.com/yourhandle"
+                  className="mt-1.5 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-white placeholder-white/20 focus:border-emerald-500 focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-white/70">LinkedIn Profile URL</label>
+                <input
+                  type="text"
+                  value={linkedin}
+                  onChange={(e) => setLinkedin(e.target.value)}
+                  placeholder="https://linkedin.com/in/yourhandle"
+                  className="mt-1.5 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-white placeholder-white/20 focus:border-emerald-500 focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-white/70">Facebook URL</label>
+                <input
+                  type="text"
+                  value={facebook}
+                  onChange={(e) => setFacebook(e.target.value)}
+                  placeholder="https://facebook.com/yourpage"
+                  className="mt-1.5 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-white placeholder-white/20 focus:border-emerald-500 focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-white/70">TikTok URL (Optional)</label>
+                <input
+                  type="text"
+                  value={tiktok}
+                  onChange={(e) => setTiktok(e.target.value)}
+                  placeholder="https://tiktok.com/@yourhandle"
+                  className="mt-1.5 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-white placeholder-white/20 focus:border-emerald-500 focus:outline-none"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Section 4: Payment Method Selection */}
           <div className="space-y-3">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-white/40">3. Select Payment Method</h3>
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-white/40">4. Select Payment Method</h3>
             <div className="grid gap-3 sm:grid-cols-2">
               <label
                 onClick={() => setPaymentMethod('PAYHERE')}

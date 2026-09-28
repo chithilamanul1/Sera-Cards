@@ -46,11 +46,16 @@ export async function PATCH(
 
   try {
     const body = await request.json();
-    const { orderStatus, paymentStatus, notes } = body;
+    const { orderStatus, fulfillmentStatus, paymentStatus, unitPrice, notes } = body;
 
     const dataToUpdate: any = {};
     if (orderStatus) dataToUpdate.orderStatus = orderStatus;
+    if (fulfillmentStatus) dataToUpdate.fulfillmentStatus = fulfillmentStatus;
     if (paymentStatus) dataToUpdate.paymentStatus = paymentStatus;
+    if (unitPrice !== undefined) {
+      dataToUpdate.unitPrice = Number(unitPrice);
+      dataToUpdate.totalAmount = Number(unitPrice) + 350;
+    }
     if (notes !== undefined) dataToUpdate.notes = notes;
 
     const updated = await prisma.order.update({

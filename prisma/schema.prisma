@@ -48,19 +48,53 @@ model Order {
   
   // Financials & Payment
   unitPrice        Float    @default(3500) @map("unit_price")
+  costPrice        Float    @default(1500) @map("cost_price") // Raw material/chip production cost
   deliveryFee      Float    @default(350) @map("delivery_fee")
   totalAmount      Float    @default(3850) @map("total_amount")
   paymentMethod    String   @default("WHATSAPP") @map("payment_method") // "PAYHERE" | "WHATSAPP" | "BANK_TRANSFER"
   paymentStatus    String   @default("PENDING") @map("payment_status")  // "PENDING" | "PAID" | "FAILED"
-  orderStatus      String   @default("PENDING") @map("order_status")    // "PENDING" | "PROCESSING" | "PRINTING" | "SHIPPED" | "DELIVERED" | "CANCELLED"
+  orderStatus      String   @default("PENDING") @map("order_status")    // Legacy status
+  fulfillmentStatus String  @default("ORDER_RECEIVED") @map("fulfillment_status") // "ORDER_RECEIVED" | "ENCODING_CHIP" | "PRINTING" | "DISPATCHED" | "DELIVERED"
   payherePaymentId String?  @map("payhere_payment_id")
   notes            String?
+
+  // Extended Profile & Social Data for 1-Click Profile Generation
+  bio              String?
+  instagram        String?
+  linkedin         String?
+  facebook         String?
+  tiktok           String?
+
+  // Settlement Linkage
+  settlementId     String?  @map("settlement_id")
 
   createdAt        DateTime @default(now()) @map("created_at")
   updatedAt        DateTime @updatedAt @map("updated_at")
 
   @@index([orderStatus])
+  @@index([fulfillmentStatus])
   @@index([paymentStatus])
+  @@index([settlementId])
+}
+
+model WeeklySettlement {
+  id                  String    @id @default(auto()) @map("_id") @db.ObjectId
+  weekId              String    @unique @map("week_id") // e.g. "2026-W40"
+  startDate           DateTime  @map("start_date")
+  endDate             DateTime  @map("end_date")
+  totalCardsSold      Int       @default(0) @map("total_cards_sold")
+  totalRevenue        Float     @default(0) @map("total_revenue")
+  productionCostTotal Float     @default(0) @map("production_cost_total") // total cards * LKR 1,500
+  netProfitPool       Float     @default(0) @map("net_profit_pool")       // revenue - production cost
+  friendCommission    Float     @default(0) @map("friend_commission")    // 50% of net profit
+  ownerProfit         Float     @default(0) @map("owner_profit")          // 50% of net profit
+  settlementStatus    String    @default("UNSETTLED") @map("settlement_status") // "UNSETTLED" | "SETTLED"
+  settledAt           DateTime? @map("settled_at")
+  notes               String?
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
+
+  @@index([settlementStatus])
 }
 
 model AdminUser {
@@ -71,3 +105,4 @@ model AdminUser {
   role         String   @default("SUPER_ADMIN")
   createdAt    DateTime @default(now()) @map("created_at")
 }
+

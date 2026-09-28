@@ -37,20 +37,55 @@ type Order = {
   finish: string;
   logoUrl: string | null;
   unitPrice: number;
+  costPrice?: number;
   deliveryFee: number;
   totalAmount: number;
   paymentMethod: string;
   paymentStatus: string;
   orderStatus: string;
+  fulfillmentStatus?: string;
+  bio?: string | null;
+  instagram?: string | null;
+  linkedin?: string | null;
+  facebook?: string | null;
+  tiktok?: string | null;
   createdAt: string;
+};
+
+type WeeklySettlementItem = {
+  id: string;
+  weekId: string;
+  startDate: string;
+  endDate: string;
+  totalCardsSold: number;
+  totalRevenue: number;
+  productionCostTotal: number;
+  netProfitPool: number;
+  friendCommission: number;
+  ownerProfit: number;
+  settlementStatus: string;
+  settledAt: string | null;
+  notes: string | null;
 };
 
 export default function AdminDashboard() {
   const [cards, setCards] = useState<Card[]>([]);
   const [leads, setLeads] = useState<Lead[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
+  const [settlementData, setSettlementData] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const [activeTab, setActiveTab] = useState<'studio' | 'cards' | 'leads' | 'orders'>('studio');
+  const [activeTab, setActiveTab] = useState<'studio' | 'cards' | 'leads' | 'orders' | 'settlements'>('orders');
+
+  // Quick Order Modal State
+  const [isQuickOrderOpen, setIsQuickOrderOpen] = useState(false);
+  const [quickOrderForm, setQuickOrderForm] = useState({
+    clientName: '',
+    whatsappNumber: '',
+    cardVariant: 'Standard PVC',
+    customAmount: '3500',
+    paymentStatus: 'PAID',
+    fulfillmentStatus: 'ORDER_RECEIVED',
+  });
   
   // Studio & Builder State
   const [editorMode, setEditorMode] = useState<'visual' | 'raw'>('visual');
@@ -96,11 +131,48 @@ export default function AdminDashboard() {
     return generateTemplateHtml(selectedPreset, { ...templateForm, slug: currentSlug });
   }, [editorMode, rawHtmlContent, selectedPreset, templateForm, slug]);
 
-  // Fetch cards, leads, and orders on mount
+  // Operational Metrics Calculation (Turnkey Financial Summary)
+  const liveMetrics = useMemo(() => {
+    let uncollectedCash = 0;
+    let totalMaterialBuffer = 0;
+    let totalPaidRevenue = 0;
+    let totalPaidCards = 0;
+
+    for (const o of orders) {
+      const isPaid = o.paymentStatus === 'PAID';
+      const amount = Number(o.totalAmount || o.unitPrice || 3500);
+      const cost = Number(o.costPrice || 1500);
+
+      if (isPaid) {
+        totalPaidRevenue += amount;
+        totalMaterialBuffer += cost;
+        totalPaidCards += 1;
+      } else {
+        uncollectedCash += amount;
+      }
+    }
+
+    const netProfitPool = Math.max(0, totalPaidRevenue - totalMaterialBuffer);
+    const friendCommission = Math.round(netProfitPool * 0.5);
+    const ownerShare = netProfitPool - friendCommission;
+
+    return {
+      uncollectedCash,
+      totalMaterialBuffer,
+      totalPaidRevenue,
+      netProfitPool,
+      friendCommission,
+      ownerShare,
+      totalPaidCards,
+    };
+  }, [orders]);
+
+  // Fetch cards, leads, orders, and settlements on mount
   useEffect(() => {
     fetchCards();
     fetchLeads();
     fetchOrders();
+    fetchSettlements();
   }, []);
 
   const fetchCards = async () => {
@@ -147,21 +219,140 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleUpdateOrderStatus = async (orderId: string, orderStatus: string, paymentStatus?: string) => {
+  const fetchSettlements = async () => {
+    try {
+      const res = await fetch('/api/settlements');
+      if (res.ok) {
+        const data = await res.json();
+        setSettlementData(data);
+      }
+    } catch (error) {
+      console.error('Failed to load settlements:', error);
+    }
+  };
+
+  const handleUpdateOrderStatus = async (
+    orderId: string,
+    params: { orderStatus?: string; fulfillmentStatus?: string; paymentStatus?: string; unitPrice?: number }
+  ) => {
     try {
       const res = await fetch(`/api/orders/${orderId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderStatus, ...(paymentStatus ? { paymentStatus } : {}) }),
+        body: JSON.stringify(params),
       });
       if (res.ok) {
-        toast.success(`Order updated to ${orderStatus}`);
+        toast.success(`Order updated`);
         fetchOrders();
       } else {
         toast.error('Failed to update order');
       }
     } catch (error) {
       toast.error('Failed to update order');
+    }
+  };
+
+  const handleQuickCreateOrder = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const res = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          customerName: quickOrderForm.clientName,
+          customerPhone: quickOrderForm.whatsappNumber,
+          finish: quickOrderForm.cardVariant,
+          customAmount: quickOrderForm.customAmount,
+          paymentStatus: quickOrderForm.paymentStatus,
+          fulfillmentStatus: quickOrderForm.fulfillmentStatus,
+          deliveryFee: 350,
+        }),
+      });
+
+      if (res.ok) {
+        toast.success('Quick order created!');
+        setIsQuickOrderOpen(false);
+        setQuickOrderForm({
+          clientName: '',
+          whatsappNumber: '',
+          cardVariant: 'Standard PVC',
+          customAmount: '3500',
+          paymentStatus: 'PAID',
+          fulfillmentStatus: 'ORDER_RECEIVED',
+        });
+        fetchOrders();
+      } else {
+        toast.error('Failed to create order');
+      }
+    } catch (error) {
+      toast.error('Error creating order');
+    }
+  };
+
+  const handleSettleWeek = async (weekId?: string) => {
+    try {
+      toast.loading('Locking and settling weekly ledger...', { id: 'settle' });
+      const res = await fetch('/api/settlements', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ weekId }),
+      });
+      if (res.ok) {
+        toast.success('Weekly ledger settled successfully!', { id: 'settle' });
+        fetchSettlements();
+        fetchOrders();
+      } else {
+        toast.error('Failed to settle week', { id: 'settle' });
+      }
+    } catch (err) {
+      toast.error('Error settling week', { id: 'settle' });
+    }
+  };
+
+  const handleGenerateProfileFromOrder = async (order: Order) => {
+    try {
+      toast.loading(`Deploying profile for ${order.slug}...`, { id: 'deploy-order' });
+      const profileHtml = generateTemplateHtml('personal_hero', {
+        slug: order.slug,
+        name: order.nameOnCard,
+        title: order.designation || 'Professional',
+        company: order.brandName,
+        phone: order.customerPhone,
+        whatsapp: order.customerPhone.replace(/[^0-9]/g, ''),
+        email: order.customerEmail || '',
+        avatarUrl: order.logoUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500',
+        bio: order.bio || `Welcome to ${order.nameOnCard}'s digital identity.`,
+        location: order.city || 'Sri Lanka',
+        website: `https://${order.slug}.${rootDomain}`,
+        instagram: order.instagram || '',
+        linkedin: order.linkedin || '',
+        facebook: order.facebook || '',
+        tiktok: order.tiktok || '',
+      });
+
+      const res = await fetch('/api/cards', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          slug: order.slug,
+          html_content: profileHtml,
+        }),
+      });
+
+      if (!res.ok) throw new Error('Failed to deploy profile');
+
+      toast.success(`Profile deployed to https://${order.slug}.${rootDomain}!`, { id: 'deploy-order' });
+      fetchCards();
+
+      // Open NFC programmer QR modal directly
+      setNfcModalCard({
+        id: order.id,
+        slug: order.slug,
+        createdAt: order.createdAt,
+        updatedAt: new Date().toISOString(),
+      });
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to deploy profile', { id: 'deploy-order' });
     }
   };
 
@@ -323,6 +514,14 @@ export default function AdminDashboard() {
             >
               🛒 Orders ({orders.length})
             </button>
+            <button
+              onClick={() => { setActiveTab('settlements'); fetchSettlements(); }}
+              className={`px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                activeTab === 'settlements' ? 'bg-emerald-600 text-white shadow-md' : 'text-zinc-400 hover:text-white'
+              }`}
+            >
+              ⚖️ Settlement Ledger
+            </button>
           </div>
 
           <button
@@ -333,6 +532,57 @@ export default function AdminDashboard() {
           </button>
         </div>
       </header>
+
+      {/* ── Operational Summary Cards (At the Top) ── */}
+      <section className="max-w-7xl mx-auto mb-8 grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Card 1: Uncollected Cash */}
+        <div className="bg-zinc-900/90 border border-zinc-800 rounded-2xl p-4 sm:p-5 relative overflow-hidden">
+          <div className="flex items-center justify-between text-zinc-400 text-xs uppercase tracking-wider mb-2 font-medium">
+            <span>Uncollected Cash</span>
+            <span className="px-1.5 py-0.5 rounded-md bg-amber-500/10 text-amber-400 text-[10px] font-bold">Pending</span>
+          </div>
+          <p className="text-xl sm:text-2xl font-bold text-amber-400 font-mono">
+            LKR {liveMetrics.uncollectedCash.toLocaleString()}
+          </p>
+          <p className="text-[11px] text-zinc-500 mt-1">Pending payments from clients</p>
+        </div>
+
+        {/* Card 2: Material Buffer */}
+        <div className="bg-zinc-900/90 border border-zinc-800 rounded-2xl p-4 sm:p-5 relative overflow-hidden">
+          <div className="flex items-center justify-between text-zinc-400 text-xs uppercase tracking-wider mb-2 font-medium">
+            <span>Material Buffer Fund</span>
+            <span className="px-1.5 py-0.5 rounded-md bg-blue-500/10 text-blue-400 text-[10px] font-bold">Restock</span>
+          </div>
+          <p className="text-xl sm:text-2xl font-bold text-blue-400 font-mono">
+            LKR {liveMetrics.totalMaterialBuffer.toLocaleString()}
+          </p>
+          <p className="text-[11px] text-zinc-500 mt-1">LKR 1,500/card strictly for PVC & chips</p>
+        </div>
+
+        {/* Card 3: Friend's Earned Commission */}
+        <div className="bg-zinc-900/90 border border-emerald-500/30 rounded-2xl p-4 sm:p-5 relative overflow-hidden bg-gradient-to-br from-emerald-950/30 to-zinc-900">
+          <div className="flex items-center justify-between text-emerald-400 text-xs uppercase tracking-wider mb-2 font-medium">
+            <span>Friend's Commission</span>
+            <span className="px-1.5 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 text-[10px] font-bold">50% Share</span>
+          </div>
+          <p className="text-xl sm:text-2xl font-bold text-emerald-400 font-mono">
+            LKR {liveMetrics.friendCommission.toLocaleString()}
+          </p>
+          <p className="text-[11px] text-zinc-400 mt-1">Accumulated split ready to keep</p>
+        </div>
+
+        {/* Card 4: Your Owed Share */}
+        <div className="bg-zinc-900/90 border border-purple-500/30 rounded-2xl p-4 sm:p-5 relative overflow-hidden bg-gradient-to-br from-purple-950/30 to-zinc-900">
+          <div className="flex items-center justify-between text-purple-400 text-xs uppercase tracking-wider mb-2 font-medium">
+            <span>Owner's Profit Share</span>
+            <span className="px-1.5 py-0.5 rounded-md bg-purple-500/20 text-purple-300 text-[10px] font-bold">50% Share</span>
+          </div>
+          <p className="text-xl sm:text-2xl font-bold text-purple-400 font-mono">
+            LKR {liveMetrics.ownerShare.toLocaleString()}
+          </p>
+          <p className="text-[11px] text-zinc-400 mt-1">Total profit to transfer to you</p>
+        </div>
+      </section>
 
       {/* ── Main Workspaces ── */}
       <main className="max-w-7xl mx-auto">
@@ -933,33 +1183,41 @@ export default function AdminDashboard() {
         )}
 
         {/* ══════════════════════════════════════════════════════════════════
-            WORKSPACE 4: CUSTOMER ORDERS (E-COMMERCE & PAYHERE)
+            WORKSPACE 4: CUSTOMER ORDERS (TURNKEY CONTROL PANEL)
             ══════════════════════════════════════════════════════════════════ */}
         {activeTab === 'orders' && (
-          <section className="bg-zinc-900/90 border border-zinc-800 rounded-2xl p-6 shadow-xl">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+          <section className="bg-zinc-900/90 border border-zinc-800 rounded-2xl p-6 shadow-xl space-y-6">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <div>
                 <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                  <span>🛒</span> Customer Card Orders
+                  <span>🛒</span> Customer Orders & Fulfillment
                 </h2>
                 <p className="text-xs text-zinc-400">
-                  Orders placed online via PayHere or WhatsApp checkout with custom artwork & delivery info
+                  Track client orders, custom amounts, chip encoding progress, and deploy profiles in 1 click
                 </p>
               </div>
-              <button
-                onClick={fetchOrders}
-                className="px-3 py-1.5 text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg transition-colors"
-              >
-                🔄 Refresh Orders
-              </button>
+              <div className="flex items-center gap-2.5">
+                <button
+                  onClick={() => setIsQuickOrderOpen(true)}
+                  className="px-3.5 py-1.5 text-xs bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-lg shadow-md transition-colors flex items-center gap-1.5"
+                >
+                  <span>+</span> Add New Order
+                </button>
+                <button
+                  onClick={fetchOrders}
+                  className="px-3 py-1.5 text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg transition-colors"
+                >
+                  🔄 Refresh
+                </button>
+              </div>
             </div>
 
             {orders.length === 0 ? (
               <div className="py-16 text-center text-zinc-500">
                 <p className="text-3xl mb-2">📦</p>
-                <p>No customer orders yet.</p>
+                <p>No customer orders recorded yet.</p>
                 <p className="text-xs text-zinc-600 mt-1">
-                  When customers customize and order a card on the homepage, their order appears here.
+                  Click "Add New Order" above or receive orders from the client landing page.
                 </p>
               </div>
             ) : (
@@ -968,110 +1226,276 @@ export default function AdminDashboard() {
                   <thead>
                     <tr className="border-b border-zinc-800 text-xs uppercase tracking-wider text-zinc-500">
                       <th className="pb-3 font-semibold">Order #</th>
-                      <th className="pb-3 font-semibold">Customer & Delivery</th>
+                      <th className="pb-3 font-semibold">Client & Shipping</th>
                       <th className="pb-3 font-semibold">Card Details</th>
-                      <th className="pb-3 font-semibold">Total & Payment</th>
-                      <th className="pb-3 font-semibold">Status</th>
-                      <th className="pb-3 font-semibold text-right">Actions</th>
+                      <th className="pb-3 font-semibold">Amount & Paid</th>
+                      <th className="pb-3 font-semibold">Fulfillment Stage</th>
+                      <th className="pb-3 font-semibold text-right">Production Actions</th>
                     </tr>
                   </thead>
                   <tbody className="text-sm divide-y divide-zinc-800/60">
-                    {orders.map((order) => (
-                      <tr key={order.id} className="hover:bg-zinc-800/30 transition-colors">
-                        <td className="py-4 align-top">
-                          <span className="font-mono text-xs font-bold text-emerald-400">
-                            {order.orderNumber}
-                          </span>
-                          <p className="text-[11px] text-zinc-500 mt-1">
-                            {new Date(order.createdAt).toLocaleDateString()}
-                          </p>
-                        </td>
+                    {orders.map((order) => {
+                      const currentFulfillment = order.fulfillmentStatus || 'ORDER_RECEIVED';
+                      const isPaid = order.paymentStatus === 'PAID';
 
-                        <td className="py-4 align-top">
-                          <p className="font-semibold text-zinc-100">{order.customerName}</p>
-                          <p className="font-mono text-xs text-zinc-400">{order.customerPhone}</p>
-                          <p className="text-xs text-zinc-500 mt-1 max-w-xs leading-relaxed">
-                            📍 {order.deliveryAddress}{order.city ? `, ${order.city}` : ''}
-                          </p>
-                        </td>
+                      return (
+                        <tr key={order.id} className="hover:bg-zinc-800/30 transition-colors">
+                          <td className="py-4 align-top">
+                            <span className="font-mono text-xs font-bold text-emerald-400">
+                              {order.orderNumber}
+                            </span>
+                            <p className="text-[11px] text-zinc-500 mt-1">
+                              {new Date(order.createdAt).toLocaleDateString()}
+                            </p>
+                          </td>
 
-                        <td className="py-4 align-top">
-                          <div className="flex items-start gap-3">
-                            {order.logoUrl && (
-                              <img
-                                src={order.logoUrl}
-                                alt="Logo"
-                                className="w-10 h-10 object-contain rounded-lg border border-zinc-800 bg-black/40 p-1 shrink-0"
-                              />
-                            )}
-                            <div>
-                              <p className="font-medium text-xs text-zinc-200">
-                                <span className="text-zinc-500">Brand:</span> {order.brandName}
-                              </p>
-                              <p className="text-xs text-zinc-400">
-                                <span className="text-zinc-500">Name:</span> {order.nameOnCard}
-                              </p>
-                              <p className="text-[11px] font-mono text-emerald-400 mt-0.5">
-                                {order.slug}.{rootDomain}
-                              </p>
-                              <span className="inline-block mt-1 text-[10px] uppercase font-semibold px-2 py-0.5 rounded bg-zinc-800 text-zinc-400">
-                                {order.finish}
+                          <td className="py-4 align-top">
+                            <p className="font-semibold text-zinc-100">{order.customerName}</p>
+                            <p className="font-mono text-xs text-zinc-400">{order.customerPhone}</p>
+                            <p className="text-xs text-zinc-500 mt-1 max-w-xs leading-relaxed">
+                              📍 {order.deliveryAddress}{order.city ? `, ${order.city}` : ''}
+                            </p>
+                          </td>
+
+                          <td className="py-4 align-top">
+                            <div className="flex items-start gap-3">
+                              {order.logoUrl && (
+                                <img
+                                  src={order.logoUrl}
+                                  alt="Logo"
+                                  className="w-10 h-10 object-contain rounded-lg border border-zinc-800 bg-black/40 p-1 shrink-0"
+                                />
+                              )}
+                              <div>
+                                <p className="font-medium text-xs text-zinc-200">
+                                  <span className="text-zinc-500">Brand:</span> {order.brandName}
+                                </p>
+                                <p className="text-xs text-zinc-400">
+                                  <span className="text-zinc-500">Name:</span> {order.nameOnCard}
+                                </p>
+                                <p className="text-[11px] font-mono text-emerald-400 mt-0.5">
+                                  {order.slug}.{rootDomain}
+                                </p>
+                                <span className="inline-block mt-1 text-[10px] uppercase font-semibold px-2 py-0.5 rounded bg-zinc-800 text-zinc-300 border border-zinc-700">
+                                  {order.finish}
+                                </span>
+                              </div>
+                            </div>
+                          </td>
+
+                          <td className="py-4 align-top">
+                            <p className="font-bold text-white font-mono">
+                              LKR {order.totalAmount.toLocaleString()}
+                            </p>
+                            <div className="mt-1 flex items-center gap-1.5">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  handleUpdateOrderStatus(order.id, {
+                                    paymentStatus: isPaid ? 'PENDING' : 'PAID',
+                                  })
+                                }
+                                className={`text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full border transition-all ${
+                                  isPaid
+                                    ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
+                                    : 'bg-amber-500/15 text-amber-400 border-amber-500/30 hover:bg-amber-500/25'
+                                }`}
+                              >
+                                {isPaid ? '✓ Paid' : '⏳ Pending'}
+                              </button>
+                              <span className="text-[10px] text-zinc-500">
+                                via {order.paymentMethod}
                               </span>
                             </div>
-                          </div>
-                        </td>
+                          </td>
 
-                        <td className="py-4 align-top">
-                          <p className="font-bold text-white">
-                            LKR {order.totalAmount.toLocaleString()}
-                          </p>
-                          <div className="flex items-center gap-1.5 mt-1">
-                            <span
-                              className={`text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full ${
-                                order.paymentStatus === 'PAID'
-                                  ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                                  : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                          <td className="py-4 align-top">
+                            <select
+                              value={currentFulfillment}
+                              onChange={(e) =>
+                                handleUpdateOrderStatus(order.id, {
+                                  fulfillmentStatus: e.target.value,
+                                })
+                              }
+                              className={`text-xs rounded-lg px-2.5 py-1.5 font-medium border focus:outline-none ${
+                                currentFulfillment === 'DELIVERED'
+                                  ? 'bg-emerald-950/40 text-emerald-300 border-emerald-800'
+                                  : currentFulfillment === 'DISPATCHED'
+                                  ? 'bg-blue-950/40 text-blue-300 border-blue-800'
+                                  : currentFulfillment === 'PRINTING'
+                                  ? 'bg-purple-950/40 text-purple-300 border-purple-800'
+                                  : currentFulfillment === 'ENCODING_CHIP'
+                                  ? 'bg-amber-950/40 text-amber-300 border-amber-800'
+                                  : 'bg-zinc-800 text-zinc-300 border-zinc-700'
                               }`}
                             >
-                              {order.paymentStatus}
-                            </span>
-                            <span className="text-[11px] text-zinc-500">
-                              via {order.paymentMethod}
-                            </span>
-                          </div>
-                        </td>
+                              <option value="ORDER_RECEIVED">1. Order Received</option>
+                              <option value="ENCODING_CHIP">2. Encoding Chip</option>
+                              <option value="PRINTING">3. Printing Card</option>
+                              <option value="DISPATCHED">4. Dispatched</option>
+                              <option value="DELIVERED">5. Delivered</option>
+                            </select>
+                          </td>
 
-                        <td className="py-4 align-top">
-                          <select
-                            value={order.orderStatus}
-                            onChange={(e) => handleUpdateOrderStatus(order.id, e.target.value)}
-                            className="bg-zinc-800 border border-zinc-700 text-xs text-zinc-200 rounded-lg px-2 py-1.5 focus:outline-none focus:border-emerald-500"
-                          >
-                            <option value="PENDING">PENDING</option>
-                            <option value="PROCESSING">PROCESSING</option>
-                            <option value="PRINTING">PRINTING</option>
-                            <option value="SHIPPED">SHIPPED</option>
-                            <option value="DELIVERED">DELIVERED</option>
-                            <option value="CANCELLED">CANCELLED</option>
-                          </select>
-                        </td>
-
-                        <td className="py-4 align-top text-right space-y-1.5">
-                          <a
-                            href={`https://wa.me/${order.customerPhone.replace(/[^0-9]/g, '')}?text=Hi%20${encodeURIComponent(order.customerName)},%20we%20have%20received%20your%20Sera%20Card%20order%20(${order.orderNumber})!`}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-lg text-xs font-semibold transition-colors"
-                          >
-                            💬 WhatsApp
-                          </a>
-                        </td>
-                      </tr>
-                    ))}
+                          <td className="py-4 align-top text-right space-y-1.5">
+                            <div className="flex flex-col items-end gap-1.5">
+                              <button
+                                type="button"
+                                onClick={() => handleGenerateProfileFromOrder(order)}
+                                className="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-lg text-xs font-semibold transition-colors"
+                              >
+                                ⚡ Generate Profile
+                              </button>
+                              <a
+                                href={`https://wa.me/${order.customerPhone.replace(/[^0-9]/g, '')}?text=Hi%20${encodeURIComponent(order.customerName)},%20this%20is%20Sera%20Cards%20regarding%20order%20${order.orderNumber}!`}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="inline-flex items-center gap-1 px-2.5 py-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg text-xs font-semibold transition-colors"
+                              >
+                                💬 WhatsApp
+                              </a>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
             )}
+          </section>
+        )}
+
+        {/* ══════════════════════════════════════════════════════════════════
+            WORKSPACE 5: AUTOMATED SETTLEMENT & PAYOUT LEDGER
+            ══════════════════════════════════════════════════════════════════ */}
+        {activeTab === 'settlements' && (
+          <section className="space-y-6">
+            {/* Live Weekly Math Breakdown Card */}
+            <div className="bg-zinc-900/90 border border-zinc-800 rounded-2xl p-6 shadow-xl">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 pb-4 border-b border-zinc-800">
+                <div>
+                  <span className="text-[10px] uppercase font-bold tracking-wider text-emerald-400">
+                    Transparent Financial Settlement
+                  </span>
+                  <h2 className="text-xl font-bold text-white flex items-center gap-2 mt-0.5">
+                    <span>⚖️</span> Weekly Settlement Ledger
+                  </h2>
+                  <p className="text-xs text-zinc-400">
+                    Current Period: <strong className="text-zinc-200">{settlementData?.currentWeekId || 'Active Week'}</strong> &middot; Automatic 50/50 split after production reserve
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => handleSettleWeek(settlementData?.currentWeekId)}
+                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-lg transition-all"
+                >
+                  ✓ Settle Week & Lock Ledger
+                </button>
+              </div>
+
+              {/* Formula & Waterfall Step Breakdown */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-4">
+                  <span className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider block">
+                    1. Week's Total Revenue
+                  </span>
+                  <p className="text-2xl font-bold text-white mt-1 font-mono">
+                    LKR {(settlementData?.currentWeekMetrics?.totalPaidRevenue || liveMetrics.totalPaidRevenue).toLocaleString()}
+                  </p>
+                  <p className="text-[11px] text-zinc-500 mt-1">
+                    {(settlementData?.currentWeekMetrics?.totalCardsSold || liveMetrics.totalPaidCards)} Cards Sold
+                  </p>
+                </div>
+
+                <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-4">
+                  <span className="text-[11px] font-semibold text-blue-400 uppercase tracking-wider block">
+                    2. Less: Material Cost Buffer
+                  </span>
+                  <p className="text-2xl font-bold text-blue-400 mt-1 font-mono">
+                    - LKR {(settlementData?.currentWeekMetrics?.totalMaterialBuffer || liveMetrics.totalMaterialBuffer).toLocaleString()}
+                  </p>
+                  <p className="text-[11px] text-zinc-500 mt-1">
+                    LKR 1,500/card reserved for next batch of raw PVC/chips
+                  </p>
+                </div>
+
+                <div className="bg-zinc-950 border border-emerald-500/30 rounded-xl p-4 bg-emerald-950/10">
+                  <span className="text-[11px] font-semibold text-emerald-400 uppercase tracking-wider block">
+                    3. Friend's 50% Payout
+                  </span>
+                  <p className="text-2xl font-bold text-emerald-400 mt-1 font-mono">
+                    LKR {(settlementData?.currentWeekMetrics?.friendCommission || liveMetrics.friendCommission).toLocaleString()}
+                  </p>
+                  <p className="text-[11px] text-zinc-400 mt-1">
+                    Accumulated commission ready to keep
+                  </p>
+                </div>
+
+                <div className="bg-zinc-950 border border-purple-500/30 rounded-xl p-4 bg-purple-950/10">
+                  <span className="text-[11px] font-semibold text-purple-400 uppercase tracking-wider block">
+                    4. Owner's 50% Share
+                  </span>
+                  <p className="text-2xl font-bold text-purple-400 mt-1 font-mono">
+                    LKR {(settlementData?.currentWeekMetrics?.ownerShare || liveMetrics.ownerShare).toLocaleString()}
+                  </p>
+                  <p className="text-[11px] text-zinc-400 mt-1">
+                    Accumulated profit to transfer to you
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Historical Settled Ledgers Table */}
+            <div className="bg-zinc-900/90 border border-zinc-800 rounded-2xl p-6 shadow-xl">
+              <h3 className="text-base font-bold text-white mb-4">Historical Settled Ledgers</h3>
+              {!settlementData?.settlements || settlementData.settlements.length === 0 ? (
+                <div className="py-12 text-center text-zinc-500 text-sm">
+                  <p>No historical settlements locked yet.</p>
+                  <p className="text-xs text-zinc-600 mt-1">
+                    Click "Settle Week & Lock Ledger" on Sunday nights to permanently archive weekly balances.
+                  </p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse text-sm">
+                    <thead>
+                      <tr className="border-b border-zinc-800 text-xs uppercase tracking-wider text-zinc-500">
+                        <th className="pb-3 font-semibold">Week ID</th>
+                        <th className="pb-3 font-semibold">Cards Sold</th>
+                        <th className="pb-3 font-semibold">Total Revenue</th>
+                        <th className="pb-3 font-semibold">Material Buffer (LKR 1,500/card)</th>
+                        <th className="pb-3 font-semibold">Friend Payout (50%)</th>
+                        <th className="pb-3 font-semibold">Owner Profit (50%)</th>
+                        <th className="pb-3 font-semibold">Settled Date</th>
+                        <th className="pb-3 font-semibold text-right">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-zinc-800/60 font-mono text-xs">
+                      {settlementData.settlements.map((item: any) => (
+                        <tr key={item.id} className="hover:bg-zinc-800/30">
+                          <td className="py-3.5 font-bold text-white">{item.weekId}</td>
+                          <td className="py-3.5 text-zinc-300">{item.totalCardsSold}</td>
+                          <td className="py-3.5 text-zinc-200">LKR {item.totalRevenue.toLocaleString()}</td>
+                          <td className="py-3.5 text-blue-400">LKR {item.productionCostTotal.toLocaleString()}</td>
+                          <td className="py-3.5 text-emerald-400 font-bold">LKR {item.friendCommission.toLocaleString()}</td>
+                          <td className="py-3.5 text-purple-400 font-bold">LKR {item.ownerProfit.toLocaleString()}</td>
+                          <td className="py-3.5 text-zinc-500 font-sans">
+                            {item.settledAt ? new Date(item.settledAt).toLocaleDateString() : '—'}
+                          </td>
+                          <td className="py-3.5 text-right font-sans">
+                            <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-semibold">
+                              LOCKED / SETTLED
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
           </section>
         )}
       </main>
@@ -1188,6 +1612,171 @@ export default function AdminDashboard() {
             >
               Close
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── Modal: Add New Order (Friend's Quick Entry Form) ── */}
+      {isQuickOrderOpen && (
+        <div className="fixed inset-0 bg-black/85 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl relative">
+            <button
+              onClick={() => setIsQuickOrderOpen(false)}
+              className="absolute top-4 right-4 text-zinc-400 hover:text-white text-xl font-bold"
+            >
+              &times;
+            </button>
+
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-semibold mb-2">
+              ⚡ Operator Quick Order
+            </div>
+
+            <h3 className="text-xl font-bold text-white mb-1">Add New Client Order</h3>
+            <p className="text-xs text-zinc-400 mb-5">
+              Quickly record phone, WhatsApp, or in-person orders with custom pricing and fulfillment tracking
+            </p>
+
+            <form onSubmit={handleQuickCreateOrder} className="space-y-4 text-left">
+              <div>
+                <label className="block text-xs font-medium text-zinc-300">Client Name *</label>
+                <input
+                  type="text"
+                  required
+                  value={quickOrderForm.clientName}
+                  onChange={(e) =>
+                    setQuickOrderForm({ ...quickOrderForm, clientName: e.target.value })
+                  }
+                  placeholder="e.g. Kosala Fernando"
+                  className="mt-1 w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3.5 py-2 text-sm text-white focus:border-emerald-500 focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-zinc-300">WhatsApp Phone Number *</label>
+                <input
+                  type="tel"
+                  required
+                  value={quickOrderForm.whatsappNumber}
+                  onChange={(e) =>
+                    setQuickOrderForm({ ...quickOrderForm, whatsappNumber: e.target.value })
+                  }
+                  placeholder="e.g. 0771169108"
+                  className="mt-1 w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3.5 py-2 text-sm text-white focus:border-emerald-500 focus:outline-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-zinc-300">Card Variant</label>
+                  <select
+                    value={quickOrderForm.cardVariant}
+                    onChange={(e) => {
+                      const variant = e.target.value;
+                      let defaultPrice = '3500';
+                      if (variant === 'Matte Black') defaultPrice = '4900';
+                      else if (variant === 'Brushed Gold' || variant === 'Cyber Silver') defaultPrice = '4500';
+
+                      setQuickOrderForm({
+                        ...quickOrderForm,
+                        cardVariant: variant,
+                        customAmount: defaultPrice,
+                      });
+                    }}
+                    className="mt-1 w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white focus:border-emerald-500 focus:outline-none"
+                  >
+                    <option value="Standard PVC">Standard PVC (LKR 3,500)</option>
+                    <option value="Matte Black">Matte Black (LKR 4,900)</option>
+                    <option value="Brushed Gold">Brushed Gold (LKR 4,500)</option>
+                    <option value="Cyber Silver">Cyber Silver (LKR 4,500)</option>
+                    <option value="Midnight Navy">Midnight Navy (LKR 4,500)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-zinc-300">
+                    Custom Amount (LKR) *
+                  </label>
+                  <input
+                    type="number"
+                    required
+                    value={quickOrderForm.customAmount}
+                    onChange={(e) =>
+                      setQuickOrderForm({ ...quickOrderForm, customAmount: e.target.value })
+                    }
+                    placeholder="3500"
+                    className="mt-1 w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white font-mono focus:border-emerald-500 focus:outline-none"
+                  />
+                  <span className="text-[10px] text-zinc-500">Editable for discounts or bulk</span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-zinc-300">Payment Status</label>
+                  <div className="mt-1 flex rounded-xl border border-zinc-800 bg-zinc-950 p-1">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setQuickOrderForm({ ...quickOrderForm, paymentStatus: 'PAID' })
+                      }
+                      className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                        quickOrderForm.paymentStatus === 'PAID'
+                          ? 'bg-emerald-600 text-white shadow'
+                          : 'text-zinc-500 hover:text-white'
+                      }`}
+                    >
+                      ✓ Paid
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setQuickOrderForm({ ...quickOrderForm, paymentStatus: 'PENDING' })
+                      }
+                      className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                        quickOrderForm.paymentStatus === 'PENDING'
+                          ? 'bg-amber-600 text-white shadow'
+                          : 'text-zinc-500 hover:text-white'
+                      }`}
+                    >
+                      ⏳ Pending
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-zinc-300">Fulfillment Stage</label>
+                  <select
+                    value={quickOrderForm.fulfillmentStatus}
+                    onChange={(e) =>
+                      setQuickOrderForm({ ...quickOrderForm, fulfillmentStatus: e.target.value })
+                    }
+                    className="mt-1 w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white focus:border-emerald-500 focus:outline-none"
+                  >
+                    <option value="ORDER_RECEIVED">1. Order Received</option>
+                    <option value="ENCODING_CHIP">2. Encoding Chip</option>
+                    <option value="PRINTING">3. Printing</option>
+                    <option value="DISPATCHED">4. Dispatched</option>
+                    <option value="DELIVERED">5. Delivered</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="pt-3 flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsQuickOrderOpen(false)}
+                  className="flex-1 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-medium rounded-xl transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow-lg transition-colors"
+                >
+                  Create Order &rarr;
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
