@@ -4,11 +4,9 @@ import React, { useEffect, useState } from 'react'
 import { MenuIcon, XIcon } from 'lucide-react'
 
 const links = [
-  { href: '#how', label: 'How it works' },
-  { href: '#customize', label: 'Customize' },
-  { href: '#compare', label: 'Compare' },
-  { href: '#features', label: 'Features' },
-  { href: '#pricing', label: 'Pricing' },
+  { href: '/pricing', label: 'Pricing' },
+  { href: '/how-it-works', label: 'How It Works' },
+  { href: '/teams', label: 'For Teams' },
 ]
 
 export function Nav() {
@@ -29,11 +27,11 @@ export function Nav() {
       }`}
     >
       <div className="mx-auto flex h-16 max-w-content items-center justify-between px-5 sm:px-8">
-        <a href="#top" className="focus-ring flex items-center gap-2 rounded-sm py-1">
-          <img src="/logo-white.png" alt="Sera Cards" className="h-10 sm:h-12 w-auto object-contain" />
+        <a href="/" className="focus-ring flex items-center gap-2 rounded-sm py-1">
+          <img src="/logo-white.png" alt="GoSera" className="h-10 sm:h-12 w-auto object-contain" />
         </a>
 
-        <nav aria-label="Sections" className="hidden items-center gap-8 lg:flex">
+        <nav aria-label="Site navigation" className="hidden items-center gap-8 lg:flex">
           {links.map((l) => (
             <a
               key={l.href}
@@ -47,10 +45,10 @@ export function Nav() {
 
         <div className="flex items-center gap-3">
           <a
-            href="#pricing"
+            href="/pricing"
             className="focus-ring hidden rounded-full bg-accent-500 px-4 py-2 text-sm font-medium text-ink-950 transition-[transform,background-color] duration-150 ease-smooth hover:bg-accent-400 active:scale-[0.97] sm:inline-flex"
           >
-            Order now
+            View Plans
           </a>
           <button
             type="button"
@@ -66,7 +64,7 @@ export function Nav() {
 
       {open ? (
         <div className="border-t border-white/[0.07] bg-ink-950/95 backdrop-blur-xl lg:hidden">
-          <nav aria-label="Sections" className="mx-auto flex max-w-content flex-col px-5 py-2 sm:px-8">
+          <nav aria-label="Site navigation" className="mx-auto flex max-w-content flex-col px-5 py-2 sm:px-8">
             {links.map((l) => (
               <a
                 key={l.href}
@@ -79,11 +77,11 @@ export function Nav() {
             ))}
             <div className="py-3">
               <a
-                href="#pricing"
+                href="/pricing"
                 onClick={() => setOpen(false)}
                 className="flex items-center justify-center rounded-full bg-emerald-500 py-2.5 text-sm font-semibold text-black shadow-lg"
               >
-                Order Now — LKR 3,500
+                View Plans
               </a>
             </div>
           </nav>

@@ -2,38 +2,58 @@
 
 import React from 'react'
 import { MailIcon, MapPinIcon } from 'lucide-react'
-import { brand } from '../data/content'
 
 export function Footer() {
   return (
     <footer className="border-t border-white/[0.07] py-12">
-      <div className="mx-auto flex max-w-content flex-col gap-6 px-5 sm:px-8 md:flex-row md:items-center md:justify-between">
-        <div>
-          <a href="#top" className="inline-block">
-            <img src="/logo-white.png" alt="Sera Cards" className="h-9 sm:h-10 w-auto object-contain" />
-          </a>
-          <p className="mt-2 text-sm text-white/40">
-            NFC smart business cards by Seranex · {brand.domain}
-          </p>
+      <div className="mx-auto max-w-content px-5 sm:px-8">
+        <div className="flex flex-col gap-10 md:flex-row md:justify-between">
+          <div>
+            <a href="/" className="inline-block">
+              <img src="/logo-white.png" alt="GoSera" className="h-9 sm:h-10 w-auto object-contain" />
+            </a>
+            <p className="mt-2 text-sm text-white/40 max-w-xs">
+              The smart NFC business card and digital networking platform for Sri Lanka.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-8 sm:grid-cols-3">
+            <div>
+              <h3 className="text-xs font-semibold uppercase tracking-widest text-white/30">Product</h3>
+              <ul className="mt-4 space-y-2 text-sm text-white/50">
+                <li><a href="/pricing" className="hover:text-white transition-colors">Pricing</a></li>
+                <li><a href="/how-it-works" className="hover:text-white transition-colors">How It Works</a></li>
+                <li><a href="/teams" className="hover:text-white transition-colors">For Teams</a></li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="text-xs font-semibold uppercase tracking-widest text-white/30">Plans</h3>
+              <ul className="mt-4 space-y-2 text-sm text-white/50">
+                <li><a href="/pricing" className="hover:text-white transition-colors">GoSera Basic (Free)</a></li>
+                <li><a href="/pricing" className="hover:text-white transition-colors">GoSera Pro</a></li>
+                <li><a href="/pricing" className="hover:text-white transition-colors">GoSera Teams</a></li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="text-xs font-semibold uppercase tracking-widest text-white/30">Contact</h3>
+              <ul className="mt-4 space-y-2 text-sm text-white/50">
+                <li className="flex items-center gap-2">
+                  <MapPinIcon className="h-3.5 w-3.5 shrink-0 text-white/30" />
+                  Colombo, Sri Lanka
+                </li>
+                <li className="flex items-center gap-2">
+                  <MailIcon className="h-3.5 w-3.5 shrink-0 text-white/30" />
+                  <a href="mailto:hello@seranex.lk" className="hover:text-white transition-colors">hello@seranex.lk</a>
+                </li>
+              </ul>
+            </div>
+          </div>
         </div>
 
-        <ul className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-white/45">
-          <li className="flex items-center gap-2">
-            <MapPinIcon className="h-4 w-4 text-white/30" aria-hidden />
-            Colombo, Sri Lanka
-          </li>
-          <li className="flex items-center gap-2">
-            <MailIcon className="h-4 w-4 text-white/30" aria-hidden />
-            <a href={`mailto:hello@${brand.domain}`} className="focus-ring rounded-sm hover:text-white">
-              hello@{brand.domain}
-            </a>
-          </li>
-          <li>
-            <a href="#faq" className="focus-ring rounded-sm hover:text-white">
-              FAQ
-            </a>
-          </li>
-        </ul>
+        <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t border-white/[0.07] pt-8 sm:flex-row">
+          <p className="text-xs text-white/30">© {new Date().getFullYear()} Seranex · GoSera. All rights reserved.</p>
+          <p className="text-xs text-white/30">NFC smart networking platform · seranex.lk</p>
+        </div>
       </div>
     </footer>
   )
