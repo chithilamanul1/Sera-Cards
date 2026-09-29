@@ -61,9 +61,12 @@ export const metadata: Metadata = {
     canonical: '/',
   },
   icons: {
-    icon: '/favicon.png',
+    icon: [
+      { url: '/favicon.ico' },
+      { url: '/favicon.png', type: 'image/png' },
+    ],
     shortcut: '/favicon.png',
-    apple: '/logo-white.png',
+    apple: '/apple-icon.png',
   },
   openGraph: {
     title: 'Sera Cards — Smart NFC Business Cards Sri Lanka',
