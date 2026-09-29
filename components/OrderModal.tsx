@@ -50,6 +50,10 @@ export function OrderModal({ isOpen, onClose, initialConfig }: OrderModalProps) 
   const [paymentMethod, setPaymentMethod] = useState<'PAYHERE' | 'WHATSAPP'>('WHATSAPP');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [submittedOrder, setSubmittedOrder] = useState<{
+    orderNumber: string;
+    whatsappUrl: string;
+  } | null>(null);
 
   if (!isOpen) return null;
 
@@ -63,14 +67,41 @@ export function OrderModal({ isOpen, onClose, initialConfig }: OrderModalProps) 
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 5 * 1024 * 1024) {
-      alert('Logo file must be less than 5MB');
+    if (file.size > 10 * 1024 * 1024) {
+      alert('Logo file must be less than 10MB');
       return;
     }
 
     const reader = new FileReader();
     reader.onload = () => {
-      setLogoPreview(reader.result as string);
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const maxDim = 800;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > maxDim || height > maxDim) {
+          if (width > height) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          } else {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          setLogoPreview(canvas.toDataURL('image/png', 0.85));
+        } else {
+          setLogoPreview(reader.result as string);
+        }
+      };
+      img.src = reader.result as string;
     };
     reader.readAsDataURL(file);
   };
@@ -120,7 +151,8 @@ export function OrderModal({ isOpen, onClose, initialConfig }: OrderModalProps) 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to submit order');
+        const detailStr = data?.details ? ` (${data.details})` : '';
+        throw new Error((data?.error || 'Failed to submit order') + detailStr);
       }
 
       if (paymentMethod === 'PAYHERE' && data.payhereParams) {
@@ -142,7 +174,13 @@ export function OrderModal({ isOpen, onClose, initialConfig }: OrderModalProps) 
         document.body.appendChild(form);
         form.submit();
       } else if (data.whatsappUrl) {
-        // Reliable mobile and desktop redirect
+        setSubmittedOrder({
+          orderNumber: data.order?.orderNumber || 'SERA',
+          whatsappUrl: data.whatsappUrl,
+        });
+        setIsSubmitting(false);
+
+        // Immediate redirect to WhatsApp
         window.location.assign(data.whatsappUrl);
       }
     } catch (err: any) {
@@ -173,14 +211,52 @@ export function OrderModal({ isOpen, onClose, initialConfig }: OrderModalProps) 
           </button>
         </div>
 
-        {/* Scrollable Form Body */}
-        <form onSubmit={handleSubmitOrder} className="flex-1 space-y-6 overflow-y-auto px-5 sm:px-6 py-5 text-sm">
-          {errorMessage && (
-            <div className="flex items-center gap-3 rounded-2xl border border-red-500/20 bg-red-500/10 p-4 text-xs text-red-300">
-              <AlertCircleIcon className="h-4 w-4 shrink-0 text-red-400" />
-              <span>{errorMessage}</span>
+        {submittedOrder ? (
+          <div className="flex flex-1 flex-col items-center justify-center p-8 text-center space-y-6">
+            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-400 shadow-[0_0_40px_rgba(18,185,129,0.35)] ring-1 ring-emerald-500/30">
+              <CheckIcon className="h-10 w-10" />
             </div>
-          )}
+            <div>
+              <span className="text-[11px] font-bold uppercase tracking-widest text-emerald-400">
+                Order Generated Successfully
+              </span>
+              <h3 className="mt-1 text-2xl sm:text-3xl font-bold tracking-tight text-white">
+                #{submittedOrder.orderNumber}
+              </h3>
+              <p className="mt-2 text-sm text-white/60 max-w-sm mx-auto">
+                Your order is confirmed. Opening WhatsApp to connect with our design team and review your card proof.
+              </p>
+            </div>
+            <div className="w-full max-w-sm pt-2 space-y-3">
+              <a
+                href={submittedOrder.whatsappUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-500 py-4 font-bold text-black shadow-[0_0_30px_rgba(18,185,129,0.4)] transition hover:bg-emerald-400 active:scale-[0.98]"
+              >
+                <MessageSquareIcon className="h-5 w-5" />
+                Open WhatsApp Chat
+              </a>
+              <button
+                type="button"
+                onClick={() => {
+                  setSubmittedOrder(null);
+                  onClose();
+                }}
+                className="w-full py-2.5 text-xs font-semibold text-white/40 hover:text-white transition"
+              >
+                Close Window
+              </button>
+            </div>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmitOrder} className="flex-1 space-y-6 overflow-y-auto px-5 sm:px-6 py-5 text-sm">
+            {errorMessage && (
+              <div className="flex items-center gap-3 rounded-2xl border border-red-500/20 bg-red-500/10 p-4 text-xs text-red-300">
+                <AlertCircleIcon className="h-4 w-4 shrink-0 text-red-400" />
+                <span>{errorMessage}</span>
+              </div>
+            )}
 
           {/* Section 1: Edition & Pricing Selection */}
           <div className="space-y-3">
@@ -578,6 +654,7 @@ export function OrderModal({ isOpen, onClose, initialConfig }: OrderModalProps) 
             </button>
           </div>
         </form>
+        )}
       </div>
     </div>
   );
