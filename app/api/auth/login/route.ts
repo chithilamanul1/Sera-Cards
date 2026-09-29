@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 import { verifyPassword } from '@/lib/auth';
+import { getUserFromMemory, saveUserToMemory } from '@/lib/userStore';
+
+export const dynamic = 'force-dynamic';
 
 export async function POST(req: Request) {
   try {
@@ -38,57 +41,67 @@ export async function POST(req: Request) {
       });
     }
 
-    // 2. Check Customer / User in MongoDB
+    // 2. Check Customer / User in MongoDB or Memory Store
+    let user: any = null;
     try {
-      const user = await Promise.race([
+      user = await Promise.race([
         prisma.user.findUnique({
           where: { email: cleanEmail },
         }),
-        new Promise((_, reject) => setTimeout(() => reject(new Error('DB Timeout')), 4000)),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('DB Timeout')), 3500)),
       ]) as any;
 
-      if (user && verifyPassword(password, user.passwordHash)) {
-        // Set user session cookie
+      if (user) {
+        saveUserToMemory(user);
+      }
+    } catch (dbErr: any) {
+      console.warn('[Login API] User DB lookup warning:', dbErr?.message);
+    }
+
+    // Check memory store if DB lookup failed
+    if (!user) {
+      user = getUserFromMemory(cleanEmail);
+    }
+
+    if (user && verifyPassword(password, user.passwordHash)) {
+      // Set user session cookie
+      cookies().set({
+        name: 'user_session',
+        value: user.id,
+        httpOnly: true,
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 60 * 60 * 24 * 30, // 30 days
+        sameSite: 'lax',
+      });
+
+      // Also if role is ADMIN in database, set admin_session
+      if (user.role === 'ADMIN') {
         cookies().set({
-          name: 'user_session',
-          value: user.id,
+          name: 'admin_session',
+          value: 'authenticated',
           httpOnly: true,
           path: '/',
           secure: process.env.NODE_ENV === 'production',
-          maxAge: 60 * 60 * 24 * 30, // 30 days
+          maxAge: 60 * 60 * 24 * 30,
           sameSite: 'lax',
         });
-
-        // Also if role is ADMIN in database, set admin_session
-        if (user.role === 'ADMIN') {
-          cookies().set({
-            name: 'admin_session',
-            value: 'authenticated',
-            httpOnly: true,
-            path: '/',
-            secure: process.env.NODE_ENV === 'production',
-            maxAge: 60 * 60 * 24 * 30,
-            sameSite: 'lax',
-          });
-        }
-
-        const redirect = user.role === 'ADMIN' ? '/admin' : '/dashboard';
-
-        return NextResponse.json({
-          success: true,
-          role: user.role,
-          redirect,
-          user: {
-            id: user.id,
-            name: user.name,
-            email: user.email,
-            cardSlug: user.cardSlug,
-            plan: user.plan,
-          },
-        });
       }
-    } catch (dbErr: any) {
-      console.warn('[Login API] User DB lookup error:', dbErr?.message);
+
+      const redirect = user.role === 'ADMIN' ? '/admin' : '/dashboard';
+
+      return NextResponse.json({
+        success: true,
+        role: user.role,
+        redirect,
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          cardSlug: user.cardSlug,
+          plan: user.plan,
+        },
+      });
     }
 
     return NextResponse.json(

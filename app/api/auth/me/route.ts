@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
+import { getUserFromMemory, saveUserToMemory } from '@/lib/userStore';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,30 +24,51 @@ export async function GET() {
     }
 
     if (userSession) {
+      let user: any = null;
       try {
-        const user = await prisma.user.findUnique({
-          where: { id: userSession },
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            phone: true,
-            role: true,
-            plan: true,
-            cardSlug: true,
-            createdAt: true,
-          },
-        });
+        user = await Promise.race([
+          prisma.user.findUnique({
+            where: { id: userSession },
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              phone: true,
+              role: true,
+              plan: true,
+              cardSlug: true,
+              createdAt: true,
+            },
+          }),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('DB Timeout')), 3000)),
+        ]);
 
         if (user) {
-          return NextResponse.json({
-            authenticated: true,
-            role: user.role,
-            user,
-          });
+          saveUserToMemory(user);
         }
       } catch (err) {
-        console.warn('[Auth Me] User fetch warning:', err);
+        console.warn('[Auth Me] User fetch DB warning:', err);
+      }
+
+      if (!user) {
+        user = getUserFromMemory(userSession);
+      }
+
+      if (user) {
+        return NextResponse.json({
+          authenticated: true,
+          role: user.role,
+          user: {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            phone: user.phone,
+            role: user.role,
+            plan: user.plan,
+            cardSlug: user.cardSlug,
+            createdAt: user.createdAt,
+          },
+        });
       }
     }
 
