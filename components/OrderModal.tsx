@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState } from 'react';
 import {
@@ -196,7 +196,7 @@ export function OrderModal({ isOpen, onClose, initialConfig }: OrderModalProps) 
         {/* Header */}
         <div className="flex items-center justify-between border-b border-white/10 px-5 sm:px-6 py-4 sm:py-5">
           <div>
-            <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-400">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-purple-400">
               Direct Order Portal
             </span>
             <h2 className="text-lg sm:text-xl font-bold tracking-tight text-white">
@@ -213,11 +213,11 @@ export function OrderModal({ isOpen, onClose, initialConfig }: OrderModalProps) 
 
         {submittedOrder ? (
           <div className="flex flex-1 flex-col items-center justify-center p-8 text-center space-y-6">
-            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-400 shadow-[0_0_40px_rgba(18,185,129,0.35)] ring-1 ring-emerald-500/30">
+            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-purple-500/20 text-purple-400 shadow-[0_0_40px_rgba(168,85,247,0.35)] ring-1 ring-purple-500/30">
               <CheckIcon className="h-10 w-10" />
             </div>
             <div>
-              <span className="text-[11px] font-bold uppercase tracking-widest text-emerald-400">
+              <span className="text-[11px] font-bold uppercase tracking-widest text-purple-400">
                 Order Generated Successfully
               </span>
               <h3 className="mt-1 text-2xl sm:text-3xl font-bold tracking-tight text-white">
@@ -228,14 +228,14 @@ export function OrderModal({ isOpen, onClose, initialConfig }: OrderModalProps) 
               </p>
 
               {logoPreview && (
-                <div className="mt-3 flex items-center gap-3 rounded-2xl border border-emerald-500/20 bg-emerald-500/[0.07] p-3 text-left max-w-sm mx-auto">
+                <div className="mt-3 flex items-center gap-3 rounded-2xl border border-purple-500/20 bg-purple-500/[0.07] p-3 text-left max-w-sm mx-auto">
                   <img
                     src={logoPreview}
                     alt="Logo"
                     className="h-10 w-10 shrink-0 rounded-xl object-contain bg-white/5 p-1 ring-1 ring-white/10"
                   />
                   <div className="text-xs">
-                    <span className="font-semibold text-emerald-400 block">✓ Logo Attached to Order</span>
+                    <span className="font-semibold text-purple-400 block">✓ Logo Attached to Order</span>
                     <span className="text-white/60 text-[11px] leading-tight block">
                       A direct view/download link is in your WhatsApp message. You can also attach the file directly in the chat.
                     </span>
@@ -248,7 +248,7 @@ export function OrderModal({ isOpen, onClose, initialConfig }: OrderModalProps) 
                 href={submittedOrder.whatsappUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-500 py-4 font-bold text-black shadow-[0_0_30px_rgba(18,185,129,0.4)] transition hover:bg-emerald-400 active:scale-[0.98]"
+                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-purple-500 py-4 font-bold text-black shadow-[0_0_30px_rgba(168,85,247,0.4)] transition hover:bg-purple-400 active:scale-[0.98]"
               >
                 <MessageSquareIcon className="h-5 w-5" />
                 Open WhatsApp Chat
@@ -284,7 +284,7 @@ export function OrderModal({ isOpen, onClose, initialConfig }: OrderModalProps) 
                 onClick={() => setEdition('signature')}
                 className={`flex cursor-pointer flex-col justify-between rounded-2xl border p-4 transition-all ${
                   edition === 'signature'
-                    ? 'border-emerald-500 bg-emerald-500/[0.08] shadow-[0_0_30px_-10px_rgba(18,185,129,0.5)]'
+                    ? 'border-purple-500 bg-purple-500/[0.08] shadow-[0_0_30px_-10px_rgba(168,85,247,0.5)]'
                     : 'border-white/10 bg-white/[0.02] hover:border-white/20'
                 }`}
               >
@@ -295,11 +295,11 @@ export function OrderModal({ isOpen, onClose, initialConfig }: OrderModalProps) 
                       name="edition"
                       checked={edition === 'signature'}
                       onChange={() => setEdition('signature')}
-                      className="text-emerald-500"
+                      className="text-purple-500"
                     />
                     <span className="font-bold text-white text-sm">SERA Signature PVC</span>
                   </div>
-                  <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400">
+                  <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-400">
                     LKR 3,500
                   </span>
                 </div>
@@ -312,7 +312,7 @@ export function OrderModal({ isOpen, onClose, initialConfig }: OrderModalProps) 
                 onClick={() => setEdition('custom')}
                 className={`flex cursor-pointer flex-col justify-between rounded-2xl border p-4 transition-all ${
                   edition === 'custom'
-                    ? 'border-emerald-500 bg-emerald-500/[0.08] shadow-[0_0_30px_-10px_rgba(18,185,129,0.5)]'
+                    ? 'border-purple-500 bg-purple-500/[0.08] shadow-[0_0_30px_-10px_rgba(168,85,247,0.5)]'
                     : 'border-white/10 bg-white/[0.02] hover:border-white/20'
                 }`}
               >
@@ -323,11 +323,11 @@ export function OrderModal({ isOpen, onClose, initialConfig }: OrderModalProps) 
                       name="edition"
                       checked={edition === 'custom'}
                       onChange={() => setEdition('custom')}
-                      className="text-emerald-500"
+                      className="text-purple-500"
                     />
                     <span className="font-bold text-white text-sm">Full Custom Print PVC</span>
                   </div>
-                  <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400">
+                  <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-400">
                     LKR 5,000
                   </span>
                 </div>
@@ -338,7 +338,7 @@ export function OrderModal({ isOpen, onClose, initialConfig }: OrderModalProps) 
             </div>
 
             {/* Price Breakdown Banner */}
-            <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/[0.05] p-3.5 flex flex-wrap items-center justify-between gap-2">
+            <div className="rounded-2xl border border-purple-500/20 bg-purple-500/[0.05] p-3.5 flex flex-wrap items-center justify-between gap-2">
               <div>
                 <span className="text-xs uppercase tracking-wider text-white/50 block">Package Price</span>
                 <div className="flex items-baseline gap-2">
@@ -352,7 +352,7 @@ export function OrderModal({ isOpen, onClose, initialConfig }: OrderModalProps) 
               </div>
               <div className="text-right text-xs">
                 <span className="text-white/60 block">Island-wide Delivery: LKR {deliveryFee}</span>
-                <span className="text-emerald-400 font-bold font-mono text-sm">
+                <span className="text-purple-400 font-bold font-mono text-sm">
                   Total: LKR {totalAmount.toLocaleString()}
                 </span>
               </div>
@@ -373,7 +373,7 @@ export function OrderModal({ isOpen, onClose, initialConfig }: OrderModalProps) 
                   value={customerName}
                   onChange={(e) => setCustomerName(e.target.value)}
                   placeholder="e.g. Chithila Manul"
-                  className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-white placeholder-white/20 focus:border-emerald-500 focus:outline-none"
+                  className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-white placeholder-white/20 focus:border-purple-500 focus:outline-none"
                 />
               </div>
 
@@ -385,7 +385,7 @@ export function OrderModal({ isOpen, onClose, initialConfig }: OrderModalProps) 
                   value={customerPhone}
                   onChange={(e) => setCustomerPhone(e.target.value)}
                   placeholder="e.g. 0728382638"
-                  className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-white placeholder-white/20 focus:border-emerald-500 focus:outline-none"
+                  className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-white placeholder-white/20 focus:border-purple-500 focus:outline-none"
                 />
               </div>
 
@@ -396,7 +396,7 @@ export function OrderModal({ isOpen, onClose, initialConfig }: OrderModalProps) 
                   value={customerEmail}
                   onChange={(e) => setCustomerEmail(e.target.value)}
                   placeholder="e.g. you@domain.com"
-                  className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-white placeholder-white/20 focus:border-emerald-500 focus:outline-none"
+                  className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-white placeholder-white/20 focus:border-purple-500 focus:outline-none"
                 />
               </div>
 
@@ -408,7 +408,7 @@ export function OrderModal({ isOpen, onClose, initialConfig }: OrderModalProps) 
                   value={deliveryAddress}
                   onChange={(e) => setDeliveryAddress(e.target.value)}
                   placeholder="House number, Street, Area"
-                  className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-white placeholder-white/20 focus:border-emerald-500 focus:outline-none"
+                  className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-white placeholder-white/20 focus:border-purple-500 focus:outline-none"
                 />
               </div>
 
@@ -419,7 +419,7 @@ export function OrderModal({ isOpen, onClose, initialConfig }: OrderModalProps) 
                   value={city}
                   onChange={(e) => setCity(e.target.value)}
                   placeholder="e.g. Colombo, Seeduwa, Kandy"
-                  className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-white placeholder-white/20 focus:border-emerald-500 focus:outline-none"
+                  className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-white placeholder-white/20 focus:border-purple-500 focus:outline-none"
                 />
               </div>
             </div>
@@ -438,7 +438,7 @@ export function OrderModal({ isOpen, onClose, initialConfig }: OrderModalProps) 
             )}
 
             {edition === 'custom' && (
-              <p className="text-xs text-emerald-400 bg-emerald-500/[0.05] p-3 rounded-xl border border-emerald-500/20">
+              <p className="text-xs text-purple-400 bg-purple-500/[0.05] p-3 rounded-xl border border-purple-500/20">
                 🎨 <strong>Full Custom Print PVC:</strong> Your brand name, logo, and custom graphics will be printed on both card faces. Please upload your logo below.
               </p>
             )}
@@ -452,7 +452,7 @@ export function OrderModal({ isOpen, onClose, initialConfig }: OrderModalProps) 
                   value={brandName}
                   onChange={(e) => setBrandName(e.target.value)}
                   placeholder="e.g. SERANEX"
-                  className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-white placeholder-white/20 focus:border-emerald-500 focus:outline-none"
+                  className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-white placeholder-white/20 focus:border-purple-500 focus:outline-none"
                 />
               </div>
 
@@ -463,7 +463,7 @@ export function OrderModal({ isOpen, onClose, initialConfig }: OrderModalProps) 
                   value={tagline}
                   onChange={(e) => setTagline(e.target.value)}
                   placeholder="e.g. Web & Software Solutions"
-                  className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-white placeholder-white/20 focus:border-emerald-500 focus:outline-none"
+                  className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-white placeholder-white/20 focus:border-purple-500 focus:outline-none"
                 />
               </div>
 
@@ -475,7 +475,7 @@ export function OrderModal({ isOpen, onClose, initialConfig }: OrderModalProps) 
                   value={nameOnCard}
                   onChange={(e) => setNameOnCard(e.target.value)}
                   placeholder="e.g. Chithila Manul"
-                  className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-white placeholder-white/20 focus:border-emerald-500 focus:outline-none"
+                  className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-white placeholder-white/20 focus:border-purple-500 focus:outline-none"
                 />
               </div>
 
@@ -486,7 +486,7 @@ export function OrderModal({ isOpen, onClose, initialConfig }: OrderModalProps) 
                   value={designation}
                   onChange={(e) => setDesignation(e.target.value)}
                   placeholder="e.g. Founder & CEO"
-                  className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-white placeholder-white/20 focus:border-emerald-500 focus:outline-none"
+                  className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-white placeholder-white/20 focus:border-purple-500 focus:outline-none"
                 />
               </div>
 
@@ -499,9 +499,9 @@ export function OrderModal({ isOpen, onClose, initialConfig }: OrderModalProps) 
                     value={slug}
                     onChange={(e) => setSlug(e.target.value)}
                     placeholder="yourname"
-                    className="min-w-0 flex-1 bg-transparent px-1 font-mono text-emerald-400 text-xs sm:text-sm outline-none"
+                    className="min-w-0 flex-1 bg-transparent px-1 font-mono text-purple-400 text-xs sm:text-sm outline-none"
                   />
-                  <span className="font-mono text-xs text-emerald-400">.{brand.domain}</span>
+                  <span className="font-mono text-xs text-purple-400">.{brand.domain}</span>
                 </div>
               </div>
 
@@ -511,15 +511,15 @@ export function OrderModal({ isOpen, onClose, initialConfig }: OrderModalProps) 
                   {edition === 'custom' ? 'Upload Company Logo for Printing *' : 'Profile Photo / Logo (Optional)'}
                 </label>
                 <div className="mt-2 flex flex-wrap items-center gap-3">
-                  <label className="flex cursor-pointer items-center gap-2 rounded-xl border border-dashed border-white/20 bg-white/[0.02] px-4 py-3 text-xs text-white/70 transition-colors hover:border-emerald-500 hover:text-white">
-                    <UploadCloudIcon className="h-4 w-4 text-emerald-400" />
+                  <label className="flex cursor-pointer items-center gap-2 rounded-xl border border-dashed border-white/20 bg-white/[0.02] px-4 py-3 text-xs text-white/70 transition-colors hover:border-purple-500 hover:text-white">
+                    <UploadCloudIcon className="h-4 w-4 text-purple-400" />
                     <span>{logoPreview ? 'Change Image' : 'Choose Logo / Photo (PNG, JPG)'}</span>
                     <input type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
                   </label>
                   {logoPreview && (
                     <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] p-1.5">
                       <img src={logoPreview} alt="Logo preview" className="h-8 w-8 rounded-lg object-contain" />
-                      <span className="text-[11px] text-emerald-400 font-medium">Image attached</span>
+                      <span className="text-[11px] text-purple-400 font-medium">Image attached</span>
                     </div>
                   )}
                 </div>
@@ -539,7 +539,7 @@ export function OrderModal({ isOpen, onClose, initialConfig }: OrderModalProps) 
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
                 placeholder="e.g. Founder at Seranex. Building innovative software and NFC solutions."
-                className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-white placeholder-white/20 focus:border-emerald-500 focus:outline-none"
+                className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-white placeholder-white/20 focus:border-purple-500 focus:outline-none"
               />
             </div>
 
@@ -551,7 +551,7 @@ export function OrderModal({ isOpen, onClose, initialConfig }: OrderModalProps) 
                   value={instagram}
                   onChange={(e) => setInstagram(e.target.value)}
                   placeholder="https://instagram.com/yourhandle"
-                  className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2 text-xs sm:text-sm text-white placeholder-white/20 focus:border-emerald-500 focus:outline-none"
+                  className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2 text-xs sm:text-sm text-white placeholder-white/20 focus:border-purple-500 focus:outline-none"
                 />
               </div>
 
@@ -562,7 +562,7 @@ export function OrderModal({ isOpen, onClose, initialConfig }: OrderModalProps) 
                   value={linkedin}
                   onChange={(e) => setLinkedin(e.target.value)}
                   placeholder="https://linkedin.com/in/yourhandle"
-                  className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2 text-xs sm:text-sm text-white placeholder-white/20 focus:border-emerald-500 focus:outline-none"
+                  className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2 text-xs sm:text-sm text-white placeholder-white/20 focus:border-purple-500 focus:outline-none"
                 />
               </div>
 
@@ -573,7 +573,7 @@ export function OrderModal({ isOpen, onClose, initialConfig }: OrderModalProps) 
                   value={facebook}
                   onChange={(e) => setFacebook(e.target.value)}
                   placeholder="https://facebook.com/yourpage"
-                  className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2 text-xs sm:text-sm text-white placeholder-white/20 focus:border-emerald-500 focus:outline-none"
+                  className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2 text-xs sm:text-sm text-white placeholder-white/20 focus:border-purple-500 focus:outline-none"
                 />
               </div>
 
@@ -584,7 +584,7 @@ export function OrderModal({ isOpen, onClose, initialConfig }: OrderModalProps) 
                   value={tiktok}
                   onChange={(e) => setTiktok(e.target.value)}
                   placeholder="https://tiktok.com/@yourhandle"
-                  className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2 text-xs sm:text-sm text-white placeholder-white/20 focus:border-emerald-500 focus:outline-none"
+                  className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2 text-xs sm:text-sm text-white placeholder-white/20 focus:border-purple-500 focus:outline-none"
                 />
               </div>
             </div>
@@ -600,7 +600,7 @@ export function OrderModal({ isOpen, onClose, initialConfig }: OrderModalProps) 
                 onClick={() => setPaymentMethod('WHATSAPP')}
                 className={`flex cursor-pointer items-start gap-3 rounded-2xl border p-4 transition-all ${
                   paymentMethod === 'WHATSAPP'
-                    ? 'border-emerald-500 bg-emerald-500/[0.08]'
+                    ? 'border-purple-500 bg-purple-500/[0.08]'
                     : 'border-white/10 bg-white/[0.02] hover:border-white/20'
                 }`}
               >
@@ -609,11 +609,11 @@ export function OrderModal({ isOpen, onClose, initialConfig }: OrderModalProps) 
                   name="payment"
                   checked={paymentMethod === 'WHATSAPP'}
                   onChange={() => setPaymentMethod('WHATSAPP')}
-                  className="mt-0.5 text-emerald-500"
+                  className="mt-0.5 text-purple-500"
                 />
                 <div>
                   <div className="flex items-center gap-2">
-                    <MessageSquareIcon className="h-4 w-4 text-emerald-400" />
+                    <MessageSquareIcon className="h-4 w-4 text-purple-400" />
                     <span className="font-semibold text-white">Order via WhatsApp</span>
                   </div>
                   <p className="mt-1 text-xs leading-relaxed text-white/50">
@@ -626,7 +626,7 @@ export function OrderModal({ isOpen, onClose, initialConfig }: OrderModalProps) 
                 onClick={() => setPaymentMethod('PAYHERE')}
                 className={`flex cursor-pointer items-start gap-3 rounded-2xl border p-4 transition-all ${
                   paymentMethod === 'PAYHERE'
-                    ? 'border-emerald-500 bg-emerald-500/[0.08]'
+                    ? 'border-purple-500 bg-purple-500/[0.08]'
                     : 'border-white/10 bg-white/[0.02] hover:border-white/20'
                 }`}
               >
@@ -635,11 +635,11 @@ export function OrderModal({ isOpen, onClose, initialConfig }: OrderModalProps) 
                   name="payment"
                   checked={paymentMethod === 'PAYHERE'}
                   onChange={() => setPaymentMethod('PAYHERE')}
-                  className="mt-0.5 text-emerald-500"
+                  className="mt-0.5 text-purple-500"
                 />
                 <div>
                   <div className="flex items-center gap-2">
-                    <CreditCardIcon className="h-4 w-4 text-emerald-400" />
+                    <CreditCardIcon className="h-4 w-4 text-purple-400" />
                     <span className="font-semibold text-white">Pay Online (PayHere)</span>
                   </div>
                   <p className="mt-1 text-xs leading-relaxed text-white/50">
@@ -655,7 +655,7 @@ export function OrderModal({ isOpen, onClose, initialConfig }: OrderModalProps) 
             <button
               type="submit"
               disabled={isSubmitting}
-              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-500 py-4 text-sm sm:text-base font-bold text-black shadow-[0_0_40px_-10px_rgba(18,185,129,0.8)] transition-all hover:bg-emerald-400 active:scale-[0.98] disabled:opacity-50"
+              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-purple-500 py-4 text-sm sm:text-base font-bold text-black shadow-[0_0_40px_-10px_rgba(168,85,247,0.8)] transition-all hover:bg-purple-400 active:scale-[0.98] disabled:opacity-50"
             >
               {isSubmitting ? (
                 <>

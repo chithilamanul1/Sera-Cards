@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -138,17 +138,17 @@ export default function CustomerDashboard() {
 </head>
 <body class="bg-zinc-950 text-white min-h-screen flex flex-col items-center justify-center p-4 antialiased">
   <div class="w-full max-w-sm rounded-3xl border border-zinc-800 bg-zinc-900/90 p-6 shadow-2xl text-center">
-    <div class="w-20 h-20 rounded-full bg-emerald-500/20 text-emerald-400 font-bold text-2xl flex items-center justify-center mx-auto mb-4 border border-emerald-500/30">
+    <div class="w-20 h-20 rounded-full bg-purple-500/20 text-purple-400 font-bold text-2xl flex items-center justify-center mx-auto mb-4 border border-purple-500/30">
       ${(profileForm.name || user.name || 'G').charAt(0).toUpperCase()}
     </div>
     <h1 class="text-2xl font-bold text-white">${profileForm.name || user.name}</h1>
-    <p class="text-sm font-medium text-emerald-400 mt-0.5">${profileForm.title || 'Professional'}</p>
+    <p class="text-sm font-medium text-purple-400 mt-0.5">${profileForm.title || 'Professional'}</p>
     <p class="text-xs text-zinc-400 mt-1">${profileForm.company || 'GoSera Verified'}</p>
     ${profileForm.bio ? `<p class="text-xs text-zinc-300 mt-3 bg-zinc-950/60 p-3 rounded-xl border border-zinc-800">${profileForm.bio}</p>` : ''}
     
     <div class="mt-6 space-y-2.5">
       ${profileForm.phone ? `<a href="tel:${profileForm.phone}" class="flex items-center justify-center gap-2 w-full py-3 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl text-sm font-semibold transition-colors">📞 Call Phone</a>` : ''}
-      ${profileForm.whatsapp ? `<a href="https://wa.me/${profileForm.whatsapp.replace(/[^0-9]/g, '')}" target="_blank" class="flex items-center justify-center gap-2 w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-sm font-bold shadow-lg shadow-emerald-900/40 transition-colors">💬 WhatsApp Direct</a>` : ''}
+      ${profileForm.whatsapp ? `<a href="https://wa.me/${profileForm.whatsapp.replace(/[^0-9]/g, '')}" target="_blank" class="flex items-center justify-center gap-2 w-full py-3 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-sm font-bold shadow-lg shadow-purple-900/40 transition-colors">💬 WhatsApp Direct</a>` : ''}
       ${profileForm.email ? `<a href="mailto:${profileForm.email}" class="flex items-center justify-center gap-2 w-full py-3 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl text-sm font-semibold transition-colors">✉️ Send Email</a>` : ''}
       ${profileForm.website ? `<a href="${profileForm.website}" target="_blank" class="flex items-center justify-center gap-2 w-full py-3 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl text-sm font-semibold transition-colors">🌐 Visit Website</a>` : ''}
     </div>
@@ -160,7 +160,7 @@ export default function CustomerDashboard() {
         <input id="lead-name" type="text" placeholder="Your Name" required class="w-full bg-zinc-950 border border-zinc-800 px-3 py-2 text-xs rounded-lg text-white">
         <input id="lead-phone" type="tel" placeholder="Your WhatsApp / Phone" required class="w-full bg-zinc-950 border border-zinc-800 px-3 py-2 text-xs rounded-lg text-white">
         <input id="lead-notes" type="text" placeholder="Note or Company (optional)" class="w-full bg-zinc-950 border border-zinc-800 px-3 py-2 text-xs rounded-lg text-white">
-        <button type="submit" class="w-full py-2 bg-emerald-500 text-zinc-950 font-bold text-xs rounded-lg">Send Contact Back &rarr;</button>
+        <button type="submit" class="w-full py-2 bg-purple-500 text-zinc-950 font-bold text-xs rounded-lg">Send Contact Back &rarr;</button>
       </form>
     </div>
 

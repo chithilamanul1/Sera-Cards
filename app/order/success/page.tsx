@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
@@ -16,11 +16,11 @@ function OrderSuccessContent() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-[#050506] px-5 py-12 text-white">
       <div className="w-full max-w-lg rounded-3xl border border-white/10 bg-[#0e0e12] p-8 text-center shadow-[0_20px_50px_rgba(0,0,0,0.8)] sm:p-10">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-400">
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-purple-500/10 text-purple-400">
           <CheckCircle2Icon className="h-10 w-10" />
         </div>
 
-        <span className="mt-6 inline-block rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-emerald-400">
+        <span className="mt-6 inline-block rounded-full border border-purple-500/20 bg-purple-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-purple-400">
           Order Confirmed
         </span>
 
@@ -36,7 +36,7 @@ function OrderSuccessContent() {
         {orderId && (
           <div className="mt-6 rounded-2xl border border-white/5 bg-white/[0.02] p-4 text-sm">
             <span className="text-xs uppercase tracking-wider text-white/40">Order Reference</span>
-            <p className="mt-1 font-mono text-base font-semibold text-emerald-400">{orderId}</p>
+            <p className="mt-1 font-mono text-base font-semibold text-purple-400">{orderId}</p>
           </div>
         )}
 
@@ -47,7 +47,7 @@ function OrderSuccessContent() {
             )}`}
             target="_blank"
             rel="noreferrer"
-            className="flex w-full items-center justify-center gap-2 rounded-full bg-emerald-500 px-6 py-3.5 text-sm font-semibold text-black transition-all hover:bg-emerald-400 active:scale-95"
+            className="flex w-full items-center justify-center gap-2 rounded-full bg-purple-500 px-6 py-3.5 text-sm font-semibold text-black transition-all hover:bg-purple-400 active:scale-95"
           >
             <MessageSquareIcon className="h-4 w-4" />
             Chat with Production on WhatsApp

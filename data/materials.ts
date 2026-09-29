@@ -48,20 +48,20 @@ export const materials: Material[] = [
     badge: 'Enterprise & Pro',
     description: 'Custom printed with your own company logo, custom branding & colors on both sides.',
     face: {
-      backgroundColor: '#060d0a',
-      backgroundImage: 'radial-gradient(ellipse at 50% 25%, rgba(16,185,129,0.09) 0%, rgba(0,0,0,0) 75%)',
+      backgroundColor: '#0d0614',
+      backgroundImage: 'radial-gradient(ellipse at 50% 25%, rgba(168,85,247,0.14) 0%, rgba(0,0,0,0) 75%)',
     },
-    ink: '#10b981',
+    ink: '#c084fc',
     inkMuted: 'rgba(255,255,255,0.85)',
     backFace: {
-      backgroundColor: '#060d0a',
-      backgroundImage: 'radial-gradient(ellipse at 50% 75%, rgba(16,185,129,0.08) 0%, rgba(0,0,0,0) 75%)',
+      backgroundColor: '#0d0614',
+      backgroundImage: 'radial-gradient(ellipse at 50% 75%, rgba(168,85,247,0.12) 0%, rgba(0,0,0,0) 75%)',
     },
     backInk: '#ffffff',
-    backInkMuted: 'rgba(16,185,129,0.75)',
-    edge: 'rgba(16,185,129,0.3)',
+    backInkMuted: 'rgba(192,132,252,0.75)',
+    edge: 'rgba(168,85,247,0.3)',
     glare: 0.28,
-    swatch: { backgroundColor: '#10b981' },
+    swatch: { backgroundColor: '#a855f7' },
   },
 ]
 

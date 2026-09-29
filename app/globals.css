@@ -13,13 +13,14 @@
   --color-ink-800: #16161b;
   --color-ink-700: #1f1f26;
 
-  --color-accent-300: #7bf0b8;
-  --color-accent-400: #3ee08f;
-  --color-accent-500: #12b981;
-  --color-accent-600: #0a8f63;
+  /* ── Luxury Purple Accent Palette ── */
+  --color-accent-300: #d8b4fe;
+  --color-accent-400: #c084fc;
+  --color-accent-500: #a855f7;
+  --color-accent-600: #9333ea;
+  --color-accent-700: #7e22ce;
 
-  --color-cyan-400: #5fe3e0;
-  --color-cyan-500: #22c9c6;
+  --color-purple-glow: rgba(168, 85, 247, 0.4);
 
   /* ── Spacing / Sizing ── */
   --max-width-content: 76rem;
@@ -42,8 +43,8 @@ body {
 }
 
 ::selection {
-  background-color: #12b981;
-  color: #04120c;
+  background-color: #a855f7;
+  color: #ffffff;
 }
 
 .preserve-3d {
@@ -60,6 +61,6 @@ body {
 }
 
 .focus-ring:focus-visible {
-  outline: 2px solid #3ee08f;
+  outline: 2px solid #c084fc;
   outline-offset: 3px;
 }

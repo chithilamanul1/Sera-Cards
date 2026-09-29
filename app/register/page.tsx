@@ -219,7 +219,7 @@ export default function RegisterPage() {
             <button
               type="submit"
               disabled={loading}
-              className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-accent-500 py-3.5 text-sm font-semibold text-ink-950 shadow-[0_0_30px_-8px_rgba(18,185,129,0.8)] transition-all hover:bg-accent-400 active:scale-[0.98] disabled:opacity-50"
+              className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-accent-500 py-3.5 text-sm font-semibold text-ink-950 shadow-[0_0_30px_-8px_rgba(168,85,247,0.8)] transition-all hover:bg-accent-400 active:scale-[0.98] disabled:opacity-50"
             >
               {loading ? 'Creating your account...' : 'Create My Free Account'}
               <ArrowRightIcon className="h-4 w-4" />

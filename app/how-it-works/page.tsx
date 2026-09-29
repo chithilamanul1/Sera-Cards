@@ -138,7 +138,7 @@ export default function HowItWorksPage() {
             <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
               <a
                 href="/pricing"
-                className="rounded-full bg-accent-500 px-7 py-3.5 text-sm font-semibold text-ink-950 hover:bg-accent-400 transition-colors active:scale-[0.97] shadow-[0_0_40px_-10px_rgba(18,185,129,0.7)]"
+                className="rounded-full bg-accent-500 px-7 py-3.5 text-sm font-semibold text-ink-950 hover:bg-accent-400 transition-colors active:scale-[0.97] shadow-[0_0_40px_-10px_rgba(168,85,247,0.7)]"
               >
                 View Pricing
               </a>

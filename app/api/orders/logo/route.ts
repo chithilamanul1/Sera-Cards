@@ -82,8 +82,8 @@ export async function GET(request: Request) {
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="600" height="300" viewBox="0 0 600 300">
   <rect width="100%" height="100%" fill="#0a0a0c" rx="16"/>
   <rect x="20" y="20" width="560" height="260" rx="12" fill="none" stroke="#27272a" stroke-width="2" stroke-dasharray="8 8"/>
-  <text x="50%" y="45%" text-anchor="middle" fill="#10b981" font-family="sans-serif" font-weight="bold" font-size="20">
-    SERA SMART NFC CARD
+  <text x="50%" y="45%" text-anchor="middle" fill="#a855f7" font-family="sans-serif" font-weight="bold" font-size="20">
+    GOSERA SMART NFC CARD
   </text>
   <text x="50%" y="60%" text-anchor="middle" fill="#a1a1aa" font-family="sans-serif" font-size="14">
     Order #${id} - No digital logo uploaded

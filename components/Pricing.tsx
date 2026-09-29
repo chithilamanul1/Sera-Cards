@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState } from 'react';
 import { CheckIcon, TruckIcon, CreditCardIcon, MessageSquareIcon, SparklesIcon, ShieldCheckIcon } from 'lucide-react';
@@ -69,7 +69,7 @@ export function Pricing({ config }: PricingProps) {
           </div>
         </div>
 
-        <div className="overflow-hidden rounded-3xl border border-accent-500/25 bg-ink-950/80 shadow-[0_0_120px_-60px_rgba(18,185,129,1)]">
+        <div className="overflow-hidden rounded-3xl border border-accent-500/25 bg-ink-950/80 shadow-[0_0_120px_-60px_rgba(168,85,247,1)]">
           <div className="grid lg:grid-cols-[1.15fr_0.85fr]">
             {/* Left Column: Package Details */}
             <div className="p-7 sm:p-10 lg:p-12">
@@ -184,7 +184,7 @@ export function Pricing({ config }: PricingProps) {
                   </div>
                   <div className="flex justify-between gap-4">
                     <dt className="text-white/40">Digital Profile</dt>
-                    <dd className="text-emerald-400 font-mono text-xs">
+                    <dd className="text-purple-400 font-mono text-xs">
                       100% Customized (yourname.{brand.domain})
                     </dd>
                   </div>
@@ -199,7 +199,7 @@ export function Pricing({ config }: PricingProps) {
                 <button
                   type="button"
                   onClick={() => setIsOrderModalOpen(true)}
-                  className="focus-ring inline-flex w-full items-center justify-center gap-2 rounded-full bg-accent-500 px-6 py-4 text-sm font-semibold text-ink-950 shadow-[0_0_50px_-12px_rgba(18,185,129,0.9)] transition-all duration-150 hover:bg-accent-400 active:scale-[0.98]"
+                  className="focus-ring inline-flex w-full items-center justify-center gap-2 rounded-full bg-accent-500 px-6 py-4 text-sm font-semibold text-ink-950 shadow-[0_0_50px_-12px_rgba(168,85,247,0.9)] transition-all duration-150 hover:bg-accent-400 active:scale-[0.98]"
                 >
                   <CreditCardIcon className="h-4 w-4" />
                   Order Online (PayHere / Card)

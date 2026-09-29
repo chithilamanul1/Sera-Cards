@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import React from 'react'
 import { motion, type MotionValue } from 'framer-motion'
@@ -148,7 +148,7 @@ export function CardFaceContent({ config, side, glare }: CardFaceContentProps) {
             </div>
 
             <div className="min-w-0 space-y-1 text-right">
-              <p className="font-mono text-xs font-semibold text-emerald-400 truncate">
+              <p className="font-mono text-xs font-semibold text-purple-400 truncate">
                 {slug}.{brand.domain}
               </p>
               <ul className="space-y-1">

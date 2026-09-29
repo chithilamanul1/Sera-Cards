@@ -98,7 +98,7 @@ export function LandingPage() {
             >
               <a
                 href="/pricing"
-                className="group inline-flex items-center gap-2 rounded-full bg-accent-500 px-7 py-3.5 text-sm font-semibold text-ink-950 shadow-[0_0_50px_-12px_rgba(18,185,129,0.9)] transition-all hover:bg-accent-400 active:scale-[0.97]"
+                className="group inline-flex items-center gap-2 rounded-full bg-accent-500 px-7 py-3.5 text-sm font-semibold text-ink-950 shadow-[0_0_50px_-12px_rgba(168,85,247,0.9)] transition-all hover:bg-accent-400 active:scale-[0.97]"
               >
                 View Pricing & Plans
                 <ArrowRightIcon className="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden />
@@ -199,7 +199,7 @@ export function LandingPage() {
                   transition={{ duration: 0.28, delay: i * 0.05, ease }}
                   className={`rounded-2xl border p-7 sm:p-8 ${
                     f.accent
-                      ? 'border-accent-500/30 bg-accent-500/[0.06] shadow-[0_0_60px_-30px_rgba(18,185,129,0.8)]'
+                      ? 'border-accent-500/30 bg-accent-500/[0.06] shadow-[0_0_60px_-30px_rgba(168,85,247,0.8)]'
                       : 'border-white/[0.07] bg-ink-900/50 hover:border-white/20 transition-colors'
                   }`}
                 >
@@ -230,7 +230,7 @@ export function LandingPage() {
             <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
               <a
                 href="/pricing"
-                className="group inline-flex items-center gap-2 rounded-full bg-accent-500 px-7 py-3.5 text-sm font-semibold text-ink-950 shadow-[0_0_40px_-10px_rgba(18,185,129,0.8)] transition-all hover:bg-accent-400 active:scale-[0.97]"
+                className="group inline-flex items-center gap-2 rounded-full bg-accent-500 px-7 py-3.5 text-sm font-semibold text-ink-950 shadow-[0_0_40px_-10px_rgba(168,85,247,0.8)] transition-all hover:bg-accent-400 active:scale-[0.97]"
               >
                 Compare Plans
                 <ChevronRightIcon className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />

@@ -66,7 +66,7 @@ export function Hero({ config }: HeroProps) {
         >
           <a
             href="#customize"
-            className="focus-ring group inline-flex items-center gap-2 rounded-full bg-accent-500 px-6 py-3.5 text-sm font-semibold text-ink-950 shadow-[0_0_40px_-10px_rgba(18,185,129,0.8)] transition-[transform,background-color] duration-150 ease-smooth hover:bg-accent-400 active:scale-[0.97]"
+            className="focus-ring group inline-flex items-center gap-2 rounded-full bg-accent-500 px-6 py-3.5 text-sm font-semibold text-ink-950 shadow-[0_0_40px_-10px_rgba(168,85,247,0.8)] transition-[transform,background-color] duration-150 ease-smooth hover:bg-accent-400 active:scale-[0.97]"
           >
             Customize Your Sera Card
             <ArrowRightIcon

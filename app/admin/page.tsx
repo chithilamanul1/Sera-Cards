@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 export const dynamic = 'force-dynamic';
 
@@ -486,10 +486,10 @@ export default function AdminDashboard() {
       <header className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8 pb-6 border-b border-zinc-800">
         <div>
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl md:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400">
+            <h1 className="text-2xl md:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-teal-300 to-cyan-400">
               Sera Cards Studio
             </h1>
-            <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-500/10 text-purple-400 border border-purple-500/20">
               SaaS Engine v2.5
             </span>
           </div>
@@ -504,7 +504,7 @@ export default function AdminDashboard() {
             <button
               onClick={() => setActiveTab('studio')}
               className={`px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all whitespace-nowrap ${
-                activeTab === 'studio' ? 'bg-emerald-600 text-white shadow-md' : 'text-zinc-400 hover:text-white'
+                activeTab === 'studio' ? 'bg-purple-600 text-white shadow-md' : 'text-zinc-400 hover:text-white'
               }`}
             >
               🚀 Studio & Builder
@@ -528,7 +528,7 @@ export default function AdminDashboard() {
             <button
               onClick={() => { setActiveTab('orders'); fetchOrders(); }}
               className={`px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all whitespace-nowrap ${
-                activeTab === 'orders' ? 'bg-emerald-600 text-white shadow-md' : 'text-zinc-400 hover:text-white'
+                activeTab === 'orders' ? 'bg-purple-600 text-white shadow-md' : 'text-zinc-400 hover:text-white'
               }`}
             >
               🛒 Orders ({orders.length})
@@ -536,7 +536,7 @@ export default function AdminDashboard() {
             <button
               onClick={() => { setActiveTab('settlements'); fetchSettlements(); }}
               className={`px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all whitespace-nowrap ${
-                activeTab === 'settlements' ? 'bg-emerald-600 text-white shadow-md' : 'text-zinc-400 hover:text-white'
+                activeTab === 'settlements' ? 'bg-purple-600 text-white shadow-md' : 'text-zinc-400 hover:text-white'
               }`}
             >
               ⚖️ Settlement Ledger
@@ -579,12 +579,12 @@ export default function AdminDashboard() {
         </div>
 
         {/* Card 3: Friend's Earned Commission */}
-        <div className="bg-zinc-900/90 border border-emerald-500/30 rounded-2xl p-4 sm:p-5 relative overflow-hidden bg-gradient-to-br from-emerald-950/30 to-zinc-900">
-          <div className="flex items-center justify-between text-emerald-400 text-xs uppercase tracking-wider mb-2 font-medium">
+        <div className="bg-zinc-900/90 border border-purple-500/30 rounded-2xl p-4 sm:p-5 relative overflow-hidden bg-gradient-to-br from-purple-950/30 to-zinc-900">
+          <div className="flex items-center justify-between text-purple-400 text-xs uppercase tracking-wider mb-2 font-medium">
             <span>Friend's Commission</span>
-            <span className="px-1.5 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 text-[10px] font-bold">50% Share</span>
+            <span className="px-1.5 py-0.5 rounded-md bg-purple-500/20 text-purple-300 text-[10px] font-bold">50% Share</span>
           </div>
-          <p className="text-xl sm:text-2xl font-bold text-emerald-400 font-mono">
+          <p className="text-xl sm:text-2xl font-bold text-purple-400 font-mono">
             LKR {liveMetrics.friendCommission.toLocaleString()}
           </p>
           <p className="text-[11px] text-zinc-400 mt-1">Accumulated split ready to keep</p>
@@ -685,7 +685,7 @@ export default function AdminDashboard() {
                       <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1">
                         Profile Slug (Subdomain)
                       </label>
-                      <div className="flex rounded-xl overflow-hidden border border-zinc-800 bg-zinc-950 focus-within:border-emerald-500">
+                      <div className="flex rounded-xl overflow-hidden border border-zinc-800 bg-zinc-950 focus-within:border-purple-500">
                         <input
                           type="text"
                           value={slug}
@@ -698,7 +698,7 @@ export default function AdminDashboard() {
                           className="w-full px-4 py-2.5 bg-transparent text-white font-mono text-sm outline-none"
                           required
                         />
-                        <span className="px-3.5 flex items-center text-xs font-mono text-emerald-400 bg-zinc-900 border-l border-zinc-800 select-none">
+                        <span className="px-3.5 flex items-center text-xs font-mono text-purple-400 bg-zinc-900 border-l border-zinc-800 select-none">
                           .{rootDomain}
                         </span>
                       </div>
@@ -738,19 +738,19 @@ export default function AdminDashboard() {
                     </div>
 
                     {/* Owner WhatsApp Notification Hotline */}
-                    <div className="p-3.5 bg-emerald-950/20 border border-emerald-500/30 rounded-xl">
+                    <div className="p-3.5 bg-purple-950/20 border border-purple-500/30 rounded-xl">
                       <div className="flex justify-between items-center mb-1">
-                        <label className="block text-xs font-bold text-emerald-400 uppercase tracking-wider">
+                        <label className="block text-xs font-bold text-purple-400 uppercase tracking-wider">
                           📲 Card Owner WhatsApp (For Instant Lead Alerts)
                         </label>
-                        <span className="text-[10px] text-emerald-300 font-semibold">Dynamic per profile</span>
+                        <span className="text-[10px] text-purple-300 font-semibold">Dynamic per profile</span>
                       </div>
                       <input
                         type="tel"
                         value={templateForm.whatsapp}
                         onChange={(e) => setTemplateForm({ ...templateForm, whatsapp: e.target.value })}
                         placeholder="e.g. 94771234567"
-                        className="w-full px-3.5 py-2 bg-zinc-950 border border-emerald-500/40 rounded-lg text-sm text-emerald-200 font-mono"
+                        className="w-full px-3.5 py-2 bg-zinc-950 border border-purple-500/40 rounded-lg text-sm text-purple-200 font-mono"
                         required
                       />
                       <p className="text-[11px] text-zinc-400 mt-1">
@@ -823,7 +823,7 @@ export default function AdminDashboard() {
                                 reader.readAsDataURL(file);
                               }
                             }}
-                            className="w-full text-xs text-zinc-400 file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:bg-emerald-950 file:text-emerald-400 hover:file:bg-emerald-900 cursor-pointer"
+                            className="w-full text-xs text-zinc-400 file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:bg-purple-950 file:text-purple-400 hover:file:bg-purple-900 cursor-pointer"
                           />
                           <input
                             type="text"
@@ -850,7 +850,7 @@ export default function AdminDashboard() {
                                 reader.readAsDataURL(file);
                               }
                             }}
-                            className="w-full text-xs text-zinc-400 file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:bg-emerald-950 file:text-emerald-400 hover:file:bg-emerald-900 cursor-pointer"
+                            className="w-full text-xs text-zinc-400 file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:bg-purple-950 file:text-purple-400 hover:file:bg-purple-900 cursor-pointer"
                           />
                           <input
                             type="text"
@@ -927,7 +927,7 @@ export default function AdminDashboard() {
                     <button
                       type="submit"
                       disabled={isSubmitting}
-                      className="w-full py-3.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 disabled:opacity-50 text-white rounded-xl font-bold text-sm shadow-xl shadow-emerald-950/40 transition-all flex items-center justify-center gap-2"
+                      className="w-full py-3.5 bg-gradient-to-r from-purple-600 to-teal-600 hover:from-purple-500 hover:to-teal-500 disabled:opacity-50 text-white rounded-xl font-bold text-sm shadow-xl shadow-purple-950/40 transition-all flex items-center justify-center gap-2"
                     >
                       {isSubmitting ? 'Publishing...' : `🚀 Deploy & Make Live (${slug || 'yourname'}.${rootDomain})`}
                     </button>
@@ -961,7 +961,7 @@ export default function AdminDashboard() {
                     <button
                       type="submit"
                       disabled={isSubmitting}
-                      className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold text-sm"
+                      className="w-full py-3.5 bg-purple-600 hover:bg-purple-500 text-white rounded-xl font-bold text-sm"
                     >
                       {isSubmitting ? 'Deploying...' : 'Deploy Raw HTML to Edge'}
                     </button>
@@ -973,7 +973,7 @@ export default function AdminDashboard() {
               <div className="lg:col-span-5 flex flex-col items-center">
                 <div className="text-center mb-3">
                   <span className="text-xs uppercase tracking-wider text-zinc-400 font-semibold flex items-center justify-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span className="w-2 h-2 rounded-full bg-purple-400 animate-pulse"></span>
                     Live Device Simulator Preview
                   </span>
                 </div>
@@ -1033,7 +1033,7 @@ export default function AdminDashboard() {
               </div>
               <button
                 onClick={() => setActiveTab('studio')}
-                className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold transition-all"
+                className="px-3.5 py-1.5 bg-purple-600 hover:bg-purple-500 text-white rounded-lg text-xs font-bold transition-all"
               >
                 + Create New Profile
               </button>
@@ -1066,7 +1066,7 @@ export default function AdminDashboard() {
                       return (
                         <tr key={card.id} className="hover:bg-zinc-800/40 transition-colors">
                           <td className="py-4">
-                            <span className="font-mono font-bold text-emerald-400 text-base">{card.slug}</span>
+                            <span className="font-mono font-bold text-purple-400 text-base">{card.slug}</span>
                             <div className="text-xs text-zinc-400 mt-1 flex items-center gap-2">
                               <a
                                 href={`https://${card.slug}.${rootDomain}`}
@@ -1082,7 +1082,7 @@ export default function AdminDashboard() {
                             {cardLeads.length > 0 ? (
                               <button
                                 onClick={() => setViewLeadsSlug(card.slug)}
-                                className="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 text-xs font-bold px-2.5 py-1 rounded-full border border-emerald-500/30 transition-colors"
+                                className="bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 text-xs font-bold px-2.5 py-1 rounded-full border border-purple-500/30 transition-colors"
                               >
                                 {cardLeads.length} Lead{cardLeads.length > 1 ? 's' : ''}
                               </button>
@@ -1175,7 +1175,7 @@ export default function AdminDashboard() {
                           {lead.phone}
                         </td>
                         <td className="py-3.5">
-                          <span className="font-mono text-xs px-2.5 py-0.5 bg-zinc-800 text-emerald-400 rounded-md font-semibold">
+                          <span className="font-mono text-xs px-2.5 py-0.5 bg-zinc-800 text-purple-400 rounded-md font-semibold">
                             {lead.clientSlug}
                           </span>
                         </td>
@@ -1187,7 +1187,7 @@ export default function AdminDashboard() {
                             href={`https://wa.me/${lead.phone.replace(/[^0-9]/g, '')}?text=Hi%20${encodeURIComponent(lead.name)},%20thank%20you%20for%20connecting%20via%20Sera%20Cards!`}
                             target="_blank"
                             rel="noreferrer"
-                            className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-lg text-xs font-semibold transition-colors"
+                            className="inline-flex items-center gap-1.5 px-3 py-1 bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 border border-purple-500/30 rounded-lg text-xs font-semibold transition-colors"
                           >
                             💬 WhatsApp
                           </a>
@@ -1218,7 +1218,7 @@ export default function AdminDashboard() {
               <div className="flex items-center gap-2.5">
                 <button
                   onClick={() => setIsQuickOrderOpen(true)}
-                  className="px-3.5 py-1.5 text-xs bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-lg shadow-md transition-colors flex items-center gap-1.5"
+                  className="px-3.5 py-1.5 text-xs bg-purple-600 hover:bg-purple-500 text-white font-semibold rounded-lg shadow-md transition-colors flex items-center gap-1.5"
                 >
                   <span>+</span> Add New Order
                 </button>
@@ -1260,7 +1260,7 @@ export default function AdminDashboard() {
                       return (
                         <tr key={order.id} className="hover:bg-zinc-800/30 transition-colors">
                           <td className="py-4 align-top">
-                            <span className="font-mono text-xs font-bold text-emerald-400">
+                            <span className="font-mono text-xs font-bold text-purple-400">
                               {order.orderNumber}
                             </span>
                             <p className="text-[11px] text-zinc-500 mt-1">
@@ -1292,7 +1292,7 @@ export default function AdminDashboard() {
                                 <p className="text-xs text-zinc-400">
                                   <span className="text-zinc-500">Name:</span> {order.nameOnCard}
                                 </p>
-                                <p className="text-[11px] font-mono text-emerald-400 mt-0.5">
+                                <p className="text-[11px] font-mono text-purple-400 mt-0.5">
                                   {order.slug}.{rootDomain}
                                 </p>
                                 <span className="inline-block mt-1 text-[10px] uppercase font-semibold px-2 py-0.5 rounded bg-zinc-800 text-zinc-300 border border-zinc-700">
@@ -1316,7 +1316,7 @@ export default function AdminDashboard() {
                                 }
                                 className={`text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full border transition-all ${
                                   isPaid
-                                    ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
+                                    ? 'bg-purple-500/15 text-purple-400 border-purple-500/30'
                                     : 'bg-amber-500/15 text-amber-400 border-amber-500/30 hover:bg-amber-500/25'
                                 }`}
                               >
@@ -1338,7 +1338,7 @@ export default function AdminDashboard() {
                               }
                               className={`text-xs rounded-lg px-2.5 py-1.5 font-medium border focus:outline-none ${
                                 currentFulfillment === 'DELIVERED'
-                                  ? 'bg-emerald-950/40 text-emerald-300 border-emerald-800'
+                                  ? 'bg-purple-950/40 text-purple-300 border-purple-800'
                                   : currentFulfillment === 'DISPATCHED'
                                   ? 'bg-blue-950/40 text-blue-300 border-blue-800'
                                   : currentFulfillment === 'PRINTING'
@@ -1401,7 +1401,7 @@ export default function AdminDashboard() {
             <div className="bg-zinc-900/90 border border-zinc-800 rounded-2xl p-6 shadow-xl">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 pb-4 border-b border-zinc-800">
                 <div>
-                  <span className="text-[10px] uppercase font-bold tracking-wider text-emerald-400">
+                  <span className="text-[10px] uppercase font-bold tracking-wider text-purple-400">
                     Transparent Financial Settlement
                   </span>
                   <h2 className="text-xl font-bold text-white flex items-center gap-2 mt-0.5">
@@ -1415,7 +1415,7 @@ export default function AdminDashboard() {
                 <button
                   type="button"
                   onClick={() => handleSettleWeek(settlementData?.currentWeekId)}
-                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-lg transition-all"
+                  className="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs rounded-xl shadow-lg transition-all"
                 >
                   ✓ Settle Week & Lock Ledger
                 </button>
@@ -1447,11 +1447,11 @@ export default function AdminDashboard() {
                   </p>
                 </div>
 
-                <div className="bg-zinc-950 border border-emerald-500/30 rounded-xl p-4 bg-emerald-950/10">
-                  <span className="text-[11px] font-semibold text-emerald-400 uppercase tracking-wider block">
+                <div className="bg-zinc-950 border border-purple-500/30 rounded-xl p-4 bg-purple-950/10">
+                  <span className="text-[11px] font-semibold text-purple-400 uppercase tracking-wider block">
                     3. Friend's 50% Payout
                   </span>
-                  <p className="text-2xl font-bold text-emerald-400 mt-1 font-mono">
+                  <p className="text-2xl font-bold text-purple-400 mt-1 font-mono">
                     LKR {(settlementData?.currentWeekMetrics?.friendCommission || liveMetrics.friendCommission).toLocaleString()}
                   </p>
                   <p className="text-[11px] text-zinc-400 mt-1">
@@ -1505,13 +1505,13 @@ export default function AdminDashboard() {
                           <td className="py-3.5 text-zinc-300">{item.totalCardsSold}</td>
                           <td className="py-3.5 text-zinc-200">LKR {item.totalRevenue.toLocaleString()}</td>
                           <td className="py-3.5 text-blue-400">LKR {item.productionCostTotal.toLocaleString()}</td>
-                          <td className="py-3.5 text-emerald-400 font-bold">LKR {item.friendCommission.toLocaleString()}</td>
+                          <td className="py-3.5 text-purple-400 font-bold">LKR {item.friendCommission.toLocaleString()}</td>
                           <td className="py-3.5 text-purple-400 font-bold">LKR {item.ownerProfit.toLocaleString()}</td>
                           <td className="py-3.5 text-zinc-500 font-sans">
                             {item.settledAt ? new Date(item.settledAt).toLocaleDateString() : '—'}
                           </td>
                           <td className="py-3.5 text-right font-sans">
-                            <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-semibold">
+                            <span className="px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/20 text-[10px] font-semibold">
                               LOCKED / SETTLED
                             </span>
                           </td>
@@ -1597,7 +1597,7 @@ export default function AdminDashboard() {
             <div className="flex justify-between items-center mb-4 pb-3 border-b border-zinc-800">
               <div>
                 <h3 className="text-lg font-bold text-white">
-                  Leads for <span className="text-emerald-400 font-mono">{viewLeadsSlug}</span>
+                  Leads for <span className="text-purple-400 font-mono">{viewLeadsSlug}</span>
                 </h3>
               </div>
               <button
@@ -1623,7 +1623,7 @@ export default function AdminDashboard() {
                       href={`https://wa.me/${lead.phone.replace(/[^0-9]/g, '')}?text=Hi%20${encodeURIComponent(lead.name)},%20thank%20you%20for%20connecting!`}
                       target="_blank"
                       rel="noreferrer"
-                      className="px-2.5 py-1 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 text-xs font-semibold rounded-md border border-emerald-500/30"
+                      className="px-2.5 py-1 bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 text-xs font-semibold rounded-md border border-purple-500/30"
                     >
                       WhatsApp
                     </a>
@@ -1653,7 +1653,7 @@ export default function AdminDashboard() {
               &times;
             </button>
 
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-semibold mb-2">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/20 text-xs font-semibold mb-2">
               ⚡ Operator Quick Order
             </div>
 
@@ -1673,7 +1673,7 @@ export default function AdminDashboard() {
                     setQuickOrderForm({ ...quickOrderForm, clientName: e.target.value })
                   }
                   placeholder="e.g. Kosala Fernando"
-                  className="mt-1 w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3.5 py-2 text-sm text-white focus:border-emerald-500 focus:outline-none"
+                  className="mt-1 w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3.5 py-2 text-sm text-white focus:border-purple-500 focus:outline-none"
                 />
               </div>
 
@@ -1687,7 +1687,7 @@ export default function AdminDashboard() {
                     setQuickOrderForm({ ...quickOrderForm, whatsappNumber: e.target.value })
                   }
                   placeholder="e.g. 0771169108"
-                  className="mt-1 w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3.5 py-2 text-sm text-white focus:border-emerald-500 focus:outline-none"
+                  className="mt-1 w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3.5 py-2 text-sm text-white focus:border-purple-500 focus:outline-none"
                 />
               </div>
 
@@ -1708,7 +1708,7 @@ export default function AdminDashboard() {
                         customAmount: defaultPrice,
                       });
                     }}
-                    className="mt-1 w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white focus:border-emerald-500 focus:outline-none"
+                    className="mt-1 w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white focus:border-purple-500 focus:outline-none"
                   >
                     <option value="Sera Signature PVC">Sera Signature PVC (LKR 3,500)</option>
                     <option value="Full Custom Print PVC">Full Custom Print PVC (LKR 5,000)</option>
@@ -1728,7 +1728,7 @@ export default function AdminDashboard() {
                       setQuickOrderForm({ ...quickOrderForm, customAmount: e.target.value })
                     }
                     placeholder="3500"
-                    className="mt-1 w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white font-mono focus:border-emerald-500 focus:outline-none"
+                    className="mt-1 w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white font-mono focus:border-purple-500 focus:outline-none"
                   />
                   <span className="text-[10px] text-zinc-500">Editable for discounts or bulk</span>
                 </div>
@@ -1745,7 +1745,7 @@ export default function AdminDashboard() {
                       }
                       className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${
                         quickOrderForm.paymentStatus === 'PAID'
-                          ? 'bg-emerald-600 text-white shadow'
+                          ? 'bg-purple-600 text-white shadow'
                           : 'text-zinc-500 hover:text-white'
                       }`}
                     >
@@ -1774,7 +1774,7 @@ export default function AdminDashboard() {
                     onChange={(e) =>
                       setQuickOrderForm({ ...quickOrderForm, fulfillmentStatus: e.target.value })
                     }
-                    className="mt-1 w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white focus:border-emerald-500 focus:outline-none"
+                    className="mt-1 w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white focus:border-purple-500 focus:outline-none"
                   >
                     <option value="ORDER_RECEIVED">1. Order Received</option>
                     <option value="ENCODING_CHIP">2. Encoding Chip</option>
@@ -1795,7 +1795,7 @@ export default function AdminDashboard() {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow-lg transition-colors"
+                  className="flex-1 py-2.5 bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold rounded-xl shadow-lg transition-colors"
                 >
                   Create Order &rarr;
                 </button>

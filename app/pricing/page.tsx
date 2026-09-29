@@ -247,7 +247,7 @@ export default function PricingPage() {
                   transition={{ duration: 0.3, delay: i * 0.06, ease }}
                   className={`relative flex flex-col rounded-2xl border p-7 ${
                     plan.highlight
-                      ? 'border-accent-500/40 bg-accent-500/[0.06] shadow-[0_0_80px_-40px_rgba(18,185,129,0.9)]'
+                      ? 'border-accent-500/40 bg-accent-500/[0.06] shadow-[0_0_80px_-40px_rgba(168,85,247,0.9)]'
                       : 'border-white/[0.08] bg-ink-900/70'
                   }`}
                 >
@@ -292,7 +292,7 @@ export default function PricingPage() {
                     rel={plan.ctaHref.startsWith('http') ? 'noreferrer' : undefined}
                     className={`mt-8 flex w-full items-center justify-center rounded-xl py-3.5 text-sm font-semibold transition-all active:scale-[0.98] ${
                       plan.highlight
-                        ? 'bg-accent-500 text-ink-950 hover:bg-accent-400 shadow-[0_0_30px_-8px_rgba(18,185,129,0.8)]'
+                        ? 'bg-accent-500 text-ink-950 hover:bg-accent-400 shadow-[0_0_30px_-8px_rgba(168,85,247,0.8)]'
                         : 'border border-white/12 text-white hover:bg-white/[0.05]'
                     }`}
                   >

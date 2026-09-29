@@ -164,7 +164,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       </head>
-      <body className="min-h-full bg-zinc-950 text-white selection:bg-emerald-500 selection:text-black">
+      <body className="min-h-full bg-zinc-950 text-white selection:bg-purple-500 selection:text-white">
         {children}
       </body>
     </html>

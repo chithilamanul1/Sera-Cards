@@ -90,7 +90,7 @@ export async function sendWelcomeEmail({
     <tr>
       <td style="padding: 36px 32px;">
         <div style="margin-bottom: 24px;">
-          <span style="font-size: 20px; font-weight: 800; letter-spacing: -0.03em; color: #0f172a;">Go<span style="color: #10b981;">Sera</span></span>
+          <span style="font-size: 20px; font-weight: 800; letter-spacing: -0.03em; color: #0f172a;">Go<span style="color: #a855f7;">Sera</span></span>
         </div>
 
         <p style="font-size: 16px; line-height: 1.6; margin-top: 0; color: #334155;">Hello,</p>
@@ -110,12 +110,12 @@ export async function sendWelcomeEmail({
           <ul style="margin: 0; padding-left: 20px; font-size: 14px; line-height: 1.8; color: #334155;">
             <li><strong>Name:</strong> ${name}</li>
             <li><strong>Email:</strong> <a href="mailto:${email}" style="color: #0284c7; text-decoration: none;">${email}</a></li>
-            ${slug ? `<li><strong>Profile Link:</strong> <a href="${profileUrl}" style="color: #10b981; font-weight: 600; text-decoration: none;">${slug}.${rootDomain}</a></li>` : ''}
+            ${slug ? `<li><strong>Profile Link:</strong> <a href="${profileUrl}" style="color: #a855f7; font-weight: 600; text-decoration: none;">${slug}.${rootDomain}</a></li>` : ''}
           </ul>
         </div>
 
         <div style="margin: 28px 0;">
-          <a href="https://card.${rootDomain}/dashboard" style="display: inline-block; background-color: #10b981; color: #04120c; font-weight: 600; font-size: 14px; padding: 12px 24px; border-radius: 8px; text-decoration: none;">
+          <a href="https://card.${rootDomain}/dashboard" style="display: inline-block; background-color: #a855f7; color: #04120c; font-weight: 600; font-size: 14px; padding: 12px 24px; border-radius: 8px; text-decoration: none;">
             Access Your Dashboard &rarr;
           </a>
         </div>
@@ -176,7 +176,7 @@ export async function sendOrderConfirmationEmail({
     <tr>
       <td style="padding: 36px 32px;">
         <div style="margin-bottom: 24px;">
-          <span style="font-size: 20px; font-weight: 800; letter-spacing: -0.03em; color: #0f172a;">Go<span style="color: #10b981;">Sera</span></span>
+          <span style="font-size: 20px; font-weight: 800; letter-spacing: -0.03em; color: #0f172a;">Go<span style="color: #a855f7;">Sera</span></span>
         </div>
 
         <p style="font-size: 16px; line-height: 1.6; margin-top: 0; color: #334155;">Hello <strong>${name}</strong>,</p>
@@ -242,13 +242,13 @@ export async function sendLeadNotificationEmail({
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width: 640px; margin: 0 auto; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden;">
     <tr>
       <td style="padding: 32px;">
-        <span style="font-size: 18px; font-weight: 800; color: #0f172a;">Go<span style="color: #10b981;">Sera</span> Lead Alert</span>
+        <span style="font-size: 18px; font-weight: 800; color: #0f172a;">Go<span style="color: #a855f7;">Sera</span> Lead Alert</span>
         <p style="font-size: 15px; color: #334155; margin-top: 16px;">
           Hi ${cardOwnerName}, someone just exchanged their details with your GoSera card!
         </p>
         <div style="background-color: #f1f5f9; border-radius: 10px; padding: 18px; margin: 18px 0;">
           <p style="margin: 4px 0; font-size: 14px;"><strong>Prospect Name:</strong> ${leadName}</p>
-          <p style="margin: 4px 0; font-size: 14px;"><strong>Phone / WhatsApp:</strong> <a href="https://wa.me/${leadPhone.replace(/[^0-9]/g, '')}" style="color: #10b981; font-weight: bold;">${leadPhone}</a></p>
+          <p style="margin: 4px 0; font-size: 14px;"><strong>Phone / WhatsApp:</strong> <a href="https://wa.me/${leadPhone.replace(/[^0-9]/g, '')}" style="color: #a855f7; font-weight: bold;">${leadPhone}</a></p>
           ${notes ? `<p style="margin: 4px 0; font-size: 14px;"><strong>Notes:</strong> ${notes}</p>` : ''}
         </div>
         <p style="font-size: 13px; color: #64748b;">Tap their number above to chat on WhatsApp instantly.</p>

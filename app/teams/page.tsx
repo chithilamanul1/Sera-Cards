@@ -117,7 +117,7 @@ export default function TeamsPage() {
               >
                 <a
                   href="#contact"
-                  className="inline-flex items-center gap-2 rounded-full bg-accent-500 px-7 py-3.5 text-sm font-semibold text-ink-950 shadow-[0_0_40px_-10px_rgba(18,185,129,0.8)] hover:bg-accent-400 transition-colors active:scale-[0.97]"
+                  className="inline-flex items-center gap-2 rounded-full bg-accent-500 px-7 py-3.5 text-sm font-semibold text-ink-950 shadow-[0_0_40px_-10px_rgba(168,85,247,0.8)] hover:bg-accent-400 transition-colors active:scale-[0.97]"
                 >
                   Request a Demo
                 </a>
@@ -165,7 +165,7 @@ export default function TeamsPage() {
         {/* Plan highlight */}
         <section className="border-t border-white/[0.07] bg-ink-900/30 py-16 lg:py-20">
           <div className="mx-auto max-w-content px-5 sm:px-8">
-            <div className="overflow-hidden rounded-3xl border border-accent-500/25 bg-ink-950 shadow-[0_0_100px_-50px_rgba(18,185,129,0.8)]">
+            <div className="overflow-hidden rounded-3xl border border-accent-500/25 bg-ink-950 shadow-[0_0_100px_-50px_rgba(168,85,247,0.8)]">
               <div className="p-8 sm:p-12">
                 <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
                   <div className="max-w-xl">
@@ -305,7 +305,7 @@ export default function TeamsPage() {
                   </div>
                   <button
                     type="submit"
-                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-accent-500 py-3.5 text-sm font-semibold text-ink-950 hover:bg-accent-400 transition-colors active:scale-[0.98] shadow-[0_0_30px_-8px_rgba(18,185,129,0.7)]"
+                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-accent-500 py-3.5 text-sm font-semibold text-ink-950 hover:bg-accent-400 transition-colors active:scale-[0.98] shadow-[0_0_30px_-8px_rgba(168,85,247,0.7)]"
                   >
                     <SendIcon className="h-4 w-4" />
                     Send via WhatsApp

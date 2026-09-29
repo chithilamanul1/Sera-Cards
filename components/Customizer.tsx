@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import React from 'react'
 import { CheckIcon, GlobeIcon } from 'lucide-react'
@@ -66,7 +66,7 @@ export function Customizer({ api }: CustomizerProps) {
                     Brand wordmark <span className="normal-case tracking-normal text-white/25">(front)</span>
                   </label>
                   {config.materialId === 'matte' && (
-                    <span className="text-[10px] text-emerald-400 font-medium">SERA Logo on Card</span>
+                    <span className="text-[10px] text-purple-400 font-medium">SERA Logo on Card</span>
                   )}
                 </div>
                 <input
@@ -140,7 +140,7 @@ export function Customizer({ api }: CustomizerProps) {
                       aria-pressed={active}
                       className={`focus-ring flex flex-col justify-between rounded-2xl border p-3.5 text-left transition-[border-color,background-color,transform] duration-150 ease-smooth active:scale-[0.98] ${
                         active
-                          ? 'border-accent-500 bg-accent-500/[0.08] shadow-[0_0_25px_-8px_rgba(18,185,129,0.5)]'
+                          ? 'border-accent-500 bg-accent-500/[0.08] shadow-[0_0_25px_-8px_rgba(168,85,247,0.5)]'
                           : 'border-white/10 bg-white/[0.02] hover:border-white/25'
                       }`}
                     >
@@ -200,7 +200,7 @@ export function Customizer({ api }: CustomizerProps) {
 
             <a
               href="#pricing"
-              className="focus-ring inline-flex w-full items-center justify-center rounded-full bg-accent-500 px-6 py-3.5 text-sm font-semibold text-ink-950 shadow-[0_0_40px_-12px_rgba(18,185,129,0.9)] transition-[transform,background-color] duration-150 ease-smooth hover:bg-accent-400 active:scale-[0.98]"
+              className="focus-ring inline-flex w-full items-center justify-center rounded-full bg-accent-500 px-6 py-3.5 text-sm font-semibold text-ink-950 shadow-[0_0_40px_-12px_rgba(168,85,247,0.9)] transition-[transform,background-color] duration-150 ease-smooth hover:bg-accent-400 active:scale-[0.98]"
             >
               Continue to order
             </a>

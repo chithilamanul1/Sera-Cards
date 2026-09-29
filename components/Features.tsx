@@ -34,7 +34,7 @@ export function Features() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.3 }}
             transition={{ duration: 0.28, ease: [0.23, 1, 0.32, 1] }}
-            className="relative flex flex-col justify-between overflow-hidden rounded-2xl border border-accent-500/25 bg-accent-500/[0.06] p-7 shadow-[0_0_80px_-40px_rgba(18,185,129,0.9)] sm:p-9 lg:col-span-2"
+            className="relative flex flex-col justify-between overflow-hidden rounded-2xl border border-accent-500/25 bg-accent-500/[0.06] p-7 shadow-[0_0_80px_-40px_rgba(168,85,247,0.9)] sm:p-9 lg:col-span-2"
           >
             <div className="max-w-xl">
               <span className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-accent-500 text-ink-950">

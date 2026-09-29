@@ -1,4 +1,4 @@
-export interface TemplateData {
+﻿export interface TemplateData {
   slug: string;
   name: string;
   title: string;
@@ -117,7 +117,7 @@ async function submitLead(e) {
       document.getElementById('leadForm').innerHTML =
         '<div style="text-align:center;padding:2rem 0;">' +
         '<p style="font-size:2rem;margin:0 0 0.5rem 0;">✓</p>' +
-        '<p style="font-weight:700;color:#10b981;font-size:1.05rem;">Contact Shared!</p>' +
+        '<p style="font-weight:700;color:#a855f7;font-size:1.05rem;">Contact Shared!</p>' +
         '<p style="font-size:0.8rem;color:#94a3b8;margin-top:0.4rem;">${firstName} will be in touch soon.</p>' +
         (data.ownerNotifyUrl ? '<a href="' + data.ownerNotifyUrl + '" target="_blank" style="display:inline-block;margin-top:1.25rem;padding:0.75rem 1.4rem;background:#25d366;color:#fff;border-radius:999px;font-size:0.85rem;font-weight:700;text-decoration:none;box-shadow:0 4px 14px rgba(37,211,102,0.4);">📲 Chat with ${firstName} on WhatsApp</a>' : '') +
         '</div>';
@@ -274,7 +274,7 @@ export function generateTemplateHtml(presetId: string, data: TemplateData): stri
             <p class="text-[10px] text-slate-400 uppercase font-semibold">WhatsApp</p>
             <p class="text-xs font-semibold text-slate-800 mt-0.5">${data.whatsapp}</p>
           </div>
-          <i class="fab fa-whatsapp text-emerald-500 text-base"></i>
+          <i class="fab fa-whatsapp text-purple-500 text-base"></i>
         </a>
 
         <a href="mailto:${data.email}" class="flex items-center justify-between p-3.5 bg-slate-50/80 rounded-2xl border border-slate-100 hover:bg-slate-100/80 transition">
@@ -411,8 +411,8 @@ export function generateTemplateHtml(presetId: string, data: TemplateData): stri
     <header class="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-md z-50 flex justify-between items-center px-5 py-4 transition-all" id="header">
       <div class="bg-white/70 backdrop-blur-lg px-3 py-1.5 rounded-full shadow-sm border border-white/50 flex items-center gap-2">
         <span class="relative flex h-2.5 w-2.5">
-          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-          <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-purple-500"></span>
         </span>
         <span class="text-[10px] font-bold text-slate-800 uppercase tracking-widest">Available Now</span>
       </div>
@@ -454,7 +454,7 @@ export function generateTemplateHtml(presetId: string, data: TemplateData): stri
 
         <div class="grid grid-cols-2 gap-3 mt-5">
           <a href="https://wa.me/${waNumber}" target="_blank" class="flex items-center justify-center gap-2 bg-slate-900 text-white py-3 rounded-xl text-xs font-bold hover:bg-slate-800 transition active:scale-95 shadow-md">
-            <i class="fab fa-whatsapp text-sm text-emerald-400"></i> Chat on WhatsApp
+            <i class="fab fa-whatsapp text-sm text-purple-400"></i> Chat on WhatsApp
           </a>
           <a href="mailto:${data.email}" class="flex items-center justify-center gap-2 bg-slate-50 text-slate-700 py-3 rounded-xl text-xs font-bold border border-slate-200 hover:bg-slate-100 transition active:scale-95">
             <i class="fas fa-envelope text-sm"></i> Email Us
@@ -565,7 +565,7 @@ export function generateTemplateHtml(presetId: string, data: TemplateData): stri
             </div>
           </a>
           <div class="flex items-center gap-4 p-4">
-            <div class="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0"><i class="fas fa-clock"></i></div>
+            <div class="w-10 h-10 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center shrink-0"><i class="fas fa-clock"></i></div>
             <div class="w-full">
               <p class="text-[10px] text-slate-400 uppercase tracking-widest font-bold">Business Hours</p>
               <div class="flex justify-between mt-1 text-sm text-slate-700">
@@ -975,17 +975,17 @@ export function generateTemplateHtml(presetId: string, data: TemplateData): stri
     *{box-sizing:border-box;margin:0;padding:0}
     body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#090a0f;color:#f8fafc;display:flex;justify-content:center;min-height:100vh;padding:1.5rem 1rem}
     .card{width:100%;max-width:420px;background:#12141c;border:1px solid rgba(255,255,255,.07);border-radius:28px;padding:2rem 1.5rem;display:flex;flex-direction:column;align-items:center;box-shadow:0 25px 50px rgba(0,0,0,.5)}
-    .avatar{width:100px;height:100px;border-radius:50%;object-fit:cover;border:3px solid #10b981;margin-bottom:1rem}
+    .avatar{width:100px;height:100px;border-radius:50%;object-fit:cover;border:3px solid #a855f7;margin-bottom:1rem}
     .name{font-size:1.45rem;font-weight:700;margin-bottom:.25rem;text-align:center}
-    .title{font-size:.8rem;color:#10b981;font-weight:600;text-transform:uppercase;letter-spacing:.1em;margin-bottom:.25rem;text-align:center}
+    .title{font-size:.8rem;color:#a855f7;font-weight:600;text-transform:uppercase;letter-spacing:.1em;margin-bottom:.25rem;text-align:center}
     .company{font-size:.875rem;color:rgba(255,255,255,.55);margin-bottom:1.5rem;text-align:center}
     .grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;width:100%;margin-bottom:1rem}
     .btn{display:flex;align-items:center;justify-content:center;gap:.5rem;padding:.9rem;border-radius:14px;text-decoration:none;font-size:.875rem;font-weight:600;cursor:pointer;border:none}
-    .btn-em{background:#10b981;color:#000}
+    .btn-em{background:#a855f7;color:#fff}
     .btn-ghost{background:rgba(255,255,255,.05);color:#f8fafc;border:1px solid rgba(255,255,255,.1)}
     .btn-full{width:100%;grid-column:1/-1}
     .footer{margin-top:1.5rem;font-size:.7rem;color:rgba(255,255,255,.3);text-align:center}
-    .footer a{color:#10b981;text-decoration:none}
+    .footer a{color:#a855f7;text-decoration:none}
   </style>
 </head>
 <body>
