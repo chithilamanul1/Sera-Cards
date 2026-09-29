@@ -30,9 +30,9 @@ export default function middleware(req: NextRequest) {
 
   // SECURITY: Subdomain isolation
   if (subdomain && subdomain !== 'www') {
-    // Prevent client subdomains from accessing /admin on the subdomain
-    if (url.pathname.startsWith('/admin')) {
-      return NextResponse.redirect(new URL(`https://${rootDomain}/admin`));
+    // Prevent client subdomains from accessing /admin or /dashboard on the subdomain
+    if (url.pathname.startsWith('/admin') || url.pathname.startsWith('/dashboard')) {
+      return NextResponse.redirect(new URL(`https://${rootDomain}${url.pathname}`));
     }
 
     // Allow /api/leads to be called from subdomains for lead capture
@@ -63,7 +63,16 @@ export default function middleware(req: NextRequest) {
   if (url.pathname.startsWith('/admin')) {
     const session = req.cookies.get('admin_session');
     if (!session || session.value !== 'authenticated') {
-      return NextResponse.redirect(new URL('/login', req.url));
+      return NextResponse.redirect(new URL('/login?redirect=/admin', req.url));
+    }
+  }
+
+  // Customer Dashboard route protection
+  if (url.pathname.startsWith('/dashboard')) {
+    const userSession = req.cookies.get('user_session')?.value;
+    const adminSession = req.cookies.get('admin_session')?.value;
+    if (!userSession && adminSession !== 'authenticated') {
+      return NextResponse.redirect(new URL('/login?redirect=/dashboard', req.url));
     }
   }
 

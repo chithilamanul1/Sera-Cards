@@ -3,6 +3,7 @@ import prisma from '@/lib/prisma';
 import { cookies } from 'next/headers';
 import { generatePayHereHash, PAYHERE_CONFIG } from '@/lib/payhere';
 import { saveLogo } from '@/lib/logoStore';
+import { sendOrderConfirmationEmail } from '@/lib/mail';
 
 // Helper to check admin authorization
 function isAuthorized(request: Request) {
@@ -285,6 +286,19 @@ export async function POST(request: Request) {
       .join('\n');
 
     whatsappUrl = `https://wa.me/${brandWhatsapp}?text=${encodeURIComponent(waMessage)}`;
+
+    // Dispatch Order Confirmation Email via Resend if email was provided
+    if (cEmail) {
+      sendOrderConfirmationEmail({
+        to: cEmail,
+        name: cName,
+        orderNumber,
+        totalAmount,
+        finish: cFinish,
+      }).catch((emailErr) => {
+        console.warn('[Orders API] Email confirmation delivery warning:', emailErr?.message);
+      });
+    }
 
     return NextResponse.json({
       success: true,

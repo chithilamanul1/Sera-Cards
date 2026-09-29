@@ -16,12 +16,12 @@ export async function GET(request: Request) {
     // 1. Try fast in-memory or disk cache
     const cached = getLogoFromMemoryOrDisk(id);
     if (cached) {
-      return new Response(cached.buffer, {
+      return new Response(new Uint8Array(cached.buffer), {
         status: 200,
         headers: {
           'Content-Type': cached.mime,
           'Content-Length': cached.buffer.length.toString(),
-          'Content-Disposition': `inline; filename="sera-logo-${id}.png"`,
+          'Content-Disposition': `inline; filename="gosera-logo-${id}.png"`,
           'Cache-Control': 'public, max-age=604800, immutable',
         },
       });
@@ -61,12 +61,12 @@ export async function GET(request: Request) {
         saveLogo(order.orderNumber || id, order.logoUrl);
         const mime = match[1];
         const buffer = Buffer.from(match[2], 'base64');
-        return new Response(buffer, {
+        return new Response(new Uint8Array(buffer), {
           status: 200,
           headers: {
             'Content-Type': mime,
             'Content-Length': buffer.length.toString(),
-            'Content-Disposition': `inline; filename="sera-logo-${id}.png"`,
+            'Content-Disposition': `inline; filename="gosera-logo-${id}.png"`,
             'Cache-Control': 'public, max-age=604800, immutable',
           },
         });

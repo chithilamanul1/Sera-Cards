@@ -11,6 +11,11 @@ function isAuthorized(request: Request) {
   if (session && session.value === 'authenticated') {
     return true;
   }
+
+  const userSession = cookies().get('user_session')?.value;
+  if (userSession) {
+    return true;
+  }
   
   const authHeader = request.headers.get('x-admin-secret');
   return authHeader === process.env.ADMIN_SECRET;

@@ -496,12 +496,12 @@ export default function AdminDashboard() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 w-full md:w-auto justify-between md:justify-end overflow-hidden">
           {/* Main Navigation Tabs */}
-          <div className="flex bg-zinc-900 border border-zinc-800 rounded-xl p-1">
+          <div className="flex bg-zinc-900 border border-zinc-800 rounded-xl p-1 overflow-x-auto no-scrollbar max-w-full">
             <button
               onClick={() => setActiveTab('studio')}
-              className={`px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+              className={`px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all whitespace-nowrap ${
                 activeTab === 'studio' ? 'bg-emerald-600 text-white shadow-md' : 'text-zinc-400 hover:text-white'
               }`}
             >
@@ -509,7 +509,7 @@ export default function AdminDashboard() {
             </button>
             <button
               onClick={() => setActiveTab('cards')}
-              className={`px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+              className={`px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all whitespace-nowrap ${
                 activeTab === 'cards' ? 'bg-zinc-800 text-white shadow-md' : 'text-zinc-400 hover:text-white'
               }`}
             >
@@ -517,7 +517,7 @@ export default function AdminDashboard() {
             </button>
             <button
               onClick={() => { setActiveTab('leads'); fetchLeads(); }}
-              className={`px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+              className={`px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all whitespace-nowrap ${
                 activeTab === 'leads' ? 'bg-zinc-800 text-white shadow-md' : 'text-zinc-400 hover:text-white'
               }`}
             >
@@ -525,7 +525,7 @@ export default function AdminDashboard() {
             </button>
             <button
               onClick={() => { setActiveTab('orders'); fetchOrders(); }}
-              className={`px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+              className={`px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all whitespace-nowrap ${
                 activeTab === 'orders' ? 'bg-emerald-600 text-white shadow-md' : 'text-zinc-400 hover:text-white'
               }`}
             >
@@ -533,7 +533,7 @@ export default function AdminDashboard() {
             </button>
             <button
               onClick={() => { setActiveTab('settlements'); fetchSettlements(); }}
-              className={`px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+              className={`px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all whitespace-nowrap ${
                 activeTab === 'settlements' ? 'bg-emerald-600 text-white shadow-md' : 'text-zinc-400 hover:text-white'
               }`}
             >
@@ -543,7 +543,7 @@ export default function AdminDashboard() {
 
           <button
             onClick={handleLogout}
-            className="px-3 py-1.5 text-xs text-zinc-400 hover:text-white border border-zinc-800 hover:bg-zinc-800 rounded-lg transition-colors"
+            className="px-3 py-1.5 text-xs text-zinc-400 hover:text-white border border-zinc-800 hover:bg-zinc-800 rounded-lg transition-colors shrink-0"
           >
             Logout
           </button>
@@ -551,7 +551,7 @@ export default function AdminDashboard() {
       </header>
 
       {/* ── Operational Summary Cards (At the Top) ── */}
-      <section className="max-w-7xl mx-auto mb-8 grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <section className="max-w-7xl mx-auto mb-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {/* Card 1: Uncollected Cash */}
         <div className="bg-zinc-900/90 border border-zinc-800 rounded-2xl p-4 sm:p-5 relative overflow-hidden">
           <div className="flex items-center justify-between text-zinc-400 text-xs uppercase tracking-wider mb-2 font-medium">

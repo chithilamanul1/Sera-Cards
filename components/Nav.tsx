@@ -45,10 +45,16 @@ export function Nav() {
 
         <div className="flex items-center gap-3">
           <a
-            href="/pricing"
+            href="/login"
+            className="focus-ring hidden rounded-full border border-white/10 px-3.5 py-1.5 text-xs font-medium text-white/70 hover:text-white hover:border-white/20 transition-all sm:inline-flex"
+          >
+            Portal Log In
+          </a>
+          <a
+            href="/register"
             className="focus-ring hidden rounded-full bg-accent-500 px-4 py-2 text-sm font-medium text-ink-950 transition-[transform,background-color] duration-150 ease-smooth hover:bg-accent-400 active:scale-[0.97] sm:inline-flex"
           >
-            View Plans
+            Get Free Card
           </a>
           <button
             type="button"
@@ -75,13 +81,20 @@ export function Nav() {
                 {l.label}
               </a>
             ))}
-            <div className="py-3">
+            <div className="py-3 flex flex-col gap-2">
               <a
-                href="/pricing"
+                href="/login"
                 onClick={() => setOpen(false)}
-                className="flex items-center justify-center rounded-full bg-emerald-500 py-2.5 text-sm font-semibold text-black shadow-lg"
+                className="flex items-center justify-center rounded-xl border border-white/10 py-2.5 text-sm font-semibold text-white/80 hover:text-white"
               >
-                View Plans
+                Log In to My Portal
+              </a>
+              <a
+                href="/register"
+                onClick={() => setOpen(false)}
+                className="flex items-center justify-center rounded-xl bg-accent-500 py-2.5 text-sm font-bold text-ink-950 shadow-lg"
+              >
+                Get Free Card &rarr;
               </a>
             </div>
           </nav>
