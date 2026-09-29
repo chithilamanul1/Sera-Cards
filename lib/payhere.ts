@@ -20,9 +20,9 @@ export interface PayHereCheckoutParams {
 }
 
 export const PAYHERE_CONFIG = {
-  merchantId: process.env.PAYHERE_MERCHANT_ID || '1211149', // Sandbox default if not set
-  merchantSecret: process.env.PAYHERE_MERCHANT_SECRET || '4MTI4NDQ5NTk5MjE2NDk2ODIyMTMwNzY1OTM0MzA5MTE=',
-  isSandbox: process.env.PAYHERE_MODE !== 'live',
+  merchantId: process.env.PAYHERE_MERCHANT_ID || '248247',
+  merchantSecret: process.env.PAYHERE_MERCHANT_SECRET || '',
+  isSandbox: process.env.PAYHERE_MODE === 'sandbox',
   currency: 'LKR',
   get checkoutUrl() {
     return this.isSandbox
