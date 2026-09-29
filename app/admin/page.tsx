@@ -1,5 +1,7 @@
 'use client';
 
+export const dynamic = 'force-dynamic';
+
 import { useState, useEffect, useMemo } from 'react';
 import toast, { Toaster } from 'react-hot-toast';
 import { TEMPLATE_PRESETS, generateTemplateHtml, TemplateData } from '@/lib/templates';

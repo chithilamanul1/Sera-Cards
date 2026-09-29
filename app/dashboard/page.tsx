@@ -23,6 +23,8 @@ import toast, { Toaster } from 'react-hot-toast';
 import { Nav } from '@/components/Nav';
 import { Footer } from '@/components/Footer';
 
+export const dynamic = 'force-dynamic';
+
 export default function CustomerDashboard() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);

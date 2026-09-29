@@ -5,6 +5,8 @@ import { useSearchParams } from 'next/navigation';
 import { CheckCircle2Icon, ArrowRightIcon, MessageSquareIcon } from 'lucide-react';
 import Link from 'next/link';
 
+export const dynamic = 'force-dynamic';
+
 function OrderSuccessContent() {
   const searchParams = useSearchParams();
   const orderId = searchParams.get('order_id');
