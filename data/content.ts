@@ -1,5 +1,5 @@
 export const brand = {
-  name: 'Sera Cards',
+  name: 'SERA',
   domain: 'seranex.lk',
   whatsapp: '94728382638',
   phone: '0728382638',

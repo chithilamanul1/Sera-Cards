@@ -205,14 +205,14 @@ export function OrderModal({ isOpen, onClose, initialConfig }: OrderModalProps) 
                       onChange={() => setEdition('signature')}
                       className="text-emerald-500"
                     />
-                    <span className="font-bold text-white text-sm">Sera Signature PVC</span>
+                    <span className="font-bold text-white text-sm">SERA Signature PVC</span>
                   </div>
                   <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400">
                     LKR 3,500
                   </span>
                 </div>
                 <p className="mt-2 text-xs leading-relaxed text-white/55">
-                  Physical card printed with sleek official Sera branding. <strong>100% custom digital profile</strong>, contact saving & payments.
+                  Physical card printed with official SERA logo. <strong>100% custom digital profile</strong>, contact saving & payments.
                 </p>
               </label>
 
@@ -341,7 +341,7 @@ export function OrderModal({ isOpen, onClose, initialConfig }: OrderModalProps) 
 
             {edition === 'signature' && (
               <p className="text-xs text-white/50 bg-white/[0.02] p-3 rounded-xl border border-white/5">
-                💡 <strong>Sera Signature PVC:</strong> Physical card features Sera's official signature styling. Your name and designation are laser-etched on the back.
+                💡 <strong>SERA Signature PVC:</strong> Physical card features the official SERA logo on the front. Your name and designation are printed on the back.
               </p>
             )}
 

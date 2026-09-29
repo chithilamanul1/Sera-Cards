@@ -61,9 +61,14 @@ export function Customizer({ api }: CustomizerProps) {
           >
             <div className="grid gap-6 sm:grid-cols-2">
               <div>
-                <label htmlFor="card-business" className="text-xs font-medium uppercase tracking-[0.16em] text-white/45">
-                  Brand wordmark <span className="normal-case tracking-normal text-white/25">(front)</span>
-                </label>
+                <div className="flex items-center justify-between">
+                  <label htmlFor="card-business" className="text-xs font-medium uppercase tracking-[0.16em] text-white/45">
+                    Brand wordmark <span className="normal-case tracking-normal text-white/25">(front)</span>
+                  </label>
+                  {config.materialId === 'matte' && (
+                    <span className="text-[10px] text-emerald-400 font-medium">SERA Logo on Card</span>
+                  )}
+                </div>
                 <input
                   id="card-business"
                   type="text"

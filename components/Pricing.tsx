@@ -78,12 +78,12 @@ export function Pricing({ config }: PricingProps) {
               </span>
               <h3 className="mt-3 text-2xl sm:text-3xl font-bold tracking-tight text-white">
                 {selectedPlan === 'signature'
-                  ? 'Sera Signature PVC Card'
+                  ? 'SERA Signature PVC Card'
                   : 'Full Custom Print PVC Card'}
               </h3>
               <p className="mt-3 max-w-lg text-sm leading-relaxed text-white/60">
                 {selectedPlan === 'signature'
-                  ? 'Official Sera sleek signature card design. Delivered ready to tap with your 100% custom digital profile, contact exchange, and payments.'
+                  ? 'Official SERA sleek signature card design featuring the official SERA logo. Delivered ready to tap with your 100% custom digital profile, contact exchange, and payments.'
                   : 'Printed with your own company logo, custom branding, colors, and typography on both card faces, linked to your custom digital profile.'}
               </p>
 
@@ -92,7 +92,7 @@ export function Pricing({ config }: PricingProps) {
                   <>
                     <li className="flex gap-2.5 text-xs sm:text-sm text-white/70">
                       <CheckIcon className="mt-0.5 h-4 w-4 shrink-0 text-accent-400" />
-                      Sera official sleek PVC card print
+                      Official SERA logo card print
                     </li>
                     <li className="flex gap-2.5 text-xs sm:text-sm text-white/70">
                       <CheckIcon className="mt-0.5 h-4 w-4 shrink-0 text-accent-400" />
@@ -173,13 +173,13 @@ export function Pricing({ config }: PricingProps) {
                   <div className="flex justify-between gap-4">
                     <dt className="text-white/40">Edition</dt>
                     <dd className="font-semibold text-white">
-                      {selectedPlan === 'signature' ? 'Sera Signature PVC' : 'Full Custom Print PVC'}
+                      {selectedPlan === 'signature' ? 'SERA Signature PVC' : 'Full Custom Print PVC'}
                     </dd>
                   </div>
                   <div className="flex justify-between gap-4">
                     <dt className="text-white/40">Card Branding</dt>
                     <dd className="text-white">
-                      {selectedPlan === 'signature' ? 'Sera Official Print' : 'Client Custom Artwork'}
+                      {selectedPlan === 'signature' ? 'Official SERA Logo' : 'Client Custom Artwork'}
                     </dd>
                   </div>
                   <div className="flex justify-between gap-4">
