@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { cookies } from 'next/headers';
 import { generatePayHereHash, PAYHERE_CONFIG } from '@/lib/payhere';
+import { saveLogo } from '@/lib/logoStore';
 
 // Helper to check admin authorization
 function isAuthorized(request: Request) {
@@ -183,6 +184,10 @@ export async function POST(request: Request) {
       console.warn('[Orders API] Database write fallback triggered:', dbErrorMsg);
     }
 
+    if (logoUrl) {
+      saveLogo(orderNumber, logoUrl);
+    }
+
     const finalOrder = orderRecord || {
       id: orderNumber,
       orderNumber,
@@ -217,14 +222,14 @@ export async function POST(request: Request) {
 
     const brandWhatsapp = process.env.NEXT_PUBLIC_WHATSAPP || process.env.OWNER_WHATSAPP_NUMBER || '94728382638';
     const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'seranex.lk';
+    const origin = request.headers.get('origin') || `https://${rootDomain}`;
+    const logoViewUrl = `${origin}/api/orders/logo?id=${orderNumber}`;
 
     if (paymentMethod === 'PAYHERE') {
       const hash = generatePayHereHash(orderNumber, totalAmount);
       const nameParts = cName.split(' ');
       const firstName = nameParts[0] || 'Customer';
       const lastName = nameParts.slice(1).join(' ') || 'Name';
-
-      const origin = request.headers.get('origin') || `https://${rootDomain}`;
 
       payhereParams = {
         merchant_id: PAYHERE_CONFIG.merchantId,
@@ -263,7 +268,9 @@ export async function POST(request: Request) {
       `*Name (Back):* ${nOnCard}`,
       cDesignation ? `*Title:* ${cDesignation}` : '',
       `*Sub-page:* ${cleanSlug}.${rootDomain}`,
-      logoUrl ? `*Logo:* Attached / Uploaded` : `*Logo:* To be sent on WhatsApp`,
+      logoUrl
+        ? `*Uploaded Logo:* ${logoViewUrl}\n*(Click the link above to view/download the logo, or attach it directly in this chat)*`
+        : `*Logo:* To be sent directly in this chat`,
       ``,
       `*PAYMENT & TOTAL:*`,
       `*Price:* LKR ${resolvedUnitPrice.toLocaleString()}`,

@@ -226,6 +226,22 @@ export function OrderModal({ isOpen, onClose, initialConfig }: OrderModalProps) 
               <p className="mt-2 text-sm text-white/60 max-w-sm mx-auto">
                 Your order is confirmed. Opening WhatsApp to connect with our design team and review your card proof.
               </p>
+
+              {logoPreview && (
+                <div className="mt-3 flex items-center gap-3 rounded-2xl border border-emerald-500/20 bg-emerald-500/[0.07] p-3 text-left max-w-sm mx-auto">
+                  <img
+                    src={logoPreview}
+                    alt="Logo"
+                    className="h-10 w-10 shrink-0 rounded-xl object-contain bg-white/5 p-1 ring-1 ring-white/10"
+                  />
+                  <div className="text-xs">
+                    <span className="font-semibold text-emerald-400 block">✓ Logo Attached to Order</span>
+                    <span className="text-white/60 text-[11px] leading-tight block">
+                      A direct view/download link is in your WhatsApp message. You can also attach the file directly in the chat.
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
             <div className="w-full max-w-sm pt-2 space-y-3">
               <a
