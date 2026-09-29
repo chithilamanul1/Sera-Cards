@@ -118,8 +118,13 @@ export function Customizer({ api }: CustomizerProps) {
             </div>
 
             <fieldset>
-              <legend className="text-xs font-medium uppercase tracking-[0.16em] text-white/45">Material</legend>
-              <div className="mt-3 grid grid-cols-2 gap-2.5">
+              <div className="flex items-center justify-between">
+                <legend className="text-xs font-semibold uppercase tracking-[0.16em] text-white/50">
+                  Card Print Edition
+                </legend>
+                <span className="text-[11px] text-accent-400 font-medium">Durable PVC Print</span>
+              </div>
+              <div className="mt-3 grid gap-3 sm:grid-cols-2">
                 {materials.map((m) => {
                   const active = m.id === config.materialId
                   return (
@@ -128,23 +133,41 @@ export function Customizer({ api }: CustomizerProps) {
                       type="button"
                       onClick={() => setMaterial(m.id)}
                       aria-pressed={active}
-                      className={`focus-ring flex items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition-[border-color,background-color,transform] duration-150 ease-smooth active:scale-[0.98] ${
+                      className={`focus-ring flex flex-col justify-between rounded-2xl border p-3.5 text-left transition-[border-color,background-color,transform] duration-150 ease-smooth active:scale-[0.98] ${
                         active
-                          ? 'border-accent-500 bg-accent-500/[0.08]'
+                          ? 'border-accent-500 bg-accent-500/[0.08] shadow-[0_0_25px_-8px_rgba(18,185,129,0.5)]'
                           : 'border-white/10 bg-white/[0.02] hover:border-white/25'
                       }`}
                     >
-                      <span
-                        aria-hidden
-                        className="h-7 w-7 shrink-0 rounded-full ring-1 ring-white/15"
-                        style={m.swatch}
-                      />
-                      <span className="min-w-0 flex-1 truncate text-xs font-medium text-white/80">{m.name}</span>
-                      {active ? <CheckIcon className="h-3.5 w-3.5 shrink-0 text-accent-400" aria-hidden /> : null}
+                      <div className="flex items-center justify-between w-full">
+                        <div className="flex items-center gap-2.5">
+                          <span
+                            aria-hidden
+                            className="h-4 w-4 shrink-0 rounded-full ring-2 ring-white/15"
+                            style={m.swatch}
+                          />
+                          <span className="text-xs font-bold text-white">{m.name}</span>
+                        </div>
+                        {active ? <CheckIcon className="h-4 w-4 shrink-0 text-accent-400" aria-hidden /> : null}
+                      </div>
+
+                      <div className="mt-2.5 flex items-baseline justify-between">
+                        <span className="text-xs text-white/50 font-medium">Price:</span>
+                        <span className="font-mono text-sm font-bold text-accent-400">
+                          LKR {m.price.toLocaleString()}
+                        </span>
+                      </div>
+
+                      <p className="mt-1 text-[11px] leading-tight text-white/45">
+                        {m.description}
+                      </p>
                     </button>
                   )
                 })}
               </div>
+              <p className="mt-2.5 text-[11px] text-white/40">
+                * Note: Other premium finishes (metal, wood, carbon) can be arranged on special request.
+              </p>
             </fieldset>
 
             <div>

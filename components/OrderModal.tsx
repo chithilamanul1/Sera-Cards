@@ -1,7 +1,16 @@
 'use client';
 
 import React, { useState } from 'react';
-import { XIcon, UploadCloudIcon, CheckIcon, CreditCardIcon, MessageSquareIcon, AlertCircleIcon, Loader2Icon } from 'lucide-react';
+import {
+  XIcon,
+  UploadCloudIcon,
+  CheckIcon,
+  CreditCardIcon,
+  MessageSquareIcon,
+  AlertCircleIcon,
+  Loader2Icon,
+  SparklesIcon,
+} from 'lucide-react';
 import type { CardConfig } from '../types/card';
 import { brand } from '../data/content';
 
@@ -12,6 +21,11 @@ interface OrderModalProps {
 }
 
 export function OrderModal({ isOpen, onClose, initialConfig }: OrderModalProps) {
+  // Edition selection: 'signature' (LKR 3,500) vs 'custom' (LKR 5,000)
+  const [edition, setEdition] = useState<'signature' | 'custom'>(
+    initialConfig.materialId === 'custom' ? 'custom' : 'signature'
+  );
+
   const [customerName, setCustomerName] = useState(initialConfig.name || '');
   const [customerPhone, setCustomerPhone] = useState('');
   const [customerEmail, setCustomerEmail] = useState('');
@@ -24,7 +38,6 @@ export function OrderModal({ isOpen, onClose, initialConfig }: OrderModalProps) 
   const [nameOnCard, setNameOnCard] = useState(initialConfig.name || 'Chithila Manul');
   const [designation, setDesignation] = useState(initialConfig.title || 'Founder & CEO');
   const [slug, setSlug] = useState(initialConfig.slug || 'chithila');
-  const [finish, setFinish] = useState('Standard Glossy PVC');
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
 
   // Digital Profile & Social Media Links
@@ -34,14 +47,15 @@ export function OrderModal({ isOpen, onClose, initialConfig }: OrderModalProps) 
   const [facebook, setFacebook] = useState('');
   const [tiktok, setTiktok] = useState('');
 
-  const [paymentMethod, setPaymentMethod] = useState<'PAYHERE' | 'WHATSAPP'>('PAYHERE');
+  const [paymentMethod, setPaymentMethod] = useState<'PAYHERE' | 'WHATSAPP'>('WHATSAPP');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
-  const unitPrice = 3500;
-  const originalPrice = 5000;
+  // Dynamic pricing calculation
+  const unitPrice = edition === 'signature' ? 3500 : 5000;
+  const originalPrice = edition === 'signature' ? 5000 : 7000;
   const deliveryFee = 350;
   const totalAmount = unitPrice + deliveryFee;
 
@@ -73,6 +87,9 @@ export function OrderModal({ isOpen, onClose, initialConfig }: OrderModalProps) 
     setIsSubmitting(true);
 
     try {
+      const finishName =
+        edition === 'signature' ? 'Sera Signature PVC (LKR 3,500)' : 'Full Custom Print PVC (LKR 5,000)';
+
       const response = await fetch('/api/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -87,7 +104,9 @@ export function OrderModal({ isOpen, onClose, initialConfig }: OrderModalProps) 
           nameOnCard,
           designation,
           slug,
-          finish,
+          finish: finishName,
+          customAmount: unitPrice,
+          deliveryFee,
           logoUrl: logoPreview,
           bio,
           instagram,
@@ -123,7 +142,8 @@ export function OrderModal({ isOpen, onClose, initialConfig }: OrderModalProps) 
         document.body.appendChild(form);
         form.submit();
       } else if (data.whatsappUrl) {
-        window.location.href = data.whatsappUrl;
+        // Reliable mobile and desktop redirect
+        window.location.assign(data.whatsappUrl);
       }
     } catch (err: any) {
       console.error(err);
@@ -133,15 +153,17 @@ export function OrderModal({ isOpen, onClose, initialConfig }: OrderModalProps) 
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-md">
-      <div className="relative flex max-h-[92vh] w-full max-w-2xl flex-col overflow-hidden rounded-3xl border border-white/10 bg-[#0a0a0c] shadow-[0_25px_60px_rgba(0,0,0,0.9)]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-3 sm:p-4 backdrop-blur-md overflow-y-auto">
+      <div className="relative flex max-h-[94vh] w-full max-w-2xl flex-col overflow-hidden rounded-3xl border border-white/10 bg-[#0a0a0c] shadow-[0_25px_60px_rgba(0,0,0,0.95)] my-auto">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-white/10 px-6 py-5">
+        <div className="flex items-center justify-between border-b border-white/10 px-5 sm:px-6 py-4 sm:py-5">
           <div>
-            <span className="text-[10px] font-semibold uppercase tracking-widest text-emerald-400">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-400">
               Direct Order Portal
             </span>
-            <h2 className="text-xl font-bold tracking-tight text-white">Order Your Custom Sera Card</h2>
+            <h2 className="text-lg sm:text-xl font-bold tracking-tight text-white">
+              Order Your Sera Smart NFC Card
+            </h2>
           </div>
           <button
             onClick={onClose}
@@ -152,7 +174,7 @@ export function OrderModal({ isOpen, onClose, initialConfig }: OrderModalProps) 
         </div>
 
         {/* Scrollable Form Body */}
-        <form onSubmit={handleSubmitOrder} className="flex-1 space-y-6 overflow-y-auto px-6 py-6 text-sm">
+        <form onSubmit={handleSubmitOrder} className="flex-1 space-y-6 overflow-y-auto px-5 sm:px-6 py-5 text-sm">
           {errorMessage && (
             <div className="flex items-center gap-3 rounded-2xl border border-red-500/20 bg-red-500/10 p-4 text-xs text-red-300">
               <AlertCircleIcon className="h-4 w-4 shrink-0 text-red-400" />
@@ -160,32 +182,97 @@ export function OrderModal({ isOpen, onClose, initialConfig }: OrderModalProps) 
             </div>
           )}
 
-          {/* Pricing Highlight Banner */}
-          <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/[0.05] p-4">
-            <div className="flex flex-wrap items-baseline justify-between gap-2">
+          {/* Section 1: Edition & Pricing Selection */}
+          <div className="space-y-3">
+            <span className="text-xs font-semibold uppercase tracking-wider text-white/40 block">
+              1. Choose Card Package
+            </span>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <label
+                onClick={() => setEdition('signature')}
+                className={`flex cursor-pointer flex-col justify-between rounded-2xl border p-4 transition-all ${
+                  edition === 'signature'
+                    ? 'border-emerald-500 bg-emerald-500/[0.08] shadow-[0_0_30px_-10px_rgba(18,185,129,0.5)]'
+                    : 'border-white/10 bg-white/[0.02] hover:border-white/20'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      name="edition"
+                      checked={edition === 'signature'}
+                      onChange={() => setEdition('signature')}
+                      className="text-emerald-500"
+                    />
+                    <span className="font-bold text-white text-sm">Sera Signature PVC</span>
+                  </div>
+                  <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400">
+                    LKR 3,500
+                  </span>
+                </div>
+                <p className="mt-2 text-xs leading-relaxed text-white/55">
+                  Physical card printed with sleek official Sera branding. <strong>100% custom digital profile</strong>, contact saving & payments.
+                </p>
+              </label>
+
+              <label
+                onClick={() => setEdition('custom')}
+                className={`flex cursor-pointer flex-col justify-between rounded-2xl border p-4 transition-all ${
+                  edition === 'custom'
+                    ? 'border-emerald-500 bg-emerald-500/[0.08] shadow-[0_0_30px_-10px_rgba(18,185,129,0.5)]'
+                    : 'border-white/10 bg-white/[0.02] hover:border-white/20'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      name="edition"
+                      checked={edition === 'custom'}
+                      onChange={() => setEdition('custom')}
+                      className="text-emerald-500"
+                    />
+                    <span className="font-bold text-white text-sm">Full Custom Print PVC</span>
+                  </div>
+                  <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400">
+                    LKR 5,000
+                  </span>
+                </div>
+                <p className="mt-2 text-xs leading-relaxed text-white/55">
+                  Full custom printed design with <strong>your company logo, custom branding & artwork</strong> on both card faces.
+                </p>
+              </label>
+            </div>
+
+            {/* Price Breakdown Banner */}
+            <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/[0.05] p-3.5 flex flex-wrap items-center justify-between gap-2">
               <div>
-                <span className="text-xs uppercase tracking-wider text-white/50">Promotional Price</span>
+                <span className="text-xs uppercase tracking-wider text-white/50 block">Package Price</span>
                 <div className="flex items-baseline gap-2">
-                  <span className="text-2xl font-bold text-white">LKR {unitPrice.toLocaleString()}</span>
-                  <span className="text-sm text-white/40 line-through">LKR {originalPrice.toLocaleString()}</span>
+                  <span className="text-xl sm:text-2xl font-bold text-white font-mono">
+                    LKR {unitPrice.toLocaleString()}
+                  </span>
+                  <span className="text-xs text-white/40 line-through font-mono">
+                    LKR {originalPrice.toLocaleString()}
+                  </span>
                 </div>
               </div>
-              <div className="text-right text-xs text-emerald-400">
-                <span className="block font-medium">Island-wide delivery: LKR {deliveryFee}</span>
-                <span className="text-white/40">Total at checkout: LKR {totalAmount.toLocaleString()}</span>
+              <div className="text-right text-xs">
+                <span className="text-white/60 block">Island-wide Delivery: LKR {deliveryFee}</span>
+                <span className="text-emerald-400 font-bold font-mono text-sm">
+                  Total: LKR {totalAmount.toLocaleString()}
+                </span>
               </div>
             </div>
-            <p className="mt-2 text-[11px] text-white/50">
-              * Note: Matte finish is not available for this promotion. Standard ultra-durable finish included.
-            </p>
           </div>
 
-          {/* Section 1: Customer & Delivery Details */}
+          {/* Section 2: Customer & Shipping Details */}
           <div className="space-y-4">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-white/40">
-              1. Customer & Delivery Address
-            </h3>
-            <div className="grid gap-4 sm:grid-cols-2">
+            <span className="text-xs font-semibold uppercase tracking-wider text-white/40 block">
+              2. Customer Contact & Delivery Address
+            </span>
+            <div className="grid gap-3.5 sm:grid-cols-2">
               <div>
                 <label className="block text-xs font-medium text-white/70">Your Full Name *</label>
                 <input
@@ -194,19 +281,19 @@ export function OrderModal({ isOpen, onClose, initialConfig }: OrderModalProps) 
                   value={customerName}
                   onChange={(e) => setCustomerName(e.target.value)}
                   placeholder="e.g. Chithila Manul"
-                  className="mt-1.5 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-white placeholder-white/20 focus:border-emerald-500 focus:outline-none"
+                  className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-white placeholder-white/20 focus:border-emerald-500 focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-white/70">WhatsApp / Phone *</label>
+                <label className="block text-xs font-medium text-white/70">WhatsApp / Phone Number *</label>
                 <input
                   type="tel"
                   required
                   value={customerPhone}
                   onChange={(e) => setCustomerPhone(e.target.value)}
                   placeholder="e.g. 0728382638"
-                  className="mt-1.5 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-white placeholder-white/20 focus:border-emerald-500 focus:outline-none"
+                  className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-white placeholder-white/20 focus:border-emerald-500 focus:outline-none"
                 />
               </div>
 
@@ -217,7 +304,7 @@ export function OrderModal({ isOpen, onClose, initialConfig }: OrderModalProps) 
                   value={customerEmail}
                   onChange={(e) => setCustomerEmail(e.target.value)}
                   placeholder="e.g. you@domain.com"
-                  className="mt-1.5 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-white placeholder-white/20 focus:border-emerald-500 focus:outline-none"
+                  className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-white placeholder-white/20 focus:border-emerald-500 focus:outline-none"
                 />
               </div>
 
@@ -229,43 +316,42 @@ export function OrderModal({ isOpen, onClose, initialConfig }: OrderModalProps) 
                   value={deliveryAddress}
                   onChange={(e) => setDeliveryAddress(e.target.value)}
                   placeholder="House number, Street, Area"
-                  className="mt-1.5 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-white placeholder-white/20 focus:border-emerald-500 focus:outline-none"
+                  className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-white placeholder-white/20 focus:border-emerald-500 focus:outline-none"
                 />
               </div>
 
-              <div>
+              <div className="sm:col-span-2">
                 <label className="block text-xs font-medium text-white/70">City / District</label>
                 <input
                   type="text"
                   value={city}
                   onChange={(e) => setCity(e.target.value)}
-                  placeholder="e.g. Colombo, Negombo, Kandy"
-                  className="mt-1.5 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-white placeholder-white/20 focus:border-emerald-500 focus:outline-none"
+                  placeholder="e.g. Colombo, Seeduwa, Kandy"
+                  className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-white placeholder-white/20 focus:border-emerald-500 focus:outline-none"
                 />
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-white/70">Card Finish Choice</label>
-                <select
-                  value={finish}
-                  onChange={(e) => setFinish(e.target.value)}
-                  className="mt-1.5 w-full rounded-xl border border-white/10 bg-[#141418] px-3.5 py-2.5 text-white focus:border-emerald-500 focus:outline-none"
-                >
-                  <option value="Standard Glossy PVC">Standard High-Gloss PVC (Included)</option>
-                  <option value="Cyber Silver">Cyber Silver Finish</option>
-                  <option value="Brushed Gold">Brushed Gold Finish</option>
-                  <option value="Midnight Navy">Midnight Navy Finish</option>
-                </select>
               </div>
             </div>
           </div>
 
-          {/* Section 2: Card Customization */}
+          {/* Section 3: Printed Card Information */}
           <div className="space-y-4">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-white/40">
-              2. Printed Card Information
-            </h3>
-            <div className="grid gap-4 sm:grid-cols-2">
+            <span className="text-xs font-semibold uppercase tracking-wider text-white/40 block">
+              3. Printed Card Information
+            </span>
+
+            {edition === 'signature' && (
+              <p className="text-xs text-white/50 bg-white/[0.02] p-3 rounded-xl border border-white/5">
+                💡 <strong>Sera Signature PVC:</strong> Physical card features Sera's official signature styling. Your name and designation are laser-etched on the back.
+              </p>
+            )}
+
+            {edition === 'custom' && (
+              <p className="text-xs text-emerald-400 bg-emerald-500/[0.05] p-3 rounded-xl border border-emerald-500/20">
+                🎨 <strong>Full Custom Print PVC:</strong> Your brand name, logo, and custom graphics will be printed on both card faces. Please upload your logo below.
+              </p>
+            )}
+
+            <div className="grid gap-3.5 sm:grid-cols-2">
               <div>
                 <label className="block text-xs font-medium text-white/70">Brand Name (Front) *</label>
                 <input
@@ -274,7 +360,7 @@ export function OrderModal({ isOpen, onClose, initialConfig }: OrderModalProps) 
                   value={brandName}
                   onChange={(e) => setBrandName(e.target.value)}
                   placeholder="e.g. SERANEX"
-                  className="mt-1.5 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-white placeholder-white/20 focus:border-emerald-500 focus:outline-none"
+                  className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-white placeholder-white/20 focus:border-emerald-500 focus:outline-none"
                 />
               </div>
 
@@ -285,7 +371,7 @@ export function OrderModal({ isOpen, onClose, initialConfig }: OrderModalProps) 
                   value={tagline}
                   onChange={(e) => setTagline(e.target.value)}
                   placeholder="e.g. Web & Software Solutions"
-                  className="mt-1.5 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-white placeholder-white/20 focus:border-emerald-500 focus:outline-none"
+                  className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-white placeholder-white/20 focus:border-emerald-500 focus:outline-none"
                 />
               </div>
 
@@ -297,7 +383,7 @@ export function OrderModal({ isOpen, onClose, initialConfig }: OrderModalProps) 
                   value={nameOnCard}
                   onChange={(e) => setNameOnCard(e.target.value)}
                   placeholder="e.g. Chithila Manul"
-                  className="mt-1.5 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-white placeholder-white/20 focus:border-emerald-500 focus:outline-none"
+                  className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-white placeholder-white/20 focus:border-emerald-500 focus:outline-none"
                 />
               </div>
 
@@ -308,20 +394,20 @@ export function OrderModal({ isOpen, onClose, initialConfig }: OrderModalProps) 
                   value={designation}
                   onChange={(e) => setDesignation(e.target.value)}
                   placeholder="e.g. Founder & CEO"
-                  className="mt-1.5 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-white placeholder-white/20 focus:border-emerald-500 focus:outline-none"
+                  className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-white placeholder-white/20 focus:border-emerald-500 focus:outline-none"
                 />
               </div>
 
               <div className="sm:col-span-2">
                 <label className="block text-xs font-medium text-white/70">Sub-page Profile Link</label>
-                <div className="mt-1.5 flex items-center rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2">
-                  <span className="text-white/40">https://</span>
+                <div className="mt-1 flex items-center rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2">
+                  <span className="text-white/40 text-xs">https://</span>
                   <input
                     type="text"
                     value={slug}
                     onChange={(e) => setSlug(e.target.value)}
                     placeholder="yourname"
-                    className="min-w-0 flex-1 bg-transparent px-1 font-mono text-emerald-400 outline-none"
+                    className="min-w-0 flex-1 bg-transparent px-1 font-mono text-emerald-400 text-xs sm:text-sm outline-none"
                   />
                   <span className="font-mono text-xs text-emerald-400">.{brand.domain}</span>
                 </div>
@@ -329,17 +415,19 @@ export function OrderModal({ isOpen, onClose, initialConfig }: OrderModalProps) 
 
               {/* Logo / Artwork Upload */}
               <div className="sm:col-span-2">
-                <label className="block text-xs font-medium text-white/70">Upload Logo or Profile Photo</label>
-                <div className="mt-2 flex items-center gap-4">
+                <label className="block text-xs font-medium text-white/70">
+                  {edition === 'custom' ? 'Upload Company Logo for Printing *' : 'Profile Photo / Logo (Optional)'}
+                </label>
+                <div className="mt-2 flex flex-wrap items-center gap-3">
                   <label className="flex cursor-pointer items-center gap-2 rounded-xl border border-dashed border-white/20 bg-white/[0.02] px-4 py-3 text-xs text-white/70 transition-colors hover:border-emerald-500 hover:text-white">
                     <UploadCloudIcon className="h-4 w-4 text-emerald-400" />
-                    <span>{logoPreview ? 'Change Image' : 'Choose Logo / Photo file (PNG, JPG)'}</span>
+                    <span>{logoPreview ? 'Change Image' : 'Choose Logo / Photo (PNG, JPG)'}</span>
                     <input type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
                   </label>
                   {logoPreview && (
                     <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] p-1.5">
                       <img src={logoPreview} alt="Logo preview" className="h-8 w-8 rounded-lg object-contain" />
-                      <span className="text-[11px] text-emerald-400">Image attached</span>
+                      <span className="text-[11px] text-emerald-400 font-medium">Image attached</span>
                     </div>
                   )}
                 </div>
@@ -347,99 +435,75 @@ export function OrderModal({ isOpen, onClose, initialConfig }: OrderModalProps) 
             </div>
           </div>
 
-          {/* Section 3: Digital Profile & Social Media Links */}
-          <div className="space-y-4">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-white/40">
-              3. Digital Profile & Social Links (Live on NFC Tap)
-            </h3>
+          {/* Section 4: Digital Profile & Socials (Live on Tap) */}
+          <div className="space-y-3.5">
+            <span className="text-xs font-semibold uppercase tracking-wider text-white/40 block">
+              4. Digital Profile Details (Opens on NFC Tap)
+            </span>
             <div>
-              <label className="block text-xs font-medium text-white/70">Short Bio / Introduction</label>
+              <label className="block text-xs font-medium text-white/70">Short Bio / Overview</label>
               <textarea
                 rows={2}
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
-                placeholder="e.g. Turnkey web & software development solutions for businesses."
-                className="mt-1.5 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-white placeholder-white/20 focus:border-emerald-500 focus:outline-none"
+                placeholder="e.g. Founder at Seranex. Building innovative software and NFC solutions."
+                className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-white placeholder-white/20 focus:border-emerald-500 focus:outline-none"
               />
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2">
               <div>
-                <label className="block text-xs font-medium text-white/70">Instagram URL / Username</label>
+                <label className="block text-xs font-medium text-white/70">Instagram</label>
                 <input
                   type="text"
                   value={instagram}
                   onChange={(e) => setInstagram(e.target.value)}
                   placeholder="https://instagram.com/yourhandle"
-                  className="mt-1.5 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-white placeholder-white/20 focus:border-emerald-500 focus:outline-none"
+                  className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2 text-xs sm:text-sm text-white placeholder-white/20 focus:border-emerald-500 focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-white/70">LinkedIn Profile URL</label>
+                <label className="block text-xs font-medium text-white/70">LinkedIn</label>
                 <input
                   type="text"
                   value={linkedin}
                   onChange={(e) => setLinkedin(e.target.value)}
                   placeholder="https://linkedin.com/in/yourhandle"
-                  className="mt-1.5 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-white placeholder-white/20 focus:border-emerald-500 focus:outline-none"
+                  className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2 text-xs sm:text-sm text-white placeholder-white/20 focus:border-emerald-500 focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-white/70">Facebook URL</label>
+                <label className="block text-xs font-medium text-white/70">Facebook</label>
                 <input
                   type="text"
                   value={facebook}
                   onChange={(e) => setFacebook(e.target.value)}
                   placeholder="https://facebook.com/yourpage"
-                  className="mt-1.5 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-white placeholder-white/20 focus:border-emerald-500 focus:outline-none"
+                  className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2 text-xs sm:text-sm text-white placeholder-white/20 focus:border-emerald-500 focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-white/70">TikTok URL (Optional)</label>
+                <label className="block text-xs font-medium text-white/70">TikTok (Optional)</label>
                 <input
                   type="text"
                   value={tiktok}
                   onChange={(e) => setTiktok(e.target.value)}
                   placeholder="https://tiktok.com/@yourhandle"
-                  className="mt-1.5 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-white placeholder-white/20 focus:border-emerald-500 focus:outline-none"
+                  className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2 text-xs sm:text-sm text-white placeholder-white/20 focus:border-emerald-500 focus:outline-none"
                 />
               </div>
             </div>
           </div>
 
-          {/* Section 4: Payment Method Selection */}
+          {/* Section 5: Payment Method */}
           <div className="space-y-3">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-white/40">4. Select Payment Method</h3>
+            <span className="text-xs font-semibold uppercase tracking-wider text-white/40 block">
+              5. Select Payment Method
+            </span>
             <div className="grid gap-3 sm:grid-cols-2">
-              <label
-                onClick={() => setPaymentMethod('PAYHERE')}
-                className={`flex cursor-pointer items-start gap-3 rounded-2xl border p-4 transition-all ${
-                  paymentMethod === 'PAYHERE'
-                    ? 'border-emerald-500 bg-emerald-500/[0.08]'
-                    : 'border-white/10 bg-white/[0.02] hover:border-white/20'
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="payment"
-                  checked={paymentMethod === 'PAYHERE'}
-                  onChange={() => setPaymentMethod('PAYHERE')}
-                  className="mt-0.5 text-emerald-500"
-                />
-                <div>
-                  <div className="flex items-center gap-2">
-                    <CreditCardIcon className="h-4 w-4 text-emerald-400" />
-                    <span className="font-semibold text-white">Pay Online (PayHere)</span>
-                  </div>
-                  <p className="mt-1 text-xs leading-relaxed text-white/50">
-                    Pay securely using Visa, MasterCard, FriMi, Genie, eZ Cash, or Internet Banking.
-                  </p>
-                </div>
-              </label>
-
               <label
                 onClick={() => setPaymentMethod('WHATSAPP')}
                 className={`flex cursor-pointer items-start gap-3 rounded-2xl border p-4 transition-all ${
@@ -461,7 +525,33 @@ export function OrderModal({ isOpen, onClose, initialConfig }: OrderModalProps) 
                     <span className="font-semibold text-white">Order via WhatsApp</span>
                   </div>
                   <p className="mt-1 text-xs leading-relaxed text-white/50">
-                    Submit order and finalize payment / design confirmation directly with our team on WhatsApp.
+                    Direct confirmation with design proof sent to your WhatsApp.
+                  </p>
+                </div>
+              </label>
+
+              <label
+                onClick={() => setPaymentMethod('PAYHERE')}
+                className={`flex cursor-pointer items-start gap-3 rounded-2xl border p-4 transition-all ${
+                  paymentMethod === 'PAYHERE'
+                    ? 'border-emerald-500 bg-emerald-500/[0.08]'
+                    : 'border-white/10 bg-white/[0.02] hover:border-white/20'
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="payment"
+                  checked={paymentMethod === 'PAYHERE'}
+                  onChange={() => setPaymentMethod('PAYHERE')}
+                  className="mt-0.5 text-emerald-500"
+                />
+                <div>
+                  <div className="flex items-center gap-2">
+                    <CreditCardIcon className="h-4 w-4 text-emerald-400" />
+                    <span className="font-semibold text-white">Pay Online (PayHere)</span>
+                  </div>
+                  <p className="mt-1 text-xs leading-relaxed text-white/50">
+                    Visa, MasterCard, FriMi, Genie, eZ Cash, or Bank Transfer.
                   </p>
                 </div>
               </label>
@@ -473,7 +563,7 @@ export function OrderModal({ isOpen, onClose, initialConfig }: OrderModalProps) 
             <button
               type="submit"
               disabled={isSubmitting}
-              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-500 py-4 text-base font-semibold text-black shadow-[0_0_40px_-10px_rgba(18,185,129,0.8)] transition-all hover:bg-emerald-400 active:scale-[0.98] disabled:opacity-50"
+              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-500 py-4 text-sm sm:text-base font-bold text-black shadow-[0_0_40px_-10px_rgba(18,185,129,0.8)] transition-all hover:bg-emerald-400 active:scale-[0.98] disabled:opacity-50"
             >
               {isSubmitting ? (
                 <>
@@ -483,7 +573,7 @@ export function OrderModal({ isOpen, onClose, initialConfig }: OrderModalProps) 
               ) : paymentMethod === 'PAYHERE' ? (
                 `Proceed to PayHere Checkout (LKR ${totalAmount.toLocaleString()})`
               ) : (
-                `Confirm & Send Order via WhatsApp (LKR ${totalAmount.toLocaleString()})`
+                `Confirm & Send via WhatsApp (LKR ${totalAmount.toLocaleString()})`
               )}
             </button>
           </div>

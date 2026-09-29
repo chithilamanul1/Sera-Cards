@@ -45,21 +45,21 @@ export function CardFaceContent({ config, side, glare }: CardFaceContentProps) {
             className="font-card w-full truncate text-[1.6rem] font-light uppercase leading-none tracking-[0.14em] sm:text-[2.1rem]"
             style={{ color: material.ink }}
           >
-            {business}
+            {config.materialId === 'custom' ? business : 'SERA CARDS'}
           </p>
           <span
             aria-hidden
             className="mt-[5%] block h-px w-[18%]"
             style={{ backgroundColor: material.ink, opacity: 0.4 }}
           />
-          {tagline ? (
-            <p
-              className="font-card mt-[5%] w-full truncate text-[0.72rem] tracking-[0.08em] sm:text-[0.8rem]"
-              style={{ color: material.inkMuted }}
-            >
-              {tagline}
-            </p>
-          ) : null}
+          <p
+            className="font-card mt-[5%] w-full truncate text-[0.72rem] tracking-[0.08em] sm:text-[0.8rem]"
+            style={{ color: material.inkMuted }}
+          >
+            {config.materialId === 'custom'
+              ? (tagline || 'Custom Printed Edition')
+              : 'Official Smart NFC Card'}
+          </p>
         </div>
       ) : (
         <div className="relative flex h-full flex-col justify-between p-[6.5%]">

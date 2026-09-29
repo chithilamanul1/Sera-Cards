@@ -41,7 +41,7 @@ function OrderSuccessContent() {
         <div className="mt-8 space-y-3">
           <a
             href={`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
-              `Hi Serenex team! I just placed order ${orderId || ''} on your website. Looking forward to the design preview!`
+              `Hi Sera Cards team! I just placed order ${orderId || ''} on your website. Looking forward to the design preview!`
             )}`}
             target="_blank"
             rel="noreferrer"

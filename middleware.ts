@@ -22,9 +22,9 @@ export default function middleware(req: NextRequest) {
   // Remove port for local dev
   hostname = hostname.replace(/:\d+$/, '');
 
-  const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'serenex.lk';
+  const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'seranex.lk';
   
-  // Extract subdomain (e.g. "pradeep" from "pradeep.serenex.lk")
+  // Extract subdomain (e.g. "pradeep" from "pradeep.seranex.lk")
   const isSubdomain = hostname.endsWith(`.${rootDomain}`) && !hostname.startsWith('www.');
   const subdomain = isSubdomain ? hostname.replace(`.${rootDomain}`, '') : null;
 

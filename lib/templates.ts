@@ -163,7 +163,7 @@ function buildLeadModal(data: TemplateData): string {
 // ─── Template Generators ─────────────────────────────────────────────────────
 
 export function generateTemplateHtml(presetId: string, data: TemplateData): string {
-  const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'serenex.lk';
+  const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'seranex.lk';
   const fullUrl = `https://${data.slug || 'yourname'}.${rootDomain}`;
   const waNumber = data.whatsapp.replace(/[^0-9]/g, '');
   const leadScript = buildLeadCaptureScript(data.slug, data.name || data.company, waNumber);

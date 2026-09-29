@@ -1,4 +1,5 @@
-export type MaterialId = 'matte' | 'gold' | 'silver' | 'navy'
+export type MaterialId = 'matte' | 'custom' | 'gold' | 'silver' | 'navy'
+
 
 export interface CardConfig {
   /** Brand wordmark on the card front. */

@@ -75,6 +75,7 @@ export async function POST(request: Request) {
       paymentStatus = 'PENDING',
       fulfillmentStatus = 'ORDER_RECEIVED',
       customAmount,
+      unitPrice,
       costPrice = 1500,
       deliveryFee = 350,
       notes,
@@ -99,8 +100,8 @@ export async function POST(request: Request) {
       .replace(/[^a-z0-9-]/g, '')
       .slice(0, 24);
 
-    // Pricing calculation: Allow customAmount override from friend/admin, else default LKR 3,500
-    const resolvedUnitPrice = customAmount !== undefined ? Number(customAmount) : 3500;
+    // Pricing calculation: Allow customAmount or unitPrice override, else default LKR 3,500
+    const resolvedUnitPrice = customAmount !== undefined ? Number(customAmount) : (unitPrice !== undefined ? Number(unitPrice) : 3500);
     const resolvedDelivery = deliveryFee !== undefined ? Number(deliveryFee) : 350;
     const totalAmount = resolvedUnitPrice + resolvedDelivery;
 
@@ -196,8 +197,8 @@ export async function POST(request: Request) {
       logoUrl ? `*Logo:* Included (Uploaded in portal)` : `*Logo:* To be sent on WhatsApp`,
       ``,
       `*PAYMENT & TOTAL:*`,
-      `*Price:* LKR ${unitPrice.toLocaleString()}`,
-      `*Delivery Fee:* LKR ${deliveryFee.toLocaleString()}`,
+      `*Price:* LKR ${resolvedUnitPrice.toLocaleString()}`,
+      `*Delivery Fee:* LKR ${resolvedDelivery.toLocaleString()}`,
       `*Total Amount:* LKR ${totalAmount.toLocaleString()}`,
       `*Payment Method:* ${paymentMethod}`,
       notes ? `*Notes:* ${notes}` : '',

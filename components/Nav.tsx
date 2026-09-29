@@ -29,8 +29,8 @@ export function Nav() {
       }`}
     >
       <div className="mx-auto flex h-16 max-w-content items-center justify-between px-5 sm:px-8">
-        <a href="#top" className="focus-ring flex items-center gap-2 rounded-sm">
-          <img src="/logo-white.png" alt="Sera Cards" className="h-7 w-auto" />
+        <a href="#top" className="focus-ring flex items-center gap-2 rounded-sm py-1">
+          <img src="/logo-white.png" alt="Sera Cards" className="h-10 sm:h-12 w-auto object-contain" />
         </a>
 
         <nav aria-label="Sections" className="hidden items-center gap-8 lg:flex">
@@ -77,6 +77,15 @@ export function Nav() {
                 {l.label}
               </a>
             ))}
+            <div className="py-3">
+              <a
+                href="#pricing"
+                onClick={() => setOpen(false)}
+                className="flex items-center justify-center rounded-full bg-emerald-500 py-2.5 text-sm font-semibold text-black shadow-lg"
+              >
+                Order Now — LKR 3,500
+              </a>
+            </div>
           </nav>
         </div>
       ) : null}

@@ -81,7 +81,7 @@ export default function AdminDashboard() {
   const [quickOrderForm, setQuickOrderForm] = useState({
     clientName: '',
     whatsappNumber: '',
-    cardVariant: 'Standard PVC',
+    cardVariant: 'Sera Signature PVC',
     customAmount: '3500',
     paymentStatus: 'PAID',
     fulfillmentStatus: 'ORDER_RECEIVED',
@@ -120,7 +120,7 @@ export default function AdminDashboard() {
   const [nfcModalCard, setNfcModalCard] = useState<Card | null>(null);
   const [viewLeadsSlug, setViewLeadsSlug] = useState<string | null>(null);
 
-  const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'serenex.lk';
+  const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'seranex.lk';
 
   // Live compiled HTML for the phone simulator
   const liveHtml = useMemo(() => {
@@ -275,7 +275,7 @@ export default function AdminDashboard() {
         setQuickOrderForm({
           clientName: '',
           whatsappNumber: '',
-          cardVariant: 'Standard PVC',
+          cardVariant: 'Sera Signature PVC',
           customAmount: '3500',
           paymentStatus: 'PAID',
           fulfillmentStatus: 'ORDER_RECEIVED',
@@ -286,6 +286,23 @@ export default function AdminDashboard() {
       }
     } catch (error) {
       toast.error('Error creating order');
+    }
+  };
+
+  const handleDeleteOrder = async (orderId: string) => {
+    if (!window.confirm('Are you sure you want to delete this order?')) return;
+    try {
+      const res = await fetch(`/api/orders/${orderId}`, {
+        method: 'DELETE',
+      });
+      if (res.ok) {
+        toast.success('Order deleted');
+        fetchOrders();
+      } else {
+        toast.error('Failed to delete order');
+      }
+    } catch (error) {
+      toast.error('Failed to delete order');
     }
   };
 
@@ -1354,6 +1371,13 @@ export default function AdminDashboard() {
                               >
                                 💬 WhatsApp
                               </a>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteOrder(order.id)}
+                                className="inline-flex items-center gap-1 px-2 py-0.5 text-zinc-500 hover:text-red-400 text-[11px] transition-colors"
+                              >
+                                🗑️ Delete
+                              </button>
                             </div>
                           </td>
                         </tr>
@@ -1673,8 +1697,8 @@ export default function AdminDashboard() {
                     onChange={(e) => {
                       const variant = e.target.value;
                       let defaultPrice = '3500';
-                      if (variant === 'Matte Black') defaultPrice = '4900';
-                      else if (variant === 'Brushed Gold' || variant === 'Cyber Silver') defaultPrice = '4500';
+                      if (variant === 'Full Custom Print PVC') defaultPrice = '5000';
+                      else if (variant === 'Special Enterprise Request') defaultPrice = '5000';
 
                       setQuickOrderForm({
                         ...quickOrderForm,
@@ -1684,11 +1708,9 @@ export default function AdminDashboard() {
                     }}
                     className="mt-1 w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white focus:border-emerald-500 focus:outline-none"
                   >
-                    <option value="Standard PVC">Standard PVC (LKR 3,500)</option>
-                    <option value="Matte Black">Matte Black (LKR 4,900)</option>
-                    <option value="Brushed Gold">Brushed Gold (LKR 4,500)</option>
-                    <option value="Cyber Silver">Cyber Silver (LKR 4,500)</option>
-                    <option value="Midnight Navy">Midnight Navy (LKR 4,500)</option>
+                    <option value="Sera Signature PVC">Sera Signature PVC (LKR 3,500)</option>
+                    <option value="Full Custom Print PVC">Full Custom Print PVC (LKR 5,000)</option>
+                    <option value="Special Enterprise Request">Special Enterprise Request (Custom)</option>
                   </select>
                 </div>
 

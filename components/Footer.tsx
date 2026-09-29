@@ -9,12 +9,11 @@ export function Footer() {
     <footer className="border-t border-white/[0.07] py-12">
       <div className="mx-auto flex max-w-content flex-col gap-6 px-5 sm:px-8 md:flex-row md:items-center md:justify-between">
         <div>
-          <div className="flex items-baseline gap-2">
-            <span className="text-base font-semibold tracking-tightest text-white">SERA</span>
-            <span className="text-[10px] uppercase tracking-[0.28em] text-accent-400">Cards</span>
-          </div>
+          <a href="#top" className="inline-block">
+            <img src="/logo-white.png" alt="Sera Cards" className="h-9 sm:h-10 w-auto object-contain" />
+          </a>
           <p className="mt-2 text-sm text-white/40">
-            NFC smart business cards by Serenex · {brand.domain}
+            NFC smart business cards by Seranex · {brand.domain}
           </p>
         </div>
 

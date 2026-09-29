@@ -36,7 +36,7 @@ export async function GET(request: Request, { params }: { params: { slug: string
               <div class="icon">💳</div>
               <h1>Card Not Found</h1>
               <p>The digital card <strong>${cleanSlug}</strong> has not been registered or may have been deactivated.</p>
-              <a href="https://${process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'serenex.lk'}">Get Your Sera Card</a>
+              <a href="https://${process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'seranex.lk'}">Get Your Sera Card</a>
           </div>
       </body>
       </html>
