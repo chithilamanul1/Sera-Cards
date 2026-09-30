@@ -8,8 +8,8 @@ const steps = [
     num: '01',
     icon: SmartphoneIcon,
     title: 'Get Your Card & Tap',
-    body: 'Order your preferred NFC card — Standard PVC, Custom Brand, or Executive Metal. Once it arrives, simply tap it to your smartphone. Our platform instantly launches a secure setup wizard.',
-    detail: 'Ships in 3–5 days',
+    body: 'Order your preferred NFC card — Standard Matte PVC (LKR 3,500), Sera Premium Matte Finish (LKR 5,000), or Executive Metal Card. Once it arrives, simply tap it to your smartphone. Our platform instantly launches a secure setup wizard.',
+    detail: 'Ships in 2–4 days',
   },
   {
     num: '02',
