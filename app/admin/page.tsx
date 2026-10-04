@@ -169,12 +169,29 @@ export default function AdminDashboard() {
     };
   }, [orders]);
 
-  // Fetch cards, leads, orders, and settlements on mount
+  // Check authentication and fetch cards, leads, orders, and settlements on mount
   useEffect(() => {
-    fetchCards();
-    fetchLeads();
-    fetchOrders();
-    fetchSettlements();
+    const initAdmin = async () => {
+      try {
+        const authRes = await fetch('/api/auth/me');
+        if (!authRes.ok) {
+          window.location.href = '/login?redirect=/admin';
+          return;
+        }
+        const authData = await authRes.json();
+        if (!authData.authenticated || authData.role !== 'ADMIN') {
+          window.location.href = '/login?redirect=/admin';
+          return;
+        }
+        fetchCards();
+        fetchLeads();
+        fetchOrders();
+        fetchSettlements();
+      } catch {
+        window.location.href = '/login?redirect=/admin';
+      }
+    };
+    initAdmin();
   }, []);
 
   const fetchCards = async () => {
@@ -183,7 +200,7 @@ export default function AdminDashboard() {
       const res = await fetch('/api/cards');
       if (!res.ok) {
         if (res.status === 401) {
-          window.location.href = '/login';
+          window.location.href = '/login?redirect=/admin';
           return;
         }
         throw new Error('Failed to fetch cards');
