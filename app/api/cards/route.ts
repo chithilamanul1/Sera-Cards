@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { cookies } from 'next/headers';
 import { getUserFromMemory } from '@/lib/userStore';
+import { saveCardToMemory, getCardFromMemory, getAllCardsFromMemory } from '@/lib/cardStore';
 
 export const dynamic = 'force-dynamic';
 
@@ -87,33 +88,50 @@ export async function GET(request: Request) {
   if (requestedSlug) {
     const cleanSlug = requestedSlug.toLowerCase().trim().replace(/[^a-z0-9-]/g, '');
     try {
-      const card = await prisma.client.findUnique({
-        where: { slug: cleanSlug },
-        include: {
-          _count: {
-            select: { leads: true },
+      const card = await Promise.race([
+        prisma.client.findUnique({
+          where: { slug: cleanSlug },
+          include: {
+            _count: {
+              select: { leads: true },
+            },
           },
-        },
-      });
+        }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('DB Timeout')), 3000)),
+      ]) as any;
 
-      if (!card) {
-        return NextResponse.json({ error: 'Card not found' }, { status: 404 });
+      if (card) {
+        const metadata = extractMetadata(card.htmlContent);
+        saveCardToMemory(cleanSlug, card.htmlContent, metadata, card.id);
+        return NextResponse.json({
+          id: card.id,
+          slug: card.slug,
+          htmlContent: card.htmlContent,
+          metadata,
+          createdAt: card.createdAt,
+          updatedAt: card.updatedAt,
+          _count: card._count,
+        });
       }
-
-      const metadata = extractMetadata(card.htmlContent);
-      return NextResponse.json({
-        id: card.id,
-        slug: card.slug,
-        htmlContent: card.htmlContent,
-        metadata,
-        createdAt: card.createdAt,
-        updatedAt: card.updatedAt,
-        _count: card._count,
-      });
     } catch (error: any) {
-      console.error('Failed to fetch card by slug:', error);
-      return NextResponse.json({ error: 'Failed to fetch card' }, { status: 500 });
+      console.warn('[Cards GET] DB lookup warning (checking memory store):', error?.message);
     }
+
+    // Check memory store fallback
+    const memCard = getCardFromMemory(cleanSlug);
+    if (memCard) {
+      return NextResponse.json({
+        id: memCard.id,
+        slug: memCard.slug,
+        htmlContent: memCard.htmlContent,
+        metadata: memCard.metadata || extractMetadata(memCard.htmlContent),
+        createdAt: memCard.createdAt,
+        updatedAt: memCard.updatedAt,
+        _count: memCard._count,
+      });
+    }
+
+    return NextResponse.json({ error: 'Card not found' }, { status: 404 });
   }
 
   // Listing multiple cards requires authorization
@@ -124,19 +142,38 @@ export async function GET(request: Request) {
   try {
     // If admin, return all cards
     if (auth.isAdmin) {
-      const cards = await prisma.client.findMany({
-        orderBy: { createdAt: 'desc' },
-        select: {
-          id: true,
-          slug: true,
-          createdAt: true,
-          updatedAt: true,
-          _count: {
-            select: { leads: true },
+      const cards = await Promise.race([
+        prisma.client.findMany({
+          orderBy: { createdAt: 'desc' },
+          select: {
+            id: true,
+            slug: true,
+            createdAt: true,
+            updatedAt: true,
+            _count: {
+              select: { leads: true },
+            },
           },
-        },
-      });
-      return NextResponse.json(cards);
+        }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('DB Timeout')), 3000)),
+      ]) as any[];
+
+      // Merge with memory cards
+      const memCards = getAllCardsFromMemory();
+      const existingSlugs = new Set((cards || []).map((c: any) => c.slug));
+      const merged = [...(cards || [])];
+      for (const mc of memCards) {
+        if (!existingSlugs.has(mc.slug)) {
+          merged.push({
+            id: mc.id,
+            slug: mc.slug,
+            createdAt: mc.createdAt,
+            updatedAt: mc.updatedAt,
+            _count: mc._count,
+          });
+        }
+      }
+      return NextResponse.json(merged);
     }
 
     // If customer, return their card(s)
@@ -145,24 +182,45 @@ export async function GET(request: Request) {
       return NextResponse.json([]);
     }
 
-    const cards = await prisma.client.findMany({
-      where: { slug: userSlug },
-      orderBy: { createdAt: 'desc' },
-      select: {
-        id: true,
-        slug: true,
-        createdAt: true,
-        updatedAt: true,
-        _count: {
-          select: { leads: true },
-        },
-      },
-    });
+    let cards: any[] = [];
+    try {
+      cards = await Promise.race([
+        prisma.client.findMany({
+          where: { slug: userSlug },
+          orderBy: { createdAt: 'desc' },
+          select: {
+            id: true,
+            slug: true,
+            createdAt: true,
+            updatedAt: true,
+            _count: {
+              select: { leads: true },
+            },
+          },
+        }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('DB Timeout')), 3000)),
+      ]) as any[];
+    } catch {}
+
+    if (!cards || cards.length === 0) {
+      const memCard = getCardFromMemory(userSlug);
+      if (memCard) {
+        cards = [{
+          id: memCard.id,
+          slug: memCard.slug,
+          createdAt: memCard.createdAt,
+          updatedAt: memCard.updatedAt,
+          _count: memCard._count,
+        }];
+      }
+    }
 
     return NextResponse.json(cards);
   } catch (error) {
     console.error('Failed to fetch cards:', error);
-    return NextResponse.json({ error: 'Failed to fetch cards' }, { status: 500 });
+    // Fall back to memory cards on any unhandled DB error
+    const memCards = getAllCardsFromMemory();
+    return NextResponse.json(memCards);
   }
 }
 
@@ -208,27 +266,38 @@ export async function POST(request: Request) {
     // Embed metadata into HTML if provided
     const finalHtml = metadata ? embedMetadata(html_content, metadata) : html_content;
 
-    const card = await prisma.client.upsert({
-      where: { slug: cleanSlug },
-      update: { htmlContent: finalHtml },
-      create: {
-        slug: cleanSlug,
-        htmlContent: finalHtml,
-      },
-    });
+    let card: any = null;
+    try {
+      card = await Promise.race([
+        prisma.client.upsert({
+          where: { slug: cleanSlug },
+          update: { htmlContent: finalHtml },
+          create: {
+            slug: cleanSlug,
+            htmlContent: finalHtml,
+          },
+        }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('DB Timeout')), 3500)),
+      ]);
+    } catch (dbErr: any) {
+      console.warn('[Cards POST] Database upsert warning (falling back to memory store):', dbErr?.message);
+    }
+
+    // Always persist to resilient memory store
+    const memCard = saveCardToMemory(cleanSlug, finalHtml, metadata, card?.id);
 
     return NextResponse.json({
       success: true,
       card: {
-        id: card.id,
-        slug: card.slug,
-        createdAt: card.createdAt,
-        updatedAt: card.updatedAt,
+        id: card?.id || memCard.id,
+        slug: cleanSlug,
+        createdAt: card?.createdAt || memCard.createdAt,
+        updatedAt: card?.updatedAt || memCard.updatedAt,
       },
-      metadata: metadata || extractMetadata(card.htmlContent),
+      metadata: metadata || extractMetadata(finalHtml),
     });
   } catch (error: any) {
-    console.error('Failed to upsert card:', error);
+    console.error('Failed to process card save request:', error);
     return NextResponse.json(
       { error: 'Failed to save card', details: error.message || String(error) },
       { status: 500 }

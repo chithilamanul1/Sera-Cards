@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { getCardFromMemory } from '@/lib/cardStore';
 
 export const dynamic = 'force-dynamic';
 
@@ -8,12 +9,31 @@ export async function GET(request: Request, { params }: { params: { slug: string
     const { slug } = params;
     const cleanSlug = slug.toLowerCase().trim();
 
-    const client = await prisma.client.findUnique({
-      where: { slug: cleanSlug },
-      select: { htmlContent: true },
-    });
+    let htmlContent: string | null = null;
+    try {
+      const client = await Promise.race([
+        prisma.client.findUnique({
+          where: { slug: cleanSlug },
+          select: { htmlContent: true },
+        }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('DB Timeout')), 3000)),
+      ]) as any;
 
-    if (!client) {
+      if (client?.htmlContent) {
+        htmlContent = client.htmlContent;
+      }
+    } catch (dbErr) {
+      console.warn('[Serve Card] DB fetch warning:', dbErr);
+    }
+
+    if (!htmlContent) {
+      const memCard = getCardFromMemory(cleanSlug);
+      if (memCard?.htmlContent) {
+        htmlContent = memCard.htmlContent;
+      }
+    }
+
+    if (!htmlContent) {
       // Branded high-contrast 404
       const notFoundHtml = `
       <!DOCTYPE html>
@@ -52,7 +72,7 @@ export async function GET(request: Request, { params }: { params: { slug: string
     }
 
     // Return the raw custom HTML with strict isolation headers
-    return new Response(client.htmlContent, {
+    return new Response(htmlContent, {
       status: 200,
       headers: {
         'Content-Type': 'text/html; charset=utf-8',
