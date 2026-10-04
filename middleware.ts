@@ -13,23 +13,47 @@ export const config = {
   ],
 };
 
+const RESERVED_SUBDOMAINS = new Set(['www', 'card', 'app', 'api', 'admin', 'mail', 'auth']);
+const RESERVED_ROOT_PATHS = new Set([
+  'admin',
+  'dashboard',
+  'login',
+  'register',
+  'pricing',
+  'how-it-works',
+  'teams',
+  'order',
+  'api',
+  'c',
+  '_next',
+  'robots.txt',
+  'sitemap.xml',
+]);
+
 export default function middleware(req: NextRequest) {
   const url = req.nextUrl;
   
-  // Get hostname of request (e.g. pradeep.serenex.lk, serenex.lk, or localhost:3000)
+  // Get hostname of request (e.g. kosala.seranex.lk, seranex.lk, card.seranex.lk, sera-cards.vercel.app, or localhost:3000)
   let hostname = req.headers.get('host') || '';
 
   // Remove port for local dev
-  hostname = hostname.replace(/:\d+$/, '');
+  hostname = hostname.replace(/:\d+$/, '').toLowerCase();
 
-  const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'seranex.lk';
+  const rootDomain = (process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'seranex.lk').toLowerCase();
   
-  // Extract subdomain (e.g. "pradeep" from "pradeep.seranex.lk")
-  const isSubdomain = hostname.endsWith(`.${rootDomain}`) && !hostname.startsWith('www.');
-  const subdomain = isSubdomain ? hostname.replace(`.${rootDomain}`, '') : null;
+  // 1. Check Subdomain (e.g. "kosala" from "kosala.seranex.lk" or "kosala.sera-cards.vercel.app")
+  let subdomain: string | null = null;
+  if (hostname.endsWith(`.${rootDomain}`)) {
+    subdomain = hostname.replace(`.${rootDomain}`, '');
+  } else if (hostname.endsWith('.vercel.app')) {
+    const parts = hostname.split('.');
+    if (parts.length > 3) {
+      subdomain = parts[0];
+    }
+  }
 
-  // SECURITY: Subdomain isolation
-  if (subdomain && subdomain !== 'www') {
+  // Handle client card subdomain
+  if (subdomain && !RESERVED_SUBDOMAINS.has(subdomain)) {
     // Prevent client subdomains from accessing /admin or /dashboard on the subdomain
     if (url.pathname.startsWith('/admin') || url.pathname.startsWith('/dashboard')) {
       return NextResponse.redirect(new URL(`https://${rootDomain}${url.pathname}`));
@@ -57,9 +81,18 @@ export default function middleware(req: NextRequest) {
     return response;
   }
 
-  // Root domain requests
-  
-  // Admin route protection
+  // 2. Direct Top-Level Path Rewrite (e.g. /kosala -> /c/kosala)
+  // If the path is a single slug like /kosala, and not a reserved route, rewrite to /c/kosala
+  const pathParts = url.pathname.split('/').filter(Boolean);
+  if (pathParts.length === 1) {
+    const slug = pathParts[0].toLowerCase();
+    if (!RESERVED_ROOT_PATHS.has(slug) && !slug.includes('.')) {
+      const rewriteUrl = new URL(`/c/${slug}`, req.url);
+      return NextResponse.rewrite(rewriteUrl);
+    }
+  }
+
+  // 3. Admin route protection
   if (url.pathname.startsWith('/admin')) {
     const session = req.cookies.get('admin_session');
     if (!session || session.value !== 'authenticated') {
@@ -67,7 +100,7 @@ export default function middleware(req: NextRequest) {
     }
   }
 
-  // Customer Dashboard route protection
+  // 4. Customer Dashboard route protection
   if (url.pathname.startsWith('/dashboard')) {
     const userSession = req.cookies.get('user_session')?.value;
     const adminSession = req.cookies.get('admin_session')?.value;

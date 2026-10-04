@@ -773,9 +773,18 @@ export default function AdminDashboard() {
                     </h2>
                     <p className="text-xs text-zinc-400">All fields update the interactive phone simulator in real-time</p>
                   </div>
-                  <span className="text-xs px-2.5 py-1 bg-zinc-800 text-amber-400 rounded-full font-mono font-semibold">
-                    {slug || 'yourname'}.{rootDomain}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <a
+                      href={`/c/${slug || 'kosala'}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-xs px-3 py-1 bg-zinc-800 hover:bg-zinc-700 text-amber-400 hover:text-amber-300 rounded-full font-mono font-semibold transition-colors flex items-center gap-1.5"
+                      title="Test live card in new tab"
+                    >
+                      <span>{slug || 'yourname'}.{rootDomain}</span>
+                      <span className="text-[10px] text-zinc-400">↗</span>
+                    </a>
+                  </div>
                 </div>
 
                 {editorMode === 'visual' ? (
@@ -1096,23 +1105,35 @@ export default function AdminDashboard() {
                 </div>
 
                 {/* Quick Actions Below Simulator */}
-                <div className="mt-4 flex items-center gap-2">
+                <div className="mt-4 flex flex-wrap items-center gap-2">
                   <button
                     type="button"
                     onClick={() => {
-                      const w = window.open();
-                      if (w) w.document.write(liveHtml);
+                      window.open(`/c/${slug}`, '_blank');
                     }}
                     className="px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-xs font-semibold text-zinc-300 rounded-lg transition-colors"
+                    title="Opens live card directly via /c/slug"
                   >
-                    🔗 Open Test Tab
+                    🔗 Open Live Card
                   </button>
                   <button
                     type="button"
-                    onClick={() => copyToClipboard(`https://${slug}.${rootDomain}`, 'Profile URL')}
+                    onClick={() => copyToClipboard(`https://${slug}.${rootDomain}`, 'Subdomain Link')}
                     className="px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-xs font-semibold text-zinc-300 rounded-lg transition-colors"
+                    title={`Copy https://${slug}.${rootDomain}`}
                   >
-                    📋 Copy URL
+                    📋 Copy Subdomain
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const directUrl = `${window.location.origin}/c/${slug}`;
+                      copyToClipboard(directUrl, 'Universal Direct Link');
+                    }}
+                    className="px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-xs font-semibold text-zinc-300 rounded-lg transition-colors"
+                    title="Universal link (works on any domain without waiting for DNS)"
+                  >
+                    🌐 Copy Direct Link
                   </button>
                 </div>
               </div>

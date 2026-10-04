@@ -395,7 +395,7 @@ export default function CustomerDashboard() {
               {copied ? 'Copied!' : 'Copy Link'}
             </button>
             <a
-              href={liveUrl}
+              href={`/c/${profileForm.slug || user?.cardSlug || 'demo'}`}
               target="_blank"
               rel="noreferrer"
               className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 rounded-xl bg-accent-500 px-4 py-2.5 text-xs font-bold text-ink-950 hover:bg-accent-400 transition-colors shadow-md active:scale-95"
