@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 export const dynamic = 'force-dynamic';
 
@@ -306,6 +306,89 @@ export default function AdminDashboard() {
     } catch (error) {
       toast.error('Failed to delete order');
     }
+  };
+
+  const handleDeleteLead = async (leadId: string) => {
+    if (!window.confirm('Are you sure you want to delete this lead?')) return;
+    try {
+      const res = await fetch(`/api/leads?id=${encodeURIComponent(leadId)}`, {
+        method: 'DELETE',
+      });
+      if (res.ok) {
+        toast.success('Lead deleted');
+        fetchLeads();
+      } else {
+        toast.error('Failed to delete lead');
+      }
+    } catch {
+      toast.error('Failed to delete lead');
+    }
+  };
+
+  const exportLeadsToCsv = () => {
+    if (leads.length === 0) {
+      toast.error('No leads to export');
+      return;
+    }
+    const headers = ['Name', 'Phone', 'Profile Slug', 'Notes', 'Date'];
+    const rows = leads.map((l) => [
+      `"${l.name || ''}"`,
+      `"${l.phone || ''}"`,
+      `"${l.clientSlug || ''}"`,
+      `"${l.notes || ''}"`,
+      `"${new Date(l.createdAt).toLocaleDateString()}"`,
+    ]);
+    const csvContent =
+      'data:text/csv;charset=utf-8,' +
+      [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `gosera-all-leads-${Date.now()}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success('Leads CSV exported!');
+  };
+
+  const exportOrdersToCsv = () => {
+    if (orders.length === 0) {
+      toast.error('No orders to export');
+      return;
+    }
+    const headers = [
+      'Order Number',
+      'Client Name',
+      'Phone',
+      'Slug',
+      'Finish',
+      'Amount',
+      'Payment Status',
+      'Fulfillment',
+      'Date',
+    ];
+    const rows = orders.map((o) => [
+      `"${o.orderNumber || ''}"`,
+      `"${o.customerName || ''}"`,
+      `"${o.customerPhone || ''}"`,
+      `"${o.slug || ''}"`,
+      `"${o.finish || ''}"`,
+      `"${o.totalAmount || o.unitPrice || 3500}"`,
+      `"${o.paymentStatus || 'PENDING'}"`,
+      `"${o.fulfillmentStatus || 'ORDER_RECEIVED'}"`,
+      `"${new Date(o.createdAt).toLocaleDateString()}"`,
+    ]);
+    const csvContent =
+      'data:text/csv;charset=utf-8,' +
+      [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `gosera-orders-${Date.now()}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success('Orders CSV exported!');
   };
 
   const handleSettleWeek = async (weekId?: string) => {
@@ -1136,12 +1219,20 @@ export default function AdminDashboard() {
                 <h2 className="text-xl font-bold text-white">Multi-Profile Leads CRM</h2>
                 <p className="text-xs text-zinc-400">Prospects captured across all individual & corporate profiles</p>
               </div>
-              <button
-                onClick={fetchLeads}
-                className="px-3 py-1.5 text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg transition-colors"
-              >
-                🔄 Refresh Leads
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={exportLeadsToCsv}
+                  className="px-3 py-1.5 text-xs bg-purple-600 hover:bg-purple-500 text-white font-semibold rounded-lg transition-colors flex items-center gap-1.5"
+                >
+                  📥 Export CSV
+                </button>
+                <button
+                  onClick={fetchLeads}
+                  className="px-3 py-1.5 text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg transition-colors"
+                >
+                  🔄 Refresh Leads
+                </button>
+              </div>
             </div>
 
             {leads.length === 0 ? (
@@ -1161,7 +1252,7 @@ export default function AdminDashboard() {
                       <th className="pb-3 font-semibold">Phone / WhatsApp</th>
                       <th className="pb-3 font-semibold">Profile Slug</th>
                       <th className="pb-3 font-semibold">Date</th>
-                      <th className="pb-3 font-semibold text-right">Direct Action</th>
+                      <th className="pb-3 font-semibold text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="text-sm divide-y divide-zinc-800/60">
@@ -1182,7 +1273,7 @@ export default function AdminDashboard() {
                         <td className="py-3.5 text-xs text-zinc-500">
                           {new Date(lead.createdAt).toLocaleString()}
                         </td>
-                        <td className="py-3.5 text-right">
+                        <td className="py-3.5 text-right space-x-2">
                           <a
                             href={`https://wa.me/${lead.phone.replace(/[^0-9]/g, '')}?text=Hi%20${encodeURIComponent(lead.name)},%20thank%20you%20for%20connecting%20via%20Sera%20Cards!`}
                             target="_blank"
@@ -1191,6 +1282,14 @@ export default function AdminDashboard() {
                           >
                             💬 WhatsApp
                           </a>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteLead(lead.id)}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 text-zinc-500 hover:text-red-400 text-xs bg-zinc-800/60 hover:bg-red-400/10 rounded-lg transition-colors"
+                            title="Delete Lead"
+                          >
+                            🗑️ Delete
+                          </button>
                         </td>
                       </tr>
                     ))}
@@ -1216,6 +1315,12 @@ export default function AdminDashboard() {
                 </p>
               </div>
               <div className="flex items-center gap-2.5">
+                <button
+                  onClick={exportOrdersToCsv}
+                  className="px-3.5 py-1.5 text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-semibold rounded-lg transition-colors flex items-center gap-1.5"
+                >
+                  📥 Export CSV
+                </button>
                 <button
                   onClick={() => setIsQuickOrderOpen(true)}
                   className="px-3.5 py-1.5 text-xs bg-purple-600 hover:bg-purple-500 text-white font-semibold rounded-lg shadow-md transition-colors flex items-center gap-1.5"

@@ -1,24 +1,43 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { cookies } from 'next/headers';
+import { getUserFromMemory } from '@/lib/userStore';
+
+export const dynamic = 'force-dynamic';
 
 const OWNER_WA = (process.env.OWNER_WHATSAPP_NUMBER || '').replace(/[^0-9]/g, '');
 const RATE_LIMIT_MAP = new Map<string, number>();
 
-import { cookies } from 'next/headers';
-
-function isAuthorized(request: Request) {
-  const session = cookies().get('admin_session');
+async function getLeadAuth(request: Request) {
+  const cookieStore = cookies();
+  const session = cookieStore.get('admin_session');
   if (session && session.value === 'authenticated') {
-    return true;
+    return { isAdmin: true };
+  }
+  const authHeader = request.headers.get('x-admin-secret');
+  if (authHeader && authHeader === process.env.ADMIN_SECRET) {
+    return { isAdmin: true };
   }
 
-  const userSession = cookies().get('user_session')?.value;
+  const userSession = cookieStore.get('user_session')?.value;
   if (userSession) {
-    return true;
+    let user: any = null;
+    try {
+      user = await Promise.race([
+        prisma.user.findUnique({
+          where: { id: userSession },
+          select: { id: true, email: true, role: true, cardSlug: true },
+        }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('DB Timeout')), 2500)),
+      ]);
+    } catch {}
+    if (!user) user = getUserFromMemory(userSession);
+    if (user) {
+      return { isAdmin: user.role === 'ADMIN', user };
+    }
   }
-  
-  const authHeader = request.headers.get('x-admin-secret');
-  return authHeader === process.env.ADMIN_SECRET;
+
+  return { isAdmin: false, user: null };
 }
 
 // Simple in-memory rate limiter: max 3 submissions per phone per 10 minutes
@@ -37,18 +56,27 @@ function isRateLimited(phone: string): boolean {
   return false;
 }
 
-// GET /api/leads — Fetch all leads (admin only), optionally filter by ?slug=
+// GET /api/leads — Fetch leads (admin: all or filtered by slug; customer: scoped to their cardSlug)
 export async function GET(request: Request) {
-  if (!isAuthorized(request)) {
+  const auth = await getLeadAuth(request);
+  if (!auth.isAdmin && !auth.user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   const { searchParams } = new URL(request.url);
-  const slug = searchParams.get('slug');
+  const querySlug = searchParams.get('slug');
+
+  let targetSlug: string | undefined = undefined;
+  if (auth.isAdmin) {
+    targetSlug = querySlug ? querySlug.toLowerCase().trim() : undefined;
+  } else if (auth.user) {
+    if (!auth.user.cardSlug) return NextResponse.json([]);
+    targetSlug = auth.user.cardSlug.toLowerCase().trim();
+  }
 
   try {
     const leads = await prisma.lead.findMany({
-      where: slug ? { clientSlug: slug } : undefined,
+      where: targetSlug ? { clientSlug: targetSlug } : undefined,
       orderBy: { createdAt: 'desc' },
       take: 200,
     });
@@ -56,6 +84,53 @@ export async function GET(request: Request) {
   } catch (error) {
     console.error('Failed to fetch leads:', error);
     return NextResponse.json({ error: 'Failed to fetch leads' }, { status: 500 });
+  }
+}
+
+// DELETE /api/leads — Delete a specific lead (admin or card owner)
+export async function DELETE(request: Request) {
+  const auth = await getLeadAuth(request);
+  if (!auth.isAdmin && !auth.user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const { searchParams } = new URL(request.url);
+  let leadId = searchParams.get('id');
+
+  if (!leadId) {
+    try {
+      const body = await request.json();
+      leadId = body?.id;
+    } catch {}
+  }
+
+  if (!leadId) {
+    return NextResponse.json({ error: 'Lead ID is required' }, { status: 400 });
+  }
+
+  try {
+    const lead = await prisma.lead.findUnique({
+      where: { id: leadId },
+    });
+
+    if (!lead) {
+      return NextResponse.json({ error: 'Lead not found' }, { status: 404 });
+    }
+
+    if (!auth.isAdmin && auth.user) {
+      if (lead.clientSlug !== auth.user.cardSlug) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      }
+    }
+
+    await prisma.lead.delete({
+      where: { id: leadId },
+    });
+
+    return NextResponse.json({ success: true, message: 'Lead deleted successfully' });
+  } catch (error: any) {
+    console.error('Failed to delete lead:', error);
+    return NextResponse.json({ error: error.message || 'Failed to delete lead' }, { status: 500 });
   }
 }
 
@@ -72,10 +147,10 @@ export async function POST(request: Request) {
       );
     }
 
-    const cleanSlug   = String(slug).toLowerCase().trim();
-    const cleanName   = String(name).trim().slice(0, 100);
-    const cleanPhone  = String(phone).trim().slice(0, 30);
-    const cleanNotes  = notes ? String(notes).trim().slice(0, 500) : null;
+    const cleanSlug = String(slug).toLowerCase().trim();
+    const cleanName = String(name).trim().slice(0, 100);
+    const cleanPhone = String(phone).trim().slice(0, 30);
+    const cleanNotes = notes ? String(notes).trim().slice(0, 500) : null;
 
     // Rate-limit by phone number
     if (isRateLimited(cleanPhone)) {
@@ -106,8 +181,8 @@ export async function POST(request: Request) {
     });
 
     // Build WhatsApp deep-link for the owner notification
-    // Dynamic per profile: uses the specific card owner's WhatsApp number!
-    const targetOwnerWhatsapp = (ownerWhatsapp ? String(ownerWhatsapp).replace(/[^0-9]/g, '') : '') || OWNER_WA;
+    const targetOwnerWhatsapp =
+      (ownerWhatsapp ? String(ownerWhatsapp).replace(/[^0-9]/g, '') : '') || OWNER_WA;
 
     const waText = [
       `🔥 *New Lead Alert — Sera Cards*`,

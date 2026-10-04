@@ -5,19 +5,49 @@ import { generatePayHereHash, PAYHERE_CONFIG } from '@/lib/payhere';
 import { saveLogo } from '@/lib/logoStore';
 import { sendOrderConfirmationEmail } from '@/lib/mail';
 
-// Helper to check admin authorization
-function isAuthorized(request: Request) {
-  const session = cookies().get('admin_session');
+import { getUserFromMemory } from '@/lib/userStore';
+
+// Helper to check authorization
+async function getOrderAuth(request: Request) {
+  const cookieStore = cookies();
+  const session = cookieStore.get('admin_session');
   if (session && session.value === 'authenticated') {
-    return true;
+    return { isAdmin: true };
   }
   const authHeader = request.headers.get('x-admin-secret');
-  return authHeader === process.env.ADMIN_SECRET;
+  if (authHeader && authHeader === process.env.ADMIN_SECRET) {
+    return { isAdmin: true };
+  }
+
+  const userSession = cookieStore.get('user_session')?.value;
+  if (userSession) {
+    let user: any = null;
+    try {
+      user = await Promise.race([
+        prisma.user.findUnique({
+          where: { id: userSession },
+          select: { id: true, email: true, phone: true, role: true, cardSlug: true },
+        }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('DB Timeout')), 2500)),
+      ]);
+    } catch {
+      // fallback
+    }
+    if (!user) {
+      user = getUserFromMemory(userSession);
+    }
+    if (user) {
+      return { isAdmin: user.role === 'ADMIN', user };
+    }
+  }
+
+  return { isAdmin: false, user: null };
 }
 
-// GET /api/orders — List customer orders (Admin only)
+// GET /api/orders — List customer orders (Admin: all, Customer: their own)
 export async function GET(request: Request) {
-  if (!isAuthorized(request)) {
+  const auth = await getOrderAuth(request);
+  if (!auth.isAdmin && !auth.user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
@@ -27,17 +57,33 @@ export async function GET(request: Request) {
     const search = searchParams.get('search');
 
     const whereClause: any = {};
-    if (status && status !== 'ALL') {
-      whereClause.orderStatus = status;
-    }
 
-    if (search) {
-      whereClause.OR = [
-        { customerName: { contains: search, mode: 'insensitive' } },
-        { customerPhone: { contains: search, mode: 'insensitive' } },
-        { orderNumber: { contains: search, mode: 'insensitive' } },
-        { slug: { contains: search, mode: 'insensitive' } },
-      ];
+    // Customer scoping: only return orders belonging to this user
+    if (!auth.isAdmin && auth.user) {
+      const orConditions: any[] = [];
+      if (auth.user.email) orConditions.push({ customerEmail: auth.user.email });
+      if (auth.user.phone) orConditions.push({ customerPhone: auth.user.phone });
+      if (auth.user.cardSlug) orConditions.push({ slug: auth.user.cardSlug });
+
+      if (orConditions.length > 0) {
+        whereClause.OR = orConditions;
+      } else {
+        return NextResponse.json([]);
+      }
+    } else {
+      // Admin filters
+      if (status && status !== 'ALL') {
+        whereClause.orderStatus = status;
+      }
+
+      if (search) {
+        whereClause.OR = [
+          { customerName: { contains: search, mode: 'insensitive' } },
+          { customerPhone: { contains: search, mode: 'insensitive' } },
+          { orderNumber: { contains: search, mode: 'insensitive' } },
+          { slug: { contains: search, mode: 'insensitive' } },
+        ];
+      }
     }
 
     const orders = await Promise.race([
