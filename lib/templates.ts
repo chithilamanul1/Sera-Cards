@@ -1,4 +1,4 @@
-﻿export interface TemplateData {
+export interface TemplateData {
   slug: string;
   name: string;
   title: string;
@@ -615,9 +615,12 @@ export function generateTemplateHtml(presetId: string, data: TemplateData): stri
     </div>
 
     <!-- Floating Bottom Action Bar -->
-    <div class="fixed bottom-6 left-1/2 -translate-x-1/2 w-[calc(100%-2.5rem)] max-w-[380px] z-50">
-      <button onclick="downloadCompanyVCF()" class="w-full py-4 bg-slate-900 text-white rounded-2xl font-bold text-sm shadow-[0_15px_30px_rgba(15,23,42,0.3)] hover:bg-slate-800 transition active:scale-95 flex items-center justify-center gap-2 border border-slate-800">
-        <i class="fas fa-address-book text-cyan-400"></i> Save to Contacts
+    <div class="fixed bottom-6 left-1/2 -translate-x-1/2 w-[calc(100%-2.5rem)] max-w-[380px] z-50 grid grid-cols-2 gap-2">
+      <button onclick="downloadCompanyVCF()" class="py-3.5 bg-slate-900 text-white rounded-2xl font-bold text-xs shadow-[0_15px_30px_rgba(15,23,42,0.3)] hover:bg-slate-800 transition active:scale-95 flex items-center justify-center gap-1.5 border border-slate-800">
+        <i class="fas fa-address-book text-cyan-400"></i> Save Contact
+      </button>
+      <button onclick="toggleLeadModal(true)" class="py-3.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-2xl font-bold text-xs shadow-[0_15px_30px_rgba(147,51,234,0.3)] hover:opacity-90 transition active:scale-95 flex items-center justify-center gap-1.5">
+        <i class="fas fa-handshake text-white"></i> Exchange Info
       </button>
     </div>
 

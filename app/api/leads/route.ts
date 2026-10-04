@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { cookies } from 'next/headers';
 import { getUserFromMemory } from '@/lib/userStore';
+import { sendLeadNotificationEmail } from '@/lib/mail';
 
 export const dynamic = 'force-dynamic';
 
@@ -200,6 +201,68 @@ export async function POST(request: Request) {
     const ownerNotifyUrl = targetOwnerWhatsapp
       ? `https://wa.me/${targetOwnerWhatsapp}?text=${encodeURIComponent(waText)}`
       : null;
+
+    // Look up cardholder to dispatch instant email alert
+    try {
+      let ownerEmail: string | null = null;
+      let ownerDisplayName = cleanSlug;
+
+      // 1. Look up user by cardSlug
+      const userMatch = await prisma.user.findFirst({
+        where: { cardSlug: cleanSlug },
+        select: { email: true, name: true },
+      });
+      if (userMatch?.email) {
+        ownerEmail = userMatch.email;
+        if (userMatch.name) ownerDisplayName = userMatch.name;
+      }
+
+      // 2. Check memory user store
+      if (!ownerEmail) {
+        const memUser = getUserFromMemory(cleanSlug);
+        if (memUser?.email) {
+          ownerEmail = memUser.email;
+          if (memUser.name) ownerDisplayName = memUser.name;
+        }
+      }
+
+      // 3. Check metadata comment inside card htmlContent
+      if (!ownerEmail) {
+        const fullCard = await prisma.client.findUnique({
+          where: { slug: cleanSlug },
+          select: { htmlContent: true },
+        });
+        if (fullCard?.htmlContent) {
+          const match = fullCard.htmlContent.match(/<!--\s*GOSERA_METADATA:\s*({[\s\S]*?})\s*-->/);
+          if (match && match[1]) {
+            try {
+              const meta = JSON.parse(match[1]);
+              if (meta.email) ownerEmail = meta.email;
+              if (meta.name) ownerDisplayName = meta.name;
+            } catch {}
+          }
+        }
+      }
+
+      // 4. Fallback to ADMIN / OWNER notification address
+      const targetEmail =
+        ownerEmail ||
+        process.env.OWNER_EMAIL ||
+        process.env.ADMIN_NOTIFICATION_EMAIL ||
+        process.env.RESEND_FROM_EMAIL;
+
+      if (targetEmail) {
+        await sendLeadNotificationEmail({
+          to: targetEmail,
+          cardOwnerName: ownerDisplayName,
+          leadName: cleanName,
+          leadPhone: cleanPhone,
+          notes: cleanNotes,
+        });
+      }
+    } catch (mailErr) {
+      console.warn('[Leads POST] Non-blocking lead notification email warning:', mailErr);
+    }
 
     return NextResponse.json({
       success: true,
