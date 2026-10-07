@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { cookies } from 'next/headers';
 
+export const dynamic = 'force-dynamic';
+
 function isAuthorized(request: Request) {
   const session = cookies().get('admin_session');
   if (session && session.value === 'authenticated') {
@@ -21,9 +23,10 @@ export async function GET(
   }
 
   try {
-    const order = await prisma.order.findUnique({
-      where: { id: params.id },
-    });
+    const order = await Promise.race([
+      prisma.order.findUnique({ where: { id: params.id } }),
+      new Promise<any>((_, reject) => setTimeout(() => reject(new Error('DB Timeout')), 4000)),
+    ]);
 
     if (!order) {
       return NextResponse.json({ error: 'Order not found' }, { status: 404 });
@@ -31,6 +34,7 @@ export async function GET(
 
     return NextResponse.json(order);
   } catch (error: any) {
+    console.error('[Orders/[id] GET] Error:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
@@ -58,13 +62,17 @@ export async function PATCH(
     }
     if (notes !== undefined) dataToUpdate.notes = notes;
 
-    const updated = await prisma.order.update({
-      where: { id: params.id },
-      data: dataToUpdate,
-    });
+    const updated = await Promise.race([
+      prisma.order.update({
+        where: { id: params.id },
+        data: dataToUpdate,
+      }),
+      new Promise<any>((_, reject) => setTimeout(() => reject(new Error('DB Timeout')), 4000)),
+    ]);
 
     return NextResponse.json(updated);
   } catch (error: any) {
+    console.error('[Orders/[id] PATCH] Error:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
@@ -79,12 +87,14 @@ export async function DELETE(
   }
 
   try {
-    await prisma.order.delete({
-      where: { id: params.id },
-    });
+    await Promise.race([
+      prisma.order.delete({ where: { id: params.id } }),
+      new Promise<any>((_, reject) => setTimeout(() => reject(new Error('DB Timeout')), 4000)),
+    ]);
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
+    console.error('[Orders/[id] DELETE] Error:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

@@ -25,10 +25,16 @@ export async function GET(request: Request) {
     const currentWeekId = getCurrentWeekId();
     const { start: weekStart, end: weekEnd } = getWeekDateRange(currentWeekId);
 
-    // Fetch all orders to compute operational metrics
-    const allOrders = await prisma.order.findMany({
-      orderBy: { createdAt: 'desc' },
-    });
+    // Fetch all orders to compute operational metrics (with timeout)
+    let allOrders: any[] = [];
+    try {
+      allOrders = await Promise.race([
+        prisma.order.findMany({ orderBy: { createdAt: 'desc' } }),
+        new Promise<any[]>((_, reject) => setTimeout(() => reject(new Error('DB Timeout')), 4000)),
+      ]);
+    } catch (err) {
+      console.warn('[Settlements GET] DB orders query fallback:', err);
+    }
 
     // Compute all-time live metrics
     const allTimeMetrics = computeOperationalMetrics(allOrders);
@@ -40,10 +46,16 @@ export async function GET(request: Request) {
     });
     const currentWeekMetrics = computeOperationalMetrics(currentWeekOrders);
 
-    // Fetch historical settlements
-    const settlements = await prisma.weeklySettlement.findMany({
-      orderBy: { weekId: 'desc' },
-    });
+    // Fetch historical settlements (with timeout)
+    let settlements: any[] = [];
+    try {
+      settlements = await Promise.race([
+        prisma.weeklySettlement.findMany({ orderBy: { weekId: 'desc' } }),
+        new Promise<any[]>((_, reject) => setTimeout(() => reject(new Error('DB Timeout')), 4000)),
+      ]);
+    } catch (err) {
+      console.warn('[Settlements GET] DB settlements query fallback:', err);
+    }
 
     return NextResponse.json({
       currentWeekId,
@@ -57,7 +69,14 @@ export async function GET(request: Request) {
     });
   } catch (error: any) {
     console.error('Failed to fetch settlements:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({
+      currentWeekId: getCurrentWeekId(),
+      weekRange: { start: new Date().toISOString(), end: new Date().toISOString() },
+      liveMetrics: {},
+      currentWeekMetrics: {},
+      settlements: [],
+      error: error.message,
+    });
   }
 }
 
