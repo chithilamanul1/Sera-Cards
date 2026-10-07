@@ -1,7 +1,7 @@
 import { PrismaClient } from '@prisma/client'
 
 const DEFAULT_DATABASE_URL =
-  'mongodb://chithila:chithila123@187.77.128.167:27017/sera?authSource=admin&directConnection=true'
+  'mongodb+srv://furynetworkslk_db_user:1Ku5a5AuPYrhhME1@cluster0.2xwy1al.mongodb.net/sera?retryWrites=true&w=majority&appName=Cluster0'
 
 if (!process.env.DATABASE_URL) {
   process.env.DATABASE_URL = DEFAULT_DATABASE_URL
