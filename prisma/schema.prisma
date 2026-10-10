@@ -155,7 +155,6 @@ model TeamMember {
   updatedAt      DateTime @updatedAt @map("updated_at")
 
   @@index([teamId])
-  @@index([slug])
 }
 
 model CardActivation {
