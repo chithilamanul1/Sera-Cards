@@ -148,7 +148,7 @@ export async function GET(request: Request) {
     // 5. Establish user session
     cookies().set({
       name: 'user_session',
-      value: user.id,
+      value: String(user.id),
       httpOnly: true,
       path: '/',
       secure: process.env.NODE_ENV === 'production',

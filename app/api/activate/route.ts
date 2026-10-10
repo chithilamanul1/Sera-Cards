@@ -104,10 +104,9 @@ export async function POST(request: Request) {
     }
 
     const passwordHash = hashPassword(password);
-    let userId = user?.id;
+    let userId: string = user?.id || `usr_${Date.now()}`;
 
     if (!user) {
-      const syntheticId = 'usr_' + Date.now();
       try {
         const createdDbUser = await Promise.race([
           prisma.user.create({
@@ -123,10 +122,8 @@ export async function POST(request: Request) {
           }),
           new Promise<any>((_, reject) => setTimeout(() => reject(new Error('DB Timeout')), 3000)),
         ]);
-        if (createdDbUser) userId = createdDbUser.id;
+        if (createdDbUser?.id) userId = createdDbUser.id;
       } catch {}
-
-      if (!userId) userId = syntheticId;
 
       saveUserToMemory({
         id: userId,
@@ -144,7 +141,7 @@ export async function POST(request: Request) {
     // Set user session cookie (30 days)
     cookies().set({
       name: 'user_session',
-      value: userId,
+      value: String(userId),
       httpOnly: true,
       path: '/',
       secure: process.env.NODE_ENV === 'production',

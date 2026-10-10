@@ -123,7 +123,7 @@ export async function POST(req: Request) {
     // 6. Set user session cookie (30 days)
     cookies().set({
       name: 'user_session',
-      value: newUser.id,
+      value: String(newUser.id),
       httpOnly: true,
       path: '/',
       secure: process.env.NODE_ENV === 'production',

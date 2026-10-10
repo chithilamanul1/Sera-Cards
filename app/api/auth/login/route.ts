@@ -67,7 +67,7 @@ export async function POST(req: Request) {
       // Set user session cookie
       cookies().set({
         name: 'user_session',
-        value: user.id,
+        value: String(user.id),
         httpOnly: true,
         path: '/',
         secure: process.env.NODE_ENV === 'production',
