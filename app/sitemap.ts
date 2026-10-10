@@ -1,7 +1,7 @@
-﻿import { MetadataRoute } from 'next'
+import { MetadataRoute } from 'next'
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://card.seranex.lk'
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://cards.seranex.lk'
 
   return [
     {
@@ -11,19 +11,25 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 1.0,
     },
     {
-      url: `${baseUrl}/#pricing`,
+      url: `${baseUrl}/products`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.95,
+    },
+    {
+      url: `${baseUrl}/pricing`,
       lastModified: new Date(),
       changeFrequency: 'weekly',
       priority: 0.9,
     },
     {
-      url: `${baseUrl}/#features`,
+      url: `${baseUrl}/teams`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
-      priority: 0.8,
+      priority: 0.85,
     },
     {
-      url: `${baseUrl}/#how-it-works`,
+      url: `${baseUrl}/how-it-works`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 0.8,

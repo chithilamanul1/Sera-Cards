@@ -13,7 +13,7 @@ export const config = {
   ],
 };
 
-const RESERVED_SUBDOMAINS = new Set(['www', 'card', 'app', 'api', 'admin', 'mail', 'auth']);
+const RESERVED_SUBDOMAINS = new Set(['www', 'card', 'cards', 'app', 'api', 'admin', 'mail', 'auth']);
 const RESERVED_ROOT_PATHS = new Set([
   'admin',
   'dashboard',
@@ -35,7 +35,7 @@ const RESERVED_ROOT_PATHS = new Set([
 export default function middleware(req: NextRequest) {
   const url = req.nextUrl;
   
-  // Get hostname of request (e.g. kosala.seranex.lk, seranex.lk, card.seranex.lk, sera-cards.vercel.app, or localhost:3000)
+  // Get hostname of request (e.g. cards.seranex.lk, kosala.seranex.lk, seranex.lk, card.seranex.lk, sera-cards.vercel.app, or localhost:3000)
   let hostname = req.headers.get('host') || '';
 
   // Remove port for local dev
@@ -43,9 +43,13 @@ export default function middleware(req: NextRequest) {
 
   const rootDomain = (process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'seranex.lk').toLowerCase();
   
-  // 1. Check Subdomain (e.g. "kosala" from "kosala.seranex.lk" or "kosala.sera-cards.vercel.app")
+  // 1. Check Subdomain (e.g. "kosala" from "kosala.seranex.lk", "kosala.cards.seranex.lk", or "kosala.sera-cards.vercel.app")
   let subdomain: string | null = null;
-  if (hostname.endsWith(`.${rootDomain}`)) {
+  if (hostname.endsWith(`.cards.${rootDomain}`)) {
+    subdomain = hostname.replace(`.cards.${rootDomain}`, '');
+  } else if (hostname.endsWith(`.card.${rootDomain}`)) {
+    subdomain = hostname.replace(`.card.${rootDomain}`, '');
+  } else if (hostname.endsWith(`.${rootDomain}`)) {
     subdomain = hostname.replace(`.${rootDomain}`, '');
   } else if (hostname.endsWith('.vercel.app')) {
     const parts = hostname.split('.');
@@ -58,7 +62,8 @@ export default function middleware(req: NextRequest) {
   if (subdomain && !RESERVED_SUBDOMAINS.has(subdomain)) {
     // Prevent client subdomains from accessing /admin, /dashboard, or /teams on the subdomain
     if (url.pathname.startsWith('/admin') || url.pathname.startsWith('/dashboard') || url.pathname.startsWith('/teams')) {
-      return NextResponse.redirect(new URL(`https://${rootDomain}${url.pathname}`));
+      const appHost = hostname.includes('cards.') ? `cards.${rootDomain}` : rootDomain;
+      return NextResponse.redirect(new URL(`https://${appHost}${url.pathname}`));
     }
 
     // Allow /api/leads to be called from subdomains for lead capture

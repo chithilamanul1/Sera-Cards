@@ -30,7 +30,7 @@ export const viewport: Viewport = {
 }
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://card.seranex.lk'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://cards.seranex.lk'),
   title: {
     default: 'GoSera — Smart NFC Business Cards & Networking Platform Sri Lanka',
     template: '%s | GoSera',
@@ -75,7 +75,7 @@ export const metadata: Metadata = {
     title: 'GoSera — Smart NFC Business Cards & Networking Platform',
     description:
       "One tap delivers your entire professional identity. Capture leads, track analytics, and grow your network with GoSera — Sri Lanka's smart NFC networking platform.",
-    url: 'https://card.seranex.lk',
+    url: process.env.NEXT_PUBLIC_APP_URL || 'https://cards.seranex.lk',
     siteName: 'GoSera',
     locale: 'en_US',
     type: 'website',
@@ -113,7 +113,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     '@context': 'https://schema.org',
     '@type': 'SoftwareApplication',
     name: 'GoSera — Smart NFC Networking Platform',
-    image: 'https://card.seranex.lk/logo-white.png',
+    image: `${process.env.NEXT_PUBLIC_APP_URL || 'https://cards.seranex.lk'}/logo-white.png`,
     description:
       "GoSera is Sri Lanka's smart NFC networking platform. Get an NFC business card, capture leads with two-way exchange, and track analytics.",
     applicationCategory: 'BusinessApplication',
