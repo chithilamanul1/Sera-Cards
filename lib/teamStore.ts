@@ -276,6 +276,67 @@ export async function getTeam(identifier: string): Promise<Team | null> {
   return defaultTeam || null;
 }
 
+/**
+ * Returns all registered companies / teams in the system
+ */
+export async function getAllTeams(): Promise<Team[]> {
+  const store = globalThis.__gosera_teams;
+  if (!store) return [];
+  const teams = Array.from(store.values()).reduce<Team[]>((acc, cur) => {
+    if (!acc.some((x) => x.id === cur.id)) acc.push(cur);
+    return acc;
+  }, []);
+  return teams;
+}
+
+/**
+ * Creates a brand new corporate team / company
+ */
+export async function createTeam(data: {
+  name: string;
+  slug: string;
+  adminEmail: string;
+  plan?: 'TEAMS' | 'ENTERPRISE';
+  seatLimit?: number;
+  brandSettings?: Partial<TeamBrandSettings>;
+}): Promise<Team> {
+  const cleanSlug = data.slug.trim().toLowerCase().replace(/[^a-z0-9-]/g, '');
+  const id = `team_${cleanSlug}_${Date.now().toString(36)}`;
+
+  const brandSettings: TeamBrandSettings = {
+    companyName: data.name.trim(),
+    tagline: data.brandSettings?.tagline || 'Excellence in Enterprise Solutions',
+    logoUrl: data.brandSettings?.logoUrl || 'https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?auto=format&fit=crop&w=300&q=80',
+    coverUrl: data.brandSettings?.coverUrl || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1200&q=80',
+    primaryColor: data.brandSettings?.primaryColor || '#0ea5e9',
+    website: data.brandSettings?.website || `https://${cleanSlug}.seranex.lk`,
+    companyAddress: data.brandSettings?.companyAddress || 'Colombo, Sri Lanka',
+    disclaimer: data.brandSettings?.disclaimer || 'Official corporate card fleet. All rights reserved.',
+    catalogPdfUrl: data.brandSettings?.catalogPdfUrl || '',
+    catalogPdfTitle: data.brandSettings?.catalogPdfTitle || `${data.name} Corporate Profile (PDF)`,
+    googleReviewUrl: data.brandSettings?.googleReviewUrl || '',
+    templatePreset: data.brandSettings?.templatePreset || 'company_profile',
+    isLocked: data.brandSettings?.isLocked ?? true,
+  };
+
+  const newTeam: Team = {
+    id,
+    name: data.name.trim(),
+    slug: cleanSlug,
+    adminEmail: data.adminEmail.trim().toLowerCase(),
+    plan: data.plan || 'ENTERPRISE',
+    seatLimit: data.seatLimit || 25,
+    brandSettings,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+
+  globalThis.__gosera_teams?.set(newTeam.id, newTeam);
+  globalThis.__gosera_teams?.set(newTeam.slug, newTeam);
+
+  return newTeam;
+}
+
 export async function getTeamMembers(teamId: string): Promise<TeamMember[]> {
   const store = globalThis.__gosera_team_members;
   if (!store) return [];

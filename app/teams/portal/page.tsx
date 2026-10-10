@@ -111,17 +111,46 @@ export default function EnterpriseTeamsPortal() {
   // Member Edit Modal
   const [editingMember, setEditingMember] = useState<any>(null);
 
+  // Multi-Company / Multi-Tenant State
+  const [companies, setCompanies] = useState<any[]>([]);
+  const [selectedCompanySlug, setSelectedCompanySlug] = useState<string>('apex');
+  const [isAddCompanyModalOpen, setIsAddCompanyModalOpen] = useState(false);
+  const [companyForm, setCompanyForm] = useState({
+    name: '',
+    slug: '',
+    adminEmail: '',
+    seatLimit: 25,
+    tagline: 'Premier Corporate & Wealth Advisory',
+    primaryColor: '#0ea5e9',
+  });
+  const [isCreatingCompany, setIsCreatingCompany] = useState(false);
+
   const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'seranex.lk';
 
   // Fetch Team Data
-  const fetchTeamData = async () => {
+  const fetchTeamData = async (targetSlug?: string) => {
     try {
       setLoading(true);
-      const res = await fetch('/api/teams?slug=apex');
+      const activeSlug = targetSlug || selectedCompanySlug || 'apex';
+
+      // 1. Fetch all companies for the multi-company switcher
+      try {
+        const allRes = await fetch('/api/teams?all=true');
+        const allData = await allRes.json();
+        if (allData.success && Array.isArray(allData.teams)) {
+          setCompanies(allData.teams);
+        }
+      } catch (err) {
+        console.warn('Could not list all companies:', err);
+      }
+
+      // 2. Fetch specific company fleet data
+      const res = await fetch(`/api/teams?slug=${encodeURIComponent(activeSlug)}`);
       const data = await res.json();
 
       if (data.success && data.team) {
         setTeam(data.team);
+        setSelectedCompanySlug(data.team.slug);
         setStats(data.stats);
         setBrandForm({
           ...data.team.brandSettings,
@@ -152,6 +181,56 @@ export default function EnterpriseTeamsPortal() {
   useEffect(() => {
     fetchTeamData();
   }, []);
+
+  // Create New Company Handler
+  const handleCreateCompany = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!companyForm.name.trim() || !companyForm.slug.trim() || !companyForm.adminEmail.trim()) {
+      toast.error('Please enter Company Name, Subdomain Slug, and Admin Email.');
+      return;
+    }
+
+    setIsCreatingCompany(true);
+    try {
+      const res = await fetch('/api/teams', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'CREATE_TEAM',
+          name: companyForm.name.trim(),
+          slug: companyForm.slug.trim().toLowerCase(),
+          adminEmail: companyForm.adminEmail.trim().toLowerCase(),
+          seatLimit: Number(companyForm.seatLimit) || 25,
+          plan: 'ENTERPRISE',
+          brandSettings: {
+            companyName: companyForm.name.trim(),
+            tagline: companyForm.tagline.trim(),
+            primaryColor: companyForm.primaryColor,
+          },
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.error || 'Failed to create company');
+
+      toast.success(`Company "${data.team.name}" registered successfully!`);
+      setIsAddCompanyModalOpen(false);
+      setCompanyForm({
+        name: '',
+        slug: '',
+        adminEmail: '',
+        seatLimit: 25,
+        tagline: 'Premier Corporate & Wealth Advisory',
+        primaryColor: '#0ea5e9',
+      });
+      setSelectedCompanySlug(data.team.slug);
+      fetchTeamData(data.team.slug);
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to create company');
+    } finally {
+      setIsCreatingCompany(false);
+    }
+  };
 
   // Filtered Members
   const filteredMembers = useMemo(() => {
@@ -419,10 +498,45 @@ export default function EnterpriseTeamsPortal() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5">
+            {/* Multi-Company Selector Dropdown */}
+            <div className="flex items-center gap-2 bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-1.5 text-xs">
+              <Building2 className="h-4 w-4 text-sky-400 shrink-0" />
+              <select
+                value={selectedCompanySlug}
+                onChange={(e) => {
+                  const newSlug = e.target.value;
+                  setSelectedCompanySlug(newSlug);
+                  fetchTeamData(newSlug);
+                }}
+                className="bg-transparent text-white font-bold outline-none cursor-pointer text-xs"
+                title="Select active company"
+              >
+                {companies.length > 0 ? (
+                  companies.map((c) => (
+                    <option key={c.id || c.slug} value={c.slug} className="bg-zinc-900 text-white">
+                      {c.name} ({c.slug})
+                    </option>
+                  ))
+                ) : (
+                  <option value={team?.slug || 'apex'} className="bg-zinc-900 text-white">
+                    {team?.name || 'Apex Capital Partners'}
+                  </option>
+                )}
+              </select>
+              <Button
+                variant="outline"
+                size="xs"
+                onClick={() => setIsAddCompanyModalOpen(true)}
+                className="border-sky-500/30 bg-sky-500/10 text-sky-400 hover:bg-sky-500/20 text-[11px] h-7 font-semibold"
+              >
+                + New Company
+              </Button>
+            </div>
+
             <Button
               variant="outline"
               size="sm"
-              onClick={fetchTeamData}
+              onClick={() => fetchTeamData(selectedCompanySlug)}
               disabled={loading}
               className="border-zinc-800 text-xs"
             >
@@ -1394,6 +1508,105 @@ export default function EnterpriseTeamsPortal() {
               </Button>
             </DialogFooter>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ══════════════════════════════════════════════════════════════
+          MODAL 4: CREATE NEW COMPANY / ORGANIZATION
+         ══════════════════════════════════════════════════════════════ */}
+      <Dialog open={isAddCompanyModalOpen} onOpenChange={setIsAddCompanyModalOpen}>
+        <DialogContent className="bg-zinc-900 border-zinc-800 text-white max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold flex items-center gap-2">
+              <Building2 className="h-5 w-5 text-sky-400" />
+              <span>Register New Company</span>
+            </DialogTitle>
+            <DialogDescription className="text-xs text-zinc-400">
+              Create a distinct corporate organization. Each company has its own isolated employee cards, master brand lock, and pooled CRM leads.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleCreateCompany} className="space-y-4 pt-2">
+            <div>
+              <Label className="text-xs text-zinc-300">Company Legal Name *</Label>
+              <Input
+                required
+                placeholder="e.g. Ceylon Luxury Holdings"
+                value={companyForm.name}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  const autoSlug = val.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 15);
+                  setCompanyForm((prev) => ({
+                    ...prev,
+                    name: val,
+                    slug: prev.slug ? prev.slug : autoSlug,
+                  }));
+                }}
+                className="bg-zinc-950 border-zinc-800 text-white mt-1"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-xs text-zinc-300">Subdomain Slug *</Label>
+                <div className="flex items-center rounded-md border border-zinc-800 bg-zinc-950 mt-1 px-3 py-2 text-xs">
+                  <Input
+                    required
+                    placeholder="ceylon"
+                    value={companyForm.slug}
+                    onChange={(e) =>
+                      setCompanyForm({ ...companyForm, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') })
+                    }
+                    className="border-0 bg-transparent p-0 text-sky-400 font-mono focus-visible:ring-0"
+                  />
+                  <span className="text-zinc-500 font-mono">.{rootDomain}</span>
+                </div>
+              </div>
+
+              <div>
+                <Label className="text-xs text-zinc-300">License Seats</Label>
+                <Input
+                  type="number"
+                  min={1}
+                  max={500}
+                  value={companyForm.seatLimit}
+                  onChange={(e) => setCompanyForm({ ...companyForm, seatLimit: Number(e.target.value) || 25 })}
+                  className="bg-zinc-950 border-zinc-800 text-white mt-1"
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label className="text-xs text-zinc-300">HR / Fleet Admin Email *</Label>
+              <Input
+                type="email"
+                required
+                placeholder="hr@company.lk"
+                value={companyForm.adminEmail}
+                onChange={(e) => setCompanyForm({ ...companyForm, adminEmail: e.target.value })}
+                className="bg-zinc-950 border-zinc-800 text-white mt-1"
+              />
+            </div>
+
+            <div>
+              <Label className="text-xs text-zinc-300">Corporate Tagline</Label>
+              <Input
+                placeholder="e.g. Innovating Enterprise Logistics & Supply"
+                value={companyForm.tagline}
+                onChange={(e) => setCompanyForm({ ...companyForm, tagline: e.target.value })}
+                className="bg-zinc-950 border-zinc-800 text-white mt-1"
+              />
+            </div>
+
+            <DialogFooter className="pt-2">
+              <Button type="button" variant="outline" onClick={() => setIsAddCompanyModalOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" variant="purple" disabled={isCreatingCompany} className="font-bold">
+                {isCreatingCompany ? 'Registering Company...' : 'Create Company Fleet'}
+              </Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
 

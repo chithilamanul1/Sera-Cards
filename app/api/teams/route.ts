@@ -1,18 +1,31 @@
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
-import { getTeam, updateTeamBrandSettings, getTeamMembers, getTeamLeads } from '@/lib/teamStore';
+import {
+  getTeam,
+  getAllTeams,
+  createTeam,
+  updateTeamBrandSettings,
+  getTeamMembers,
+  getTeamLeads,
+} from '@/lib/teamStore';
 
 export const dynamic = 'force-dynamic';
 
 /**
- * GET /api/teams?id=... or ?slug=...
- * Returns team info, seat utilization, brand lock settings, and summary stats
+ * GET /api/teams
+ * ?all=true -> returns all registered companies / organizations
+ * ?id=... or ?slug=... -> returns specific company info, seats, brand lock settings, and stats
  */
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const identifier = searchParams.get('id') || searchParams.get('slug') || 'apex';
+    const listAll = searchParams.get('all') === 'true' || searchParams.get('listAll') === 'true';
 
+    if (listAll) {
+      const teams = await getAllTeams();
+      return NextResponse.json({ success: true, teams });
+    }
+
+    const identifier = searchParams.get('id') || searchParams.get('slug') || 'apex';
     const team = await getTeam(identifier);
     if (!team) {
       return NextResponse.json({ error: 'Team not found' }, { status: 404 });
@@ -40,14 +53,40 @@ export async function GET(request: Request) {
 
 /**
  * POST /api/teams
- * Updates Team Master Brand Settings (HR/Marketing Brand Lock)
- * Automatically recompiles and updates all active employee cards
+ * action: 'CREATE_TEAM' -> creates a new company / team under the multi-company architecture
+ * action: 'UPDATE_BRAND' (or default with teamId + brandSettings) -> updates company master brand lock
  */
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { teamId, brandSettings } = body;
+    const { action, teamId, brandSettings, name, slug, adminEmail, seatLimit, plan } = body;
 
+    // 1. Create a brand new company
+    if (action === 'CREATE_TEAM' || (!teamId && name && slug)) {
+      if (!name || !slug || !adminEmail) {
+        return NextResponse.json(
+          { error: 'Company Name, domain slug, and HR Admin Email are required.' },
+          { status: 400 }
+        );
+      }
+
+      const newTeam = await createTeam({
+        name,
+        slug,
+        adminEmail,
+        seatLimit: Number(seatLimit) || 25,
+        plan: plan || 'ENTERPRISE',
+        brandSettings,
+      });
+
+      return NextResponse.json({
+        success: true,
+        message: `Company "${newTeam.name}" registered successfully!`,
+        team: newTeam,
+      });
+    }
+
+    // 2. Update existing company brand settings
     if (!teamId || !brandSettings) {
       return NextResponse.json(
         { error: 'Missing teamId or brandSettings in request body' },
@@ -63,9 +102,9 @@ export async function POST(request: Request) {
       team: updatedTeam,
     });
   } catch (error: any) {
-    console.error('Error updating team brand:', error);
+    console.error('Error in teams POST:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to update team brand settings' },
+      { error: error.message || 'Failed to update team' },
       { status: 500 }
     );
   }
