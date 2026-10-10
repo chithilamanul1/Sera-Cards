@@ -4,6 +4,7 @@ import prisma from '@/lib/prisma';
 import { hashPassword } from '@/lib/auth';
 import { sendWelcomeEmail } from '@/lib/mail';
 import { saveUserToMemory, getUserFromMemory } from '@/lib/userStore';
+import { getGoogleRedirectUri } from '@/lib/oauth';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,19 +13,18 @@ export async function GET(request: Request) {
   const code = searchParams.get('code');
   const error = searchParams.get('error');
 
-  const host = request.headers.get('host') || 'card.seranex.lk';
-  const protocol = host.includes('localhost') ? 'http' : 'https';
-  const redirectUri = `${protocol}://${host}/api/auth/google/callback`;
+  const redirectUri = getGoogleRedirectUri(request);
 
   if (error || !code) {
     console.warn('[Google OAuth Callback] Error or missing code:', error);
-    return NextResponse.redirect(new URL('/login?error=google_failed', request.url));
+    return NextResponse.redirect(new URL(`/login?error=${error ? encodeURIComponent(error) : 'google_failed'}`, request.url));
   }
 
   const clientId = process.env.GOOGLE_CLIENT_ID;
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
 
   if (!clientId || !clientSecret) {
+    console.warn('[Google OAuth Callback] Missing clientId or clientSecret in environment variables');
     return NextResponse.redirect(new URL('/login?error=google_not_configured', request.url));
   }
 

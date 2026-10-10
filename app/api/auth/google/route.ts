@@ -1,14 +1,11 @@
 import { NextResponse } from 'next/server';
+import { getGoogleRedirectUri } from '@/lib/oauth';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
   const googleClientId = process.env.GOOGLE_CLIENT_ID;
-
-  const url = new URL(request.url);
-  const host = request.headers.get('host') || 'card.seranex.lk';
-  const protocol = host.includes('localhost') ? 'http' : 'https';
-  const redirectUri = `${protocol}://${host}/api/auth/google/callback`;
+  const redirectUri = getGoogleRedirectUri(request);
 
   if (!googleClientId || googleClientId.includes('your_google_client_id')) {
     // If Google Client ID is not yet provided, redirect with helpful message

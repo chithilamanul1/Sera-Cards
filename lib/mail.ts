@@ -286,6 +286,29 @@ export async function sendCardActivationEmail({
 }
 
 /**
+ * Welcome email for registration and Google OAuth sign-in
+ */
+export async function sendWelcomeEmail({
+  to,
+  name,
+  email,
+  slug,
+}: {
+  to: string;
+  name: string;
+  email: string;
+  slug?: string;
+}) {
+  return sendAccountProvisionedEmail({
+    to,
+    name,
+    email,
+    slug,
+    plan: 'BASIC',
+  });
+}
+
+/**
  * 2. Account Provisioning Email
  * Sent when Admin provisions a dashboard login for a cardholder
  */

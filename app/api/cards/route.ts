@@ -135,6 +135,70 @@ export async function GET(request: Request) {
       }
     }
 
+    // Check User table fallback
+    if (!memCard) {
+      try {
+        const user = await Promise.race([
+          prisma.user.findFirst({
+            where: {
+              OR: [
+                { cardSlug: { equals: cleanSlug, mode: 'insensitive' } },
+                { name: { equals: cleanSlug, mode: 'insensitive' } },
+              ],
+            },
+          }),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('DB Timeout')), 3000)),
+        ]) as any;
+
+        if (user) {
+          const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'seranex.lk';
+          const { generateTemplateHtml } = await import('@/lib/templates');
+          const genHtml = generateTemplateHtml('personal_hero', {
+            slug: cleanSlug,
+            name: user.name || cleanSlug,
+            title: user.plan === 'TEAMS' ? 'Corporate Associate' : 'Professional',
+            company: 'Sera Cards',
+            phone: user.phone || '',
+            whatsapp: (user.phone || '').replace(/[^0-9]/g, ''),
+            email: user.email || '',
+            bio: `Welcome to ${user.name}'s official digital card profile.`,
+            location: 'Colombo, Sri Lanka',
+            website: `https://${cleanSlug}.${rootDomain}`,
+          });
+          memCard = saveCardToMemory(cleanSlug, genHtml, {
+            name: user.name,
+            email: user.email,
+            slug: cleanSlug,
+            phone: user.phone,
+          });
+        }
+      } catch {}
+    }
+
+    // Founder fallback for chithila / chithilaa
+    if (!memCard && (cleanSlug === 'chithila' || cleanSlug === 'chithilaa')) {
+      const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'seranex.lk';
+      const { generateTemplateHtml } = await import('@/lib/templates');
+      const genHtml = generateTemplateHtml('personal_hero', {
+        slug: cleanSlug,
+        name: 'Chithila Manul',
+        title: 'Founder & CEO',
+        company: 'Sera Cards',
+        phone: '0728382638',
+        whatsapp: '94728382638',
+        email: 'chithilamanul1@gmail.com',
+        avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=600&q=80',
+        bio: 'Founder & CEO of Sera Cards & Seranex. Next-gen NFC networking and smart business hardware.',
+        location: 'Colombo, Sri Lanka',
+        website: `https://${cleanSlug}.${rootDomain}`,
+      });
+      memCard = saveCardToMemory(cleanSlug, genHtml, {
+        name: 'Chithila Manul',
+        slug: cleanSlug,
+        email: 'chithilamanul1@gmail.com',
+      });
+    }
+
     if (memCard) {
       return NextResponse.json({
         id: memCard.id,

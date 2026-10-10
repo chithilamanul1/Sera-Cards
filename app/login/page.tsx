@@ -21,9 +21,13 @@ function LoginForm() {
   const errorMessage =
     error ||
     (oauthError === 'google_not_configured'
-      ? 'Google Sign-In will be active once GOOGLE_CLIENT_ID & GOOGLE_CLIENT_SECRET are set in Vercel.'
+      ? 'Google Sign-In Setup: In Vercel, ensure GOOGLE_CLIENT_SECRET has no "Needs Attention" warning, is assigned to Production, and redeploy. Also verify Authorized Redirect URIs in Google Cloud Console.'
+      : oauthError === 'google_token_failed'
+      ? 'Google Token Exchange Error: Please verify that GOOGLE_CLIENT_SECRET in Vercel matches your Google Cloud Console Client credentials.'
       : oauthError === 'google_failed'
       ? 'Google sign-in was cancelled or encountered an error. Please try again.'
+      : oauthError === 'google_profile_failed'
+      ? 'Could not retrieve your profile from Google. Please try again.'
       : oauthError
       ? 'Authentication error. Please sign in with your email and password.'
       : '');

@@ -12,6 +12,8 @@ import {
 } from '@/lib/userStore';
 import { getTeamMemberBySlug } from '@/lib/teamStore';
 import { sendAccountProvisionedEmail } from '@/lib/mail';
+import { generateTemplateHtml } from '@/lib/templates';
+import { saveCardToMemory } from '@/lib/cardStore';
 
 export const dynamic = 'force-dynamic';
 
@@ -149,7 +151,7 @@ export async function POST(request: Request) {
     };
     saveUserToMemory(storedUser);
 
-    // 3. Link with team member if this slug is a corporate employee
+    // 3. Link with team member or auto-generate live digital card profile
     if (cleanSlug) {
       try {
         const teamMember = await getTeamMemberBySlug(cleanSlug);
@@ -157,6 +159,41 @@ export async function POST(request: Request) {
           teamMember.userId = storedUser.id;
         }
       } catch {}
+
+      // Automatically initialize and deploy their live digital card profile so /c/[slug] works instantly
+      try {
+        const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'seranex.lk';
+        const cardHtml = generateTemplateHtml('personal_hero', {
+          slug: cleanSlug,
+          name: name.trim(),
+          title: plan === 'TEAMS' ? 'Corporate Associate' : 'Professional',
+          company: 'Sera Cards',
+          phone: phone ? phone.trim() : '',
+          whatsapp: phone ? phone.replace(/[^0-9]/g, '') : '',
+          email: cleanEmail,
+          bio: `Welcome to ${name.trim()}'s official digital business card. Tap connect to exchange details!`,
+          location: 'Colombo, Sri Lanka',
+          website: `https://${cleanSlug}.${rootDomain}`,
+        });
+
+        saveCardToMemory(cleanSlug, cardHtml, {
+          name: name.trim(),
+          email: cleanEmail,
+          slug: cleanSlug,
+          phone: phone || '',
+        });
+
+        await Promise.race([
+          prisma.client.upsert({
+            where: { slug: cleanSlug },
+            update: { htmlContent: cardHtml },
+            create: { slug: cleanSlug, htmlContent: cardHtml },
+          }),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('DB Timeout')), 4000)),
+        ]);
+      } catch (cardErr) {
+        console.warn('[Users Provision] Client card profile auto-provision warning:', cardErr);
+      }
     }
 
     // Dispatch Account Provisioning Email (non-blocking)

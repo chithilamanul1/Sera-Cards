@@ -35,6 +35,7 @@ import {
   ShieldCheck,
   Mail,
   Send,
+  Globe,
 } from 'lucide-react';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -127,6 +128,9 @@ export default function AdminDashboard() {
   const [isTestMailModalOpen, setIsTestMailModalOpen] = useState(false);
   const [testMailRecipient, setTestMailRecipient] = useState('chithilamanul1@gmail.com');
   const [isSendingTestMail, setIsSendingTestMail] = useState(false);
+
+  // Google OAuth Status
+  const [googleStatus, setGoogleStatus] = useState<any>(null);
 
   // Search filter in leads
   const [leadSearch, setLeadSearch] = useState('');
@@ -252,6 +256,7 @@ export default function AdminDashboard() {
         fetchActivations();
         fetchUsers();
         fetchMailStatusAndLogs();
+        fetchGoogleStatus();
       } catch {
         window.location.href = '/login?redirect=/admin';
       }
@@ -349,6 +354,18 @@ export default function AdminDashboard() {
       }
     } catch (error) {
       console.error('Failed to load mail diagnostics:', error);
+    }
+  };
+
+  const fetchGoogleStatus = async () => {
+    try {
+      const res = await fetch('/api/auth/google/status');
+      if (res.ok) {
+        const data = await res.json();
+        setGoogleStatus(data);
+      }
+    } catch (error) {
+      console.error('Failed to load Google OAuth status:', error);
     }
   };
 
@@ -2661,6 +2678,146 @@ export default function AdminDashboard() {
                     </TableBody>
                   </Table>
                 )}
+            {/* Google OAuth & Cloud Console Diagnostics */}
+            <Card className="border-zinc-800 bg-zinc-900/90 shadow-xl">
+              <CardHeader className="p-6 border-b border-zinc-800/80 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div className="flex items-start gap-3">
+                  <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400">
+                    <Globe className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-lg font-bold flex items-center gap-2">
+                      <span>Google OAuth 2.0 & SSO Configuration</span>
+                      <Badge
+                        variant={googleStatus?.isFullyConfigured ? 'success' : 'amber'}
+                        className="text-[10px]"
+                      >
+                        {googleStatus?.isFullyConfigured ? '● Google Login Ready' : '● Setup Required in Vercel'}
+                      </Badge>
+                    </CardTitle>
+                    <CardDescription className="text-xs text-zinc-400 mt-1">
+                      1-Tap Google Sign-In status, Vercel environment diagnosis, and Authorized Redirect URIs for Google Cloud Console
+                    </CardDescription>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={fetchGoogleStatus}
+                    className="text-xs font-semibold text-amber-400 border-amber-500/30 hover:bg-amber-950/40"
+                  >
+                    <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
+                    Check Status
+                  </Button>
+                  <a
+                    href="https://console.cloud.google.com/apis/credentials"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold border border-zinc-700 bg-zinc-800 text-zinc-200 hover:bg-zinc-700 transition-colors"
+                  >
+                    <span>Google Console</span>
+                    <ExternalLink className="h-3.5 w-3.5" />
+                  </a>
+                </div>
+              </CardHeader>
+
+              <CardContent className="p-6 space-y-6">
+                {/* Status Badges Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="p-4 rounded-xl border border-zinc-800 bg-zinc-950/50">
+                    <p className="text-[11px] font-medium uppercase tracking-wider text-zinc-400">Google Client ID</p>
+                    <div className="mt-2 flex items-center gap-2">
+                      <span className={`inline-block h-2 w-2 rounded-full ${googleStatus?.hasClientId ? 'bg-emerald-400' : 'bg-red-400'}`} />
+                      <span className="text-xs font-bold text-white">
+                        {googleStatus?.hasClientId ? 'Detected in Env' : 'Missing in Env'}
+                      </span>
+                    </div>
+                    {googleStatus?.clientIdPreview && (
+                      <p className="mt-1 font-mono text-[10px] text-zinc-500 truncate">{googleStatus.clientIdPreview}</p>
+                    )}
+                  </div>
+
+                  <div className="p-4 rounded-xl border border-zinc-800 bg-zinc-950/50">
+                    <p className="text-[11px] font-medium uppercase tracking-wider text-zinc-400">Google Client Secret</p>
+                    <div className="mt-2 flex items-center gap-2">
+                      <span className={`inline-block h-2 w-2 rounded-full ${googleStatus?.hasClientSecret ? 'bg-emerald-400' : 'bg-amber-400 animate-pulse'}`} />
+                      <span className="text-xs font-bold text-white">
+                        {googleStatus?.hasClientSecret ? 'Configured & Active' : 'Needs Attention / Unsaved'}
+                      </span>
+                    </div>
+                    <p className="mt-1 text-[10px] text-zinc-500">
+                      {googleStatus?.hasClientSecret ? 'Production secret loaded' : 'Check Vercel for "Needs Attention" badge'}
+                    </p>
+                  </div>
+
+                  <div className="p-4 rounded-xl border border-zinc-800 bg-zinc-950/50">
+                    <p className="text-[11px] font-medium uppercase tracking-wider text-zinc-400">Database Runtime</p>
+                    <div className="mt-2 flex items-center gap-2">
+                      <span className={`inline-block h-2 w-2 rounded-full ${googleStatus?.database === 'CONNECTED' ? 'bg-emerald-400' : 'bg-emerald-400'}`} />
+                      <span className="text-xs font-bold text-white">
+                        {googleStatus?.database === 'CONNECTED' ? 'MongoDB Atlas Active' : 'Resilient Memory + DB'}
+                      </span>
+                    </div>
+                    <p className="mt-1 text-[10px] text-zinc-500">Auto-syncs cards & accounts</p>
+                  </div>
+                </div>
+
+                {/* Vercel "Needs Attention" Callout */}
+                {(!googleStatus?.hasClientSecret || googleStatus?.clientSecretStatus === 'MISSING_OR_NEEDS_ATTENTION') && (
+                  <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-xs text-amber-200 space-y-2">
+                    <div className="flex items-center gap-2 font-bold text-amber-300">
+                      <AlertCircle className="h-4 w-4 shrink-0" />
+                      <span>How to Fix "Needs Attention" in Vercel Settings:</span>
+                    </div>
+                    <ol className="list-decimal list-inside space-y-1 pl-1 text-[11px] text-amber-100/90 leading-relaxed">
+                      <li>Go to <strong>Vercel &rarr; Settings &rarr; Environment Variables</strong>.</li>
+                      <li>Find <strong>GOOGLE_CLIENT_SECRET</strong> (where the orange <em>Needs Attention</em> badge is shown).</li>
+                      <li>Click the three dots <strong>(...)</strong> on the right &rarr; click <strong>Edit</strong>.</li>
+                      <li>Check the <strong>Production</strong> and <strong>Preview</strong> boxes &rarr; click <strong>Save</strong>.</li>
+                      <li>Go to <strong>Deployments &rarr; click latest deployment &rarr; click Redeploy</strong> (or wait for the latest git push build).</li>
+                    </ol>
+                  </div>
+                )}
+
+                {/* Authorized Redirect URIs for Google Cloud Console */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-bold text-white uppercase tracking-wider">
+                      Authorized Redirect URIs (Paste into Google Cloud Console)
+                    </p>
+                    <span className="text-[11px] text-zinc-400">Credentials &rarr; OAuth 2.0 Client IDs</span>
+                  </div>
+
+                  <div className="space-y-2">
+                    {[
+                      'https://sera-cards.vercel.app/api/auth/google/callback',
+                      `https://${rootDomain}/api/auth/google/callback`,
+                      `https://card.${rootDomain}/api/auth/google/callback`,
+                    ].map((uri) => (
+                      <div
+                        key={uri}
+                        className="flex items-center justify-between gap-3 p-2.5 rounded-lg border border-zinc-800 bg-zinc-950 font-mono text-xs text-zinc-300"
+                      >
+                        <span className="truncate">{uri}</span>
+                        <Button
+                          variant="ghost"
+                          size="xs"
+                          onClick={() => copyToClipboard(uri, 'Redirect URI')}
+                          className="shrink-0 text-amber-400 hover:text-amber-300 hover:bg-amber-950/40 text-[11px]"
+                        >
+                          <Copy className="h-3 w-3 mr-1" />
+                          Copy URI
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+
+                  <p className="text-[11px] text-zinc-500">
+                    💡 In Google Cloud Console, under <strong>Authorized JavaScript origins</strong>, add: <code className="bg-zinc-800 px-1 py-0.5 rounded text-zinc-300">https://sera-cards.vercel.app</code> and <code className="bg-zinc-800 px-1 py-0.5 rounded text-zinc-300">https://{rootDomain}</code>.
+                  </p>
+                </div>
               </CardContent>
             </Card>
           </div>
