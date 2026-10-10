@@ -21,6 +21,7 @@ export function Footer() {
             <div>
               <h3 className="text-xs font-semibold uppercase tracking-widest text-white/30">Product</h3>
               <ul className="mt-4 space-y-2 text-sm text-white/50">
+                <li><a href="/products" className="hover:text-white transition-colors">Card Range (10 Cards)</a></li>
                 <li><a href="/pricing" className="hover:text-white transition-colors">Pricing</a></li>
                 <li><a href="/how-it-works" className="hover:text-white transition-colors">How It Works</a></li>
                 <li><a href="/teams" className="hover:text-white transition-colors">For Teams</a></li>

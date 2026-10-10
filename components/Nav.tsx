@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react'
 import { MenuIcon, XIcon } from 'lucide-react'
 
 const links = [
+  { href: '/products', label: 'Products' },
   { href: '/pricing', label: 'Pricing' },
   { href: '/how-it-works', label: 'How It Works' },
   { href: '/teams', label: 'For Teams' },

@@ -36,6 +36,7 @@ import { Nav } from './Nav'
 import { Footer } from './Footer'
 import { NfcTapSimulator } from './NfcTapSimulator'
 import { Customizer } from './Customizer'
+import { ProductRangeCatalog } from './ProductRangeCatalog'
 import { OrderModal } from './OrderModal'
 import { useCardConfig } from '../hooks/useCardConfig'
 import { brand, comparison, steps, specs } from '../data/content'
@@ -463,6 +464,9 @@ export function LandingPage() {
             </div>
           </div>
         </section>
+
+        {/* ─── FULL 10-PRODUCT RANGE CATALOG (Epic, Premium, Luxury Metal) ─── */}
+        <ProductRangeCatalog />
 
         {/* ─── LIVE INTERACTIVE CARD CUSTOMIZER ─── */}
         <Customizer api={cardApi} />

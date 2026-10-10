@@ -1,0 +1,497 @@
+import { MaterialId } from '@/types/card';
+
+export interface CardProduct {
+  id: string;
+  name: string;
+  rangeId: 'epic' | 'premium' | 'luxury';
+  rangeName: string;
+  badge: string;
+  priceLkr: number;
+  materialId: MaterialId;
+  surfaceType: string;
+  materialComposition: string;
+  weightGrams: number;
+  description: string;
+  tagline: string;
+  bullets: string[];
+  specs: {
+    dimensions: string;
+    thickness: string;
+    weight: string;
+    chipset: string;
+    readDistance: string;
+    waterproof: string;
+    warranty: string;
+    qrFallback: string;
+    monthlyFee: string;
+  };
+  cardDesign: {
+    backgroundColor: string;
+    backgroundImage?: string;
+    textColor: string;
+    accentColor: string;
+    edgeBorder: string;
+    hasLogo: boolean;
+    isMetal: boolean;
+  };
+}
+
+export const PRODUCT_RANGES = [
+  {
+    id: 'all',
+    name: 'All Cards (10)',
+    description: 'Browse our complete catalog across all 3 luxury engineered hardware lines.',
+  },
+  {
+    id: 'epic',
+    name: '1. Epic Range (4)',
+    badge: 'Modern Minimalist',
+    description: 'Bold, center-aligned typography with high-contrast laser etching. Clean and impactful.',
+  },
+  {
+    id: 'premium',
+    name: '2. Premium Range (4)',
+    badge: 'Corporate Standard',
+    description: 'Features your official company logo, designation, website, and dynamic QR code.',
+  },
+  {
+    id: 'luxury',
+    name: '3. Luxury Range (2)',
+    badge: 'Artisan & 24K Gold',
+    description: 'Full-bleed custom color UV printing and 24K electroplated mirror gold metal cards.',
+  },
+];
+
+export const CARD_PRODUCTS: CardProduct[] = [
+  // ══════════════════════════════════════════════════════════════════════════
+  // RANGE 1: EPIC RANGE
+  // ══════════════════════════════════════════════════════════════════════════
+  {
+    id: 'epic-white',
+    name: 'Epic Matte White',
+    rangeId: 'epic',
+    rangeName: 'Epic Range',
+    badge: 'Epic Clean',
+    priceLkr: 2500,
+    materialId: 'epic_white',
+    surfaceType: 'Matte Composite',
+    materialComposition: 'Anti-scratch Matte PVC Composite',
+    weightGrams: 5,
+    tagline: 'Bold center-aligned black typography on crisp Arctic white.',
+    description: 'The Epic White card features high-contrast black typography against a pure white background. Engineered with an ultra-durable matte laminate that repels fingerprints and water.',
+    bullets: [
+      'Crisp black laser print with white background',
+      'Center-aligned bold modern typography',
+      'Front: Full name, designation, company name',
+      'Back: Name, position, dynamic fallback QR code',
+      '100% Water resistant (IP68 rating)',
+      'Includes lifetime cloud digital profile',
+    ],
+    specs: {
+      dimensions: '85.6mm × 53.98mm (Standard Credit Card)',
+      thickness: '0.84 mm',
+      weight: '5 grams (Lightweight Pocket Fit)',
+      chipset: 'NXP NTAG215 (0.2s ultra-fast response)',
+      readDistance: '1 – 4 cm native NFC field',
+      waterproof: '100% Waterproof & Washable',
+      warranty: '1-Year Full Replacement Guarantee',
+      qrFallback: 'Laser-etched high contrast dynamic QR',
+      monthlyFee: 'Rs. 0 / month (Free Lifetime Hosting)',
+    },
+    cardDesign: {
+      backgroundColor: '#f8fafc',
+      backgroundImage: 'radial-gradient(ellipse at 50% 20%, rgba(0,0,0,0.02) 0%, rgba(0,0,0,0.06) 100%)',
+      textColor: '#09090b',
+      accentColor: '#64748b',
+      edgeBorder: 'rgba(0,0,0,0.12)',
+      hasLogo: false,
+      isMetal: false,
+    },
+  },
+  {
+    id: 'epic-black',
+    name: 'Epic Matte Black',
+    rangeId: 'epic',
+    rangeName: 'Epic Range',
+    badge: 'Popular Epic',
+    priceLkr: 2500,
+    materialId: 'epic_black',
+    surfaceType: 'Matte Composite',
+    materialComposition: 'Stealth Carbon Black Matte PVC',
+    weightGrams: 5,
+    tagline: 'Stealth black background with bold, luminous white typography.',
+    description: 'A timeless stealth aesthetic. Pitch-black matte surface with crisp, luminous white lettering that makes a dramatic impression the second you hand it over.',
+    bullets: [
+      'Luminous white letters on carbon black background',
+      'Center-aligned bold typographic layout',
+      'Front: Full name, designation, company name',
+      'Back: Name, designation, dynamic fallback QR code',
+      'Matte soft-touch finish, zero fingerprint smudges',
+      'Includes lifetime cloud digital profile',
+    ],
+    specs: {
+      dimensions: '85.6mm × 53.98mm (Standard Credit Card)',
+      thickness: '0.84 mm',
+      weight: '5 grams',
+      chipset: 'NXP NTAG215 (0.2s ultra-fast response)',
+      readDistance: '1 – 4 cm native NFC field',
+      waterproof: '100% Waterproof & Washable',
+      warranty: '1-Year Full Replacement Guarantee',
+      qrFallback: 'High-contrast laser etched dynamic QR',
+      monthlyFee: 'Rs. 0 / month (Free Lifetime Hosting)',
+    },
+    cardDesign: {
+      backgroundColor: '#090a0d',
+      backgroundImage: 'radial-gradient(ellipse at 50% 25%, rgba(255,255,255,0.08) 0%, rgba(0,0,0,0) 75%)',
+      textColor: '#ffffff',
+      accentColor: '#94a3b8',
+      edgeBorder: 'rgba(255,255,255,0.14)',
+      hasLogo: false,
+      isMetal: false,
+    },
+  },
+  {
+    id: 'metal-epic-black',
+    name: 'Metal Epic Black',
+    rangeId: 'epic',
+    rangeName: 'Epic Range',
+    badge: 'Heavy Metal 22g',
+    priceLkr: 8500,
+    materialId: 'metal_black',
+    surfaceType: '304 Stainless Steel',
+    materialComposition: 'Surgical Grade 304 Stainless Steel (Anodized Black)',
+    weightGrams: 22,
+    tagline: 'Solid anodized black steel with precision laser-etched typography.',
+    description: 'Weighing a substantial 22 grams, this solid stainless steel card exudes undeniable authority. Features precision fiber-laser text etching that can never fade or scratch off.',
+    bullets: [
+      'Solid 304 stainless steel with matte black PVD coating',
+      'Heavy 22g executive hand weight',
+      'Fiber-laser etched silver-white lettering',
+      'Front: Bold name, position, company title',
+      'Back: Dynamic QR code etched directly into the metal',
+      'Unbreakable & scratch-resistant construction',
+    ],
+    specs: {
+      dimensions: '85.6mm × 53.98mm × 0.8mm',
+      thickness: '0.80 mm solid metal',
+      weight: '22 grams (Substantial Heavy Feel)',
+      chipset: 'Embedded High-Coercivity NTAG215 Chip',
+      readDistance: '1 – 3 cm specialized metallic antenna',
+      waterproof: 'Corrosion-proof 304 Stainless Steel',
+      warranty: '1-Year Full Replacement Guarantee',
+      qrFallback: 'Permanent laser-etched metal QR code',
+      monthlyFee: 'Rs. 0 / month (Free Lifetime Hosting)',
+    },
+    cardDesign: {
+      backgroundColor: '#0f1013',
+      backgroundImage: 'linear-gradient(135deg, #18191d 0%, #0c0d0f 50%, #1e1f24 100%)',
+      textColor: '#f1f5f9',
+      accentColor: '#a1a1aa',
+      edgeBorder: 'rgba(255,255,255,0.28)',
+      hasLogo: false,
+      isMetal: true,
+    },
+  },
+  {
+    id: 'metal-epic-silver',
+    name: 'Metal Epic Silver',
+    rangeId: 'epic',
+    rangeName: 'Epic Range',
+    badge: 'Brushed Steel 22g',
+    priceLkr: 8500,
+    materialId: 'metal_silver',
+    surfaceType: '304 Stainless Steel',
+    materialComposition: 'Brushed 304 Surgical Stainless Steel',
+    weightGrams: 22,
+    tagline: 'Directional brushed steel with deep black laser-cut branding.',
+    description: 'Crafted from pure brushed surgical stainless steel. Reflects ambient light with industrial elegance, paired with deep laser engraving and a satisfying cold-metal touch.',
+    bullets: [
+      'Authentic directional brushed steel texture',
+      'Heavy 22g surgical stainless steel weight',
+      'Deep black fiber-laser text engraving',
+      'Front: Bold name, position, company title',
+      'Back: Dynamic QR code etched into steel reverse',
+      'Includes lifetime cloud digital profile',
+    ],
+    specs: {
+      dimensions: '85.6mm × 53.98mm × 0.8mm',
+      thickness: '0.80 mm solid metal',
+      weight: '22 grams (Executive Metal Weight)',
+      chipset: 'Embedded High-Coercivity NTAG215 Chip',
+      readDistance: '1 – 3 cm specialized metallic antenna',
+      waterproof: '100% Rust-proof & Waterproof',
+      warranty: '1-Year Full Replacement Guarantee',
+      qrFallback: 'Deep laser-cut dynamic QR',
+      monthlyFee: 'Rs. 0 / month (Free Lifetime Hosting)',
+    },
+    cardDesign: {
+      backgroundColor: '#e2e8f0',
+      backgroundImage: 'linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 25%, #f8fafc 50%, #94a3b8 75%, #e2e8f0 100%)',
+      textColor: '#0f172a',
+      accentColor: '#475569',
+      edgeBorder: 'rgba(255,255,255,0.45)',
+      hasLogo: false,
+      isMetal: true,
+    },
+  },
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // RANGE 2: PREMIUM RANGE
+  // ══════════════════════════════════════════════════════════════════════════
+  {
+    id: 'premium-white',
+    name: 'Premium Matte White',
+    rangeId: 'premium',
+    rangeName: 'Premium Range',
+    badge: 'Corporate Standard',
+    priceLkr: 3500,
+    materialId: 'premium_white',
+    surfaceType: 'Matte Composite',
+    materialComposition: 'Reinforced Matte PVC Composite',
+    weightGrams: 5,
+    tagline: 'Clean white background with your official black company logo.',
+    description: 'The preferred choice for corporate executives and medical professionals. Prominently displays your official company logo, executive designation, website, and dynamic QR.',
+    bullets: [
+      'High-resolution custom corporate logo on front',
+      'Front: Your logo, full name, website address',
+      'Back: Name, position, company, and dynamic QR',
+      'Matte anti-glare finish, IP68 water resistant',
+      'Free full-featured digital web profile included',
+      'Zero monthly or annual subscriptions',
+    ],
+    specs: {
+      dimensions: '85.6mm × 53.98mm (Standard Credit Card)',
+      thickness: '0.84 mm',
+      weight: '5 grams',
+      chipset: 'NXP NTAG215 (0.2s ultra-fast response)',
+      readDistance: '1 – 4 cm native NFC field',
+      waterproof: '100% Waterproof & Washable',
+      warranty: '1-Year Full Replacement Guarantee',
+      qrFallback: 'Laser-etched high contrast dynamic QR',
+      monthlyFee: 'Rs. 0 / month (Free Lifetime Hosting)',
+    },
+    cardDesign: {
+      backgroundColor: '#ffffff',
+      backgroundImage: 'radial-gradient(ellipse at 50% 25%, rgba(0,0,0,0.02) 0%, rgba(0,0,0,0.06) 100%)',
+      textColor: '#09090b',
+      accentColor: '#64748b',
+      edgeBorder: 'rgba(0,0,0,0.14)',
+      hasLogo: true,
+      isMetal: false,
+    },
+  },
+  {
+    id: 'premium-black',
+    name: 'Premium Matte Black',
+    rangeId: 'premium',
+    rangeName: 'Premium Range',
+    badge: 'Best Seller',
+    priceLkr: 3500,
+    materialId: 'matte',
+    surfaceType: 'Matte Composite',
+    materialComposition: 'Stealth Carbon Black Matte PVC',
+    weightGrams: 5,
+    tagline: 'Our #1 best-selling card. Pitch-black matte with your crisp logo.',
+    description: 'Our flagship product. Engineered in matte stealth black with your company logo rendered in luminous contrast on the front, and your full contact details and QR on the reverse.',
+    bullets: [
+      'Crisp white company logo printed on front',
+      'Front: Your logo, full name, website address',
+      'Back: Name, designation, company, and dynamic QR',
+      'Matte soft-touch laminate, resistant to bends and scratches',
+      'Tap to share WhatsApp, contacts, LankaQR, and catalog PDF',
+      '1-Year free replacement warranty included',
+    ],
+    specs: {
+      dimensions: '85.6mm × 53.98mm (Standard Credit Card)',
+      thickness: '0.84 mm',
+      weight: '5 grams',
+      chipset: 'NXP NTAG215 (0.2s ultra-fast response)',
+      readDistance: '1 – 4 cm native NFC field',
+      waterproof: '100% Waterproof & Washable',
+      warranty: '1-Year Full Replacement Guarantee',
+      qrFallback: 'High-contrast laser etched dynamic QR',
+      monthlyFee: 'Rs. 0 / month (Free Lifetime Hosting)',
+    },
+    cardDesign: {
+      backgroundColor: '#090a0d',
+      backgroundImage: 'radial-gradient(ellipse at 50% 25%, rgba(255,255,255,0.08) 0%, rgba(0,0,0,0) 75%)',
+      textColor: '#ffffff',
+      accentColor: '#a855f7',
+      edgeBorder: 'rgba(255,255,255,0.14)',
+      hasLogo: true,
+      isMetal: false,
+    },
+  },
+  {
+    id: 'metal-premium-black',
+    name: 'Metal Premium Black',
+    rangeId: 'premium',
+    rangeName: 'Premium Range',
+    badge: 'Executive Steel 22g',
+    priceLkr: 9500,
+    materialId: 'metal_black',
+    surfaceType: '304 Stainless Steel',
+    materialComposition: 'Solid 304 Stainless Steel with Anodized Black Finish',
+    weightGrams: 22,
+    tagline: 'Substantial black steel card with your custom corporate logo laser-engraved.',
+    description: 'Combines the prestigious 22g weight of surgical steel with your custom company logo fiber-laser engraved on the front face. The pinnacle of corporate executive networking.',
+    bullets: [
+      'Heavy 22g stainless steel with matte black PVD coating',
+      'Your company logo etched with microscopic laser precision',
+      'Front: Custom logo, full name, company designation',
+      'Back: Laser-etched dynamic QR code and contact details',
+      'Cold-to-the-touch metal, virtually indestructible',
+      'Includes lifetime cloud digital profile',
+    ],
+    specs: {
+      dimensions: '85.6mm × 53.98mm × 0.8mm',
+      thickness: '0.80 mm solid metal',
+      weight: '22 grams (Substantial Metal Weight)',
+      chipset: 'Embedded High-Coercivity NTAG215 Chip',
+      readDistance: '1 – 3 cm specialized metallic antenna',
+      waterproof: '100% Waterproof & Corrosion Resistant',
+      warranty: '1-Year Full Replacement Guarantee',
+      qrFallback: 'Deep laser-etched metal QR code',
+      monthlyFee: 'Rs. 0 / month (Free Lifetime Hosting)',
+    },
+    cardDesign: {
+      backgroundColor: '#0f1013',
+      backgroundImage: 'linear-gradient(135deg, #18191d 0%, #0c0d0f 50%, #1e1f24 100%)',
+      textColor: '#f1f5f9',
+      accentColor: '#c084fc',
+      edgeBorder: 'rgba(255,255,255,0.28)',
+      hasLogo: true,
+      isMetal: true,
+    },
+  },
+  {
+    id: 'metal-premium-silver',
+    name: 'Metal Premium Silver',
+    rangeId: 'premium',
+    rangeName: 'Premium Range',
+    badge: 'Brushed Steel 22g',
+    priceLkr: 9500,
+    materialId: 'metal_silver',
+    surfaceType: '304 Stainless Steel',
+    materialComposition: 'Brushed 304 Surgical Stainless Steel',
+    weightGrams: 22,
+    tagline: 'Brushed surgical steel with your custom logo laser-etched.',
+    description: 'Pure directional brushed steel bearing your company logo in sharp black laser engraving. Provides an unmistakable tactile impression during high-stakes corporate meetings.',
+    bullets: [
+      'Surgical 304 stainless steel with satin brushed finish',
+      'Your corporate logo laser-etched directly into the metal',
+      'Front: Logo, full name, website address',
+      'Back: Dynamic QR code and address book linkage',
+      'Heavier than any regular card (22 grams)',
+      'Free island-wide tracked delivery in Sri Lanka',
+    ],
+    specs: {
+      dimensions: '85.6mm × 53.98mm × 0.8mm',
+      thickness: '0.80 mm solid metal',
+      weight: '22 grams',
+      chipset: 'Embedded High-Coercivity NTAG215 Chip',
+      readDistance: '1 – 3 cm specialized metallic antenna',
+      waterproof: '100% Rust-proof & Waterproof',
+      warranty: '1-Year Full Replacement Guarantee',
+      qrFallback: 'Deep laser-cut dynamic QR',
+      monthlyFee: 'Rs. 0 / month (Free Lifetime Hosting)',
+    },
+    cardDesign: {
+      backgroundColor: '#e2e8f0',
+      backgroundImage: 'linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 25%, #f8fafc 50%, #94a3b8 75%, #e2e8f0 100%)',
+      textColor: '#0f172a',
+      accentColor: '#64748b',
+      edgeBorder: 'rgba(255,255,255,0.45)',
+      hasLogo: true,
+      isMetal: true,
+    },
+  },
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // RANGE 3: LUXURY CUSTOM RANGE
+  // ══════════════════════════════════════════════════════════════════════════
+  {
+    id: 'color-custom',
+    name: 'Color Custom UV Pro',
+    rangeId: 'luxury',
+    rangeName: 'Luxury Range',
+    badge: 'Full Color UV',
+    priceLkr: 4500,
+    materialId: 'custom',
+    surfaceType: 'Embossed UV PVC',
+    materialComposition: 'Edge-to-Edge High-Density CMYK + White UV Embossed PVC',
+    weightGrams: 5,
+    tagline: 'Full-bleed custom background artwork and colors on both faces.',
+    description: 'Total design freedom. We print your exact company colors, complex gradient backgrounds, and embossed spot-UV artwork on both the front and back of the card.',
+    bullets: [
+      'Edge-to-edge full color custom graphic background',
+      'Front: Any color scheme, multiple logos & custom typography',
+      'Back: Full custom layout with dynamic QR code',
+      'Tactile spot-UV embossed texture for luxury feel',
+      '100% Water resistant and bend-tolerant',
+      'Includes lifetime cloud digital profile',
+    ],
+    specs: {
+      dimensions: '85.6mm × 53.98mm (Standard Credit Card)',
+      thickness: '0.84 mm',
+      weight: '5 grams',
+      chipset: 'NXP NTAG215 (0.2s ultra-fast response)',
+      readDistance: '1 – 4 cm native NFC field',
+      waterproof: '100% Waterproof & Washable',
+      warranty: '1-Year Full Replacement Guarantee',
+      qrFallback: 'Integrated full-color dynamic QR code',
+      monthlyFee: 'Rs. 0 / month (Free Lifetime Hosting)',
+    },
+    cardDesign: {
+      backgroundColor: '#0d0614',
+      backgroundImage: 'linear-gradient(135deg, #1e102d 0%, #0d0614 50%, #2a113e 100%)',
+      textColor: '#ffffff',
+      accentColor: '#c084fc',
+      edgeBorder: 'rgba(168,85,247,0.35)',
+      hasLogo: true,
+      isMetal: false,
+    },
+  },
+  {
+    id: 'metal-gold-custom',
+    name: '24K Mirror Gold Custom Metal',
+    rangeId: 'luxury',
+    rangeName: 'Luxury Range',
+    badge: 'VIP 24K Gold 25g',
+    priceLkr: 12500,
+    materialId: 'gold',
+    surfaceType: '24K Electroplated Metal',
+    materialComposition: 'Solid Brass & Steel with 24K Electroplated Mirror Gold PVD',
+    weightGrams: 25,
+    tagline: '24K electroplated mirror gold with diamond-cut laser engraving.',
+    description: 'The ultimate statement of status and prestige. Crafted with genuine 24-karat mirror gold electroplating and diamond-precision laser engraving. Designed for C-suite leaders and VIPs.',
+    bullets: [
+      'Solid metal card with 24K mirror gold electroplated finish',
+      'Substantial 25g heavy executive hand weight',
+      'Front: Any custom corporate logo & design deeply engraved',
+      'Back: Custom laser-cut dynamic QR and credentials',
+      'Mirror reflection with scratch-resistant protective PVD seal',
+      'Ships in luxury velvet jewelry-grade presentation box',
+    ],
+    specs: {
+      dimensions: '85.6mm × 53.98mm × 0.84mm',
+      thickness: '0.84 mm solid electroplated metal',
+      weight: '25 grams (Heaviest Luxury Weight)',
+      chipset: 'Embedded High-Coercivity NTAG215 Microchip',
+      readDistance: '1 – 3 cm specialized metallic antenna',
+      waterproof: '100% Corrosion & Tarnish Proof',
+      warranty: '1-Year Full Replacement Guarantee',
+      qrFallback: 'Deep diamond-cut laser engraved QR',
+      monthlyFee: 'Rs. 0 / month (Free Lifetime Hosting)',
+    },
+    cardDesign: {
+      backgroundColor: '#ca8a04',
+      backgroundImage: 'linear-gradient(135deg, #fef08a 0%, #eab308 30%, #ca8a04 60%, #fef08a 85%, #a16207 100%)',
+      textColor: '#1c1917',
+      accentColor: '#78350f',
+      edgeBorder: 'rgba(234,179,8,0.5)',
+      hasLogo: true,
+      isMetal: true,
+    },
+  },
+];

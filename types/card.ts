@@ -1,4 +1,17 @@
-export type MaterialId = 'matte' | 'custom' | 'gold' | 'silver' | 'navy'
+export type MaterialId =
+  | 'matte'
+  | 'custom'
+  | 'gold'
+  | 'silver'
+  | 'navy'
+  | 'epic_white'
+  | 'epic_black'
+  | 'metal_black'
+  | 'metal_silver'
+  | 'premium_white'
+  | 'premium_black'
+  | 'metal_gold'
+  | 'color_custom'
 
 
 export interface CardConfig {

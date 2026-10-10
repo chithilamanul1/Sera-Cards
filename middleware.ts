@@ -20,6 +20,7 @@ const RESERVED_ROOT_PATHS = new Set([
   'login',
   'register',
   'pricing',
+  'products',
   'how-it-works',
   'teams',
   'order',
