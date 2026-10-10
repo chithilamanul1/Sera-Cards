@@ -15,19 +15,22 @@ declare const globalThis: {
   __gosera_activations?: Map<string, StoredActivation>;
 } & typeof global;
 
-if (!globalThis.__gosera_activations) {
-  globalThis.__gosera_activations = new Map();
-  // Pre-seed a few sample ready-to-test unassigned cards
-  const initialCodes = ['SERA-7001', 'SERA-7002', 'SERA-7003', 'SERA-VIP-01', 'SERA-VIP-02'];
-  for (const c of initialCodes) {
-    globalThis.__gosera_activations.set(c.toUpperCase(), {
-      id: `act_${c.toLowerCase()}`,
-      code: c.toUpperCase(),
-      batch: 'BATCH-ALPHA',
-      status: 'UNCLAIMED',
-      createdAt: new Date().toISOString(),
-    });
+function getStore(): Map<string, StoredActivation> {
+  if (!globalThis.__gosera_activations) {
+    globalThis.__gosera_activations = new Map();
+    // Pre-seed a few sample ready-to-test unassigned cards
+    const initialCodes = ['SERA-7001', 'SERA-7002', 'SERA-7003', 'SERA-VIP-01', 'SERA-VIP-02'];
+    for (const c of initialCodes) {
+      globalThis.__gosera_activations.set(c.toUpperCase(), {
+        id: `act_${c.toLowerCase()}`,
+        code: c.toUpperCase(),
+        batch: 'BATCH-ALPHA',
+        status: 'UNCLAIMED',
+        createdAt: new Date().toISOString(),
+      });
+    }
   }
+  return globalThis.__gosera_activations;
 }
 
 /**
@@ -35,10 +38,11 @@ if (!globalThis.__gosera_activations) {
  */
 export async function getActivation(code: string): Promise<StoredActivation | null> {
   const cleanCode = code.trim().toUpperCase();
+  const store = getStore();
 
   // 1. Check memory store first for instant response
-  if (globalThis.__gosera_activations && globalThis.__gosera_activations.has(cleanCode)) {
-    return globalThis.__gosera_activations.get(cleanCode)!;
+  if (store.has(cleanCode)) {
+    return store.get(cleanCode)!;
   }
 
   // 2. Check MongoDB with timeout
@@ -61,7 +65,7 @@ export async function getActivation(code: string): Promise<StoredActivation | nu
         activatedAt: dbRecord.activatedAt?.toISOString() || null,
         createdAt: dbRecord.createdAt?.toISOString() || new Date().toISOString(),
       };
-      globalThis.__gosera_activations.set(cleanCode, stored);
+      store.set(cleanCode, stored);
       return stored;
     }
   } catch {
@@ -81,6 +85,7 @@ export async function claimActivation(
 ): Promise<StoredActivation> {
   const cleanCode = code.trim().toUpperCase();
   const now = new Date().toISOString();
+  const store = getStore();
 
   const existing = await getActivation(cleanCode);
   const updated: StoredActivation = {
@@ -94,7 +99,7 @@ export async function claimActivation(
     createdAt: existing?.createdAt || now,
   };
 
-  globalThis.__gosera_activations.set(cleanCode, updated);
+  store.set(cleanCode, updated);
 
   // Try updating DB in background
   try {
@@ -134,6 +139,7 @@ export async function createBatchCodes(
   batchName: string = 'BATCH-1'
 ): Promise<StoredActivation[]> {
   const created: StoredActivation[] = [];
+  const store = getStore();
 
   for (let i = 0; i < count; i++) {
     const randomNum = Math.floor(1000 + Math.random() * 9000);
@@ -147,7 +153,7 @@ export async function createBatchCodes(
       createdAt: new Date().toISOString(),
     };
 
-    globalThis.__gosera_activations.set(code, record);
+    store.set(code, record);
     created.push(record);
 
     // Persist to DB in background
@@ -171,8 +177,8 @@ export async function createBatchCodes(
  * List all activation codes
  */
 export function getAllActivations(): StoredActivation[] {
-  if (!globalThis.__gosera_activations) return [];
-  return Array.from(globalThis.__gosera_activations.values()).sort(
+  const store = getStore();
+  return Array.from(store.values()).sort(
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   );
 }

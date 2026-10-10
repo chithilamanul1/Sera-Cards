@@ -277,8 +277,9 @@ export async function getTeam(identifier: string): Promise<Team | null> {
 }
 
 export async function getTeamMembers(teamId: string): Promise<TeamMember[]> {
-  if (!globalThis.__gosera_team_members) return [];
-  const members = Array.from(globalThis.__gosera_team_members.values())
+  const store = globalThis.__gosera_team_members;
+  if (!store) return [];
+  const members = Array.from(store.values())
     .filter((m) => m.teamId === teamId)
     // deduplicate by id
     .reduce<TeamMember[]>((acc, cur) => {
@@ -291,8 +292,9 @@ export async function getTeamMembers(teamId: string): Promise<TeamMember[]> {
 
 export async function getTeamMemberBySlug(slug: string): Promise<TeamMember | null> {
   const clean = slug.trim().toLowerCase();
-  if (globalThis.__gosera_team_members?.has(clean)) {
-    return globalThis.__gosera_team_members.get(clean)!;
+  const store = globalThis.__gosera_team_members;
+  if (store && store.has(clean)) {
+    return store.get(clean)!;
   }
   return null;
 }
@@ -520,8 +522,9 @@ export async function deleteTeamMember(teamId: string, memberId: string): Promis
 // ─── Centralized Team Leads Operations ───────────────────────────────────────
 
 export function getTeamLeads(teamId: string): TeamLead[] {
-  if (!globalThis.__gosera_team_leads) return [];
-  return globalThis.__gosera_team_leads
+  const leads = globalThis.__gosera_team_leads;
+  if (!leads) return [];
+  return leads
     .filter((l) => l.teamId === teamId)
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 }
@@ -536,6 +539,7 @@ export function recordTeamLead(data: {
   notes?: string | null;
 }): TeamLead {
   if (!globalThis.__gosera_team_leads) globalThis.__gosera_team_leads = [];
+  const leads = globalThis.__gosera_team_leads;
 
   const newLead: TeamLead = {
     id: `lead_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
@@ -543,14 +547,15 @@ export function recordTeamLead(data: {
     createdAt: new Date().toISOString(),
   };
 
-  globalThis.__gosera_team_leads.unshift(newLead);
+  leads.unshift(newLead);
 
   // Increment rep lead counter
-  const rep = globalThis.__gosera_team_members?.get(data.clientSlug);
-  if (rep) {
+  const membersStore = globalThis.__gosera_team_members;
+  const rep = membersStore?.get(data.clientSlug);
+  if (rep && membersStore) {
     rep.leadsCount = (rep.leadsCount || 0) + 1;
-    globalThis.__gosera_team_members?.set(rep.id, rep);
-    globalThis.__gosera_team_members?.set(rep.slug, rep);
+    membersStore.set(rep.id, rep);
+    membersStore.set(rep.slug, rep);
   }
 
   return newLead;

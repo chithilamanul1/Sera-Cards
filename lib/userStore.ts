@@ -14,30 +14,31 @@ declare const globalThis: {
   __gosera_users?: Map<string, StoredUser>;
 } & typeof global;
 
-if (!globalThis.__gosera_users) {
-  globalThis.__gosera_users = new Map();
+function getStore(): Map<string, StoredUser> {
+  if (!globalThis.__gosera_users) {
+    globalThis.__gosera_users = new Map();
+  }
+  return globalThis.__gosera_users;
 }
 
 /**
  * Cache user in resilient memory store (keyed by both email and id)
  */
 export function saveUserToMemory(user: StoredUser) {
-  if (!globalThis.__gosera_users) {
-    globalThis.__gosera_users = new Map();
-  }
-  globalThis.__gosera_users.set(user.email.toLowerCase().trim(), user);
-  globalThis.__gosera_users.set(user.id, user);
+  const store = getStore();
+  store.set(user.email.toLowerCase().trim(), user);
+  store.set(user.id, user);
 }
 
 /**
  * Retrieve user from memory store by email or ID
  */
 export function getUserFromMemory(identifier: string): StoredUser | null {
-  if (!globalThis.__gosera_users) return null;
+  const store = getStore();
   const clean = identifier.toLowerCase().trim();
   return (
-    globalThis.__gosera_users.get(clean) ||
-    globalThis.__gosera_users.get(identifier) ||
+    store.get(clean) ||
+    store.get(identifier) ||
     null
   );
 }

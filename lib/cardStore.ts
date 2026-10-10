@@ -12,8 +12,11 @@ declare const globalThis: {
   __gosera_cards?: Map<string, StoredCard>;
 } & typeof global;
 
-if (!globalThis.__gosera_cards) {
-  globalThis.__gosera_cards = new Map();
+function getStore(): Map<string, StoredCard> {
+  if (!globalThis.__gosera_cards) {
+    globalThis.__gosera_cards = new Map();
+  }
+  return globalThis.__gosera_cards;
 }
 
 /**
@@ -25,12 +28,9 @@ export function saveCardToMemory(
   metadata?: any,
   cardId?: string
 ): StoredCard {
-  if (!globalThis.__gosera_cards) {
-    globalThis.__gosera_cards = new Map();
-  }
-
+  const store = getStore();
   const cleanSlug = slug.toLowerCase().trim().replace(/[^a-z0-9-]/g, '');
-  const existing = globalThis.__gosera_cards.get(cleanSlug);
+  const existing = store.get(cleanSlug);
   const now = new Date().toISOString();
 
   const stored: StoredCard = {
@@ -43,7 +43,7 @@ export function saveCardToMemory(
     _count: existing?._count || { leads: 0 },
   };
 
-  globalThis.__gosera_cards.set(cleanSlug, stored);
+  store.set(cleanSlug, stored);
   return stored;
 }
 
@@ -51,15 +51,15 @@ export function saveCardToMemory(
  * Retrieve card by slug from memory store
  */
 export function getCardFromMemory(slug: string): StoredCard | null {
-  if (!globalThis.__gosera_cards) return null;
+  const store = getStore();
   const cleanSlug = slug.toLowerCase().trim().replace(/[^a-z0-9-]/g, '');
-  return globalThis.__gosera_cards.get(cleanSlug) || null;
+  return store.get(cleanSlug) || null;
 }
 
 /**
  * Retrieve all cards cached in memory
  */
 export function getAllCardsFromMemory(): StoredCard[] {
-  if (!globalThis.__gosera_cards) return [];
-  return Array.from(globalThis.__gosera_cards.values());
+  const store = getStore();
+  return Array.from(store.values());
 }
