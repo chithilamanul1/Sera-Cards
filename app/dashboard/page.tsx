@@ -54,6 +54,10 @@ export default function CustomerDashboard() {
   // Template & Preset Selection
   const [selectedPreset, setSelectedPreset] = useState<string>('personal_hero');
 
+  // Corporate Fleet Lock State
+  const [isCorporateLocked, setIsCorporateLocked] = useState(false);
+  const [corporateTeamName, setCorporateTeamName] = useState('');
+
   // Comprehensive Profile Form
   const [profileForm, setProfileForm] = useState<TemplateData>({
     slug: '',
@@ -95,6 +99,16 @@ export default function CustomerDashboard() {
           setUser(data.user);
           const slug = data.user.cardSlug || data.user.name?.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 16) || 'card';
 
+          if (
+            slug.startsWith('apex-') ||
+            data.user.email?.toLowerCase().includes('apex') ||
+            data.user.plan === 'TEAMS' ||
+            data.user.plan === 'ENTERPRISE'
+          ) {
+            setIsCorporateLocked(true);
+            setCorporateTeamName('Apex Capital Partners');
+          }
+
           setProfileForm((prev) => ({
             ...prev,
             slug,
@@ -134,6 +148,10 @@ export default function CustomerDashboard() {
         const data = await res.json();
         if (data && data.metadata) {
           const m = data.metadata;
+          if (m.isTeamCard || m.teamId) {
+            setIsCorporateLocked(true);
+            setCorporateTeamName(m.company || 'Corporate Fleet');
+          }
           setProfileForm((prev) => ({
             ...prev,
             name: m.name || prev.name,
@@ -391,6 +409,14 @@ export default function CustomerDashboard() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
+            {(isCorporateLocked || user?.plan === 'TEAMS' || user?.plan === 'ENTERPRISE' || user?.role === 'ADMIN') && (
+              <a
+                href="/teams/portal"
+                className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 rounded-xl border border-sky-500/30 bg-sky-500/10 px-4 py-2.5 text-xs font-bold text-sky-300 hover:bg-sky-500/20 transition-colors active:scale-95 shadow-sm"
+              >
+                🏢 Enterprise Fleet Hub &rarr;
+              </a>
+            )}
             <button
               onClick={handleCopyLink}
               className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 rounded-xl border border-white/12 bg-white/[0.04] px-4 py-2.5 text-xs font-semibold text-white hover:bg-white/[0.08] transition-colors active:scale-95"
@@ -520,6 +546,26 @@ export default function CustomerDashboard() {
               </div>
 
               <form onSubmit={handleSaveProfile} className="space-y-4">
+                {/* Corporate Fleet Lock Banner */}
+                {isCorporateLocked && (
+                  <div className="rounded-2xl border border-sky-500/30 bg-sky-500/10 p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                      <span className="text-2xl">🏢</span>
+                      <div>
+                        <p className="text-xs font-bold text-sky-300">
+                          Corporate Fleet Account — {corporateTeamName || 'Apex Capital Partners'}
+                        </p>
+                        <p className="text-[11px] text-zinc-400 mt-0.5">
+                          Company branding (Company Name, Logo, Cover, Catalog PDF, Disclaimers) is locked centrally. You can update your direct personal details below.
+                        </p>
+                      </div>
+                    </div>
+                    <span className="shrink-0 text-[10px] font-bold uppercase tracking-wider bg-sky-500/20 text-sky-300 px-3 py-1 rounded-full border border-sky-500/30">
+                      🔒 Brand Locked
+                    </span>
+                  </div>
+                )}
+
                 {/* Avatar / Photo Upload Bar */}
                 <div className="flex items-center gap-4 rounded-2xl border border-white/10 bg-white/[0.02] p-4">
                   <div className="relative h-16 w-16 overflow-hidden rounded-full border-2 border-accent-500/40">
@@ -595,13 +641,25 @@ export default function CustomerDashboard() {
 
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div>
-                    <label className="block text-xs font-medium text-white/60 mb-1">Company / Brand</label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-xs font-medium text-white/60">Company / Brand</label>
+                      {isCorporateLocked && (
+                        <span className="text-[10px] text-sky-400 font-semibold">
+                          🔒 Locked by Corporate HR
+                        </span>
+                      )}
+                    </div>
                     <input
                       type="text"
                       value={profileForm.company}
                       onChange={(e) => setProfileForm({ ...profileForm, company: e.target.value })}
+                      disabled={isCorporateLocked}
                       placeholder="e.g. Seranex Solutions"
-                      className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-sm text-white focus:border-accent-500 focus:outline-none"
+                      className={`w-full rounded-xl border border-white/10 px-3.5 py-2.5 text-sm text-white focus:outline-none ${
+                        isCorporateLocked
+                          ? 'bg-white/[0.01] opacity-70 cursor-not-allowed border-sky-500/30 text-sky-200'
+                          : 'bg-white/[0.03] focus:border-accent-500'
+                      }`}
                     />
                   </div>
                   <div>

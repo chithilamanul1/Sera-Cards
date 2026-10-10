@@ -55,8 +55,8 @@ export default function middleware(req: NextRequest) {
 
   // Handle client card subdomain
   if (subdomain && !RESERVED_SUBDOMAINS.has(subdomain)) {
-    // Prevent client subdomains from accessing /admin or /dashboard on the subdomain
-    if (url.pathname.startsWith('/admin') || url.pathname.startsWith('/dashboard')) {
+    // Prevent client subdomains from accessing /admin, /dashboard, or /teams on the subdomain
+    if (url.pathname.startsWith('/admin') || url.pathname.startsWith('/dashboard') || url.pathname.startsWith('/teams')) {
       return NextResponse.redirect(new URL(`https://${rootDomain}${url.pathname}`));
     }
 

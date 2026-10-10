@@ -220,6 +220,25 @@ export async function POST(request: Request) {
       };
     }
 
+    // ─── Centralized Team Lead Pooling ──────────────────────────────────────
+    try {
+      const { getTeamMemberBySlug, recordTeamLead } = await import('@/lib/teamStore');
+      const teamMember = await getTeamMemberBySlug(cleanSlug);
+      if (teamMember) {
+        recordTeamLead({
+          teamId: teamMember.teamId,
+          clientSlug: cleanSlug,
+          repName: teamMember.name,
+          repDesignation: teamMember.designation,
+          name: cleanName,
+          phone: cleanPhone,
+          notes: cleanNotes,
+        });
+      }
+    } catch (teamLeadErr) {
+      console.warn('[Leads POST] Team lead pooling check skipped:', teamLeadErr);
+    }
+
     // Build WhatsApp deep-link for the owner notification
     const targetOwnerWhatsapp =
       (ownerWhatsapp ? String(ownerWhatsapp).replace(/[^0-9]/g, '') : '') || OWNER_WA;

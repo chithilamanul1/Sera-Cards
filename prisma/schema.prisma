@@ -122,4 +122,49 @@ model User {
   @@index([cardSlug])
 }
 
+model Team {
+  id            String       @id @default(auto()) @map("_id") @db.ObjectId
+  name          String
+  slug          String       @unique
+  adminEmail    String       @map("admin_email")
+  adminUserId   String?      @map("admin_user_id")
+  plan          String       @default("TEAMS")
+  seatLimit     Int          @default(25) @map("seat_limit")
+  brandSettings Json?        @map("brand_settings")
+  members       TeamMember[]
+  createdAt     DateTime     @default(now()) @map("created_at")
+  updatedAt     DateTime     @updatedAt @map("updated_at")
+}
 
+model TeamMember {
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  teamId         String   @map("team_id") @db.ObjectId
+  userId         String?  @map("user_id")
+  name           String
+  email          String
+  phone          String
+  designation    String
+  slug           String   @unique
+  avatarUrl      String?  @map("avatar_url")
+  bio            String?
+  linkedin       String?
+  activationCode String?  @map("activation_code")
+  status         String   @default("ACTIVE")
+  team           Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  @@index([teamId])
+  @@index([slug])
+}
+
+model CardActivation {
+  id           String    @id @default(auto()) @map("_id") @db.ObjectId
+  code         String    @unique
+  batch        String    @default("DEFAULT")
+  status       String    @default("UNCLAIMED")
+  claimedBy    String?   @map("claimed_by")
+  assignedSlug String?   @map("assigned_slug")
+  activatedAt  DateTime? @map("activated_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+}

@@ -156,11 +156,21 @@ function LoginForm() {
         </button>
       </form>
 
-      <div className="mt-8 pt-6 border-t border-white/[0.07] text-center text-sm text-white/50">
-        Don't have an account yet?{' '}
-        <a href="/register" className="font-semibold text-accent-400 hover:underline">
-          Create Free Account
-        </a>
+      <div className="mt-8 pt-6 border-t border-white/[0.07] space-y-3 text-center text-sm text-white/50">
+        <div>
+          Don't have an account yet?{' '}
+          <a href="/register" className="font-semibold text-accent-400 hover:underline">
+            Create Free Account
+          </a>
+        </div>
+        <div className="pt-2">
+          <a
+            href="/teams/portal"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-sky-500/30 bg-sky-500/10 py-2.5 text-xs font-bold text-sky-300 hover:bg-sky-500/20 transition-all"
+          >
+            🏢 Launch Enterprise Teams Portal (Live B2B Demo) &rarr;
+          </a>
+        </div>
       </div>
     </div>
   );

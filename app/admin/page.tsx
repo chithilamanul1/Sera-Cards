@@ -761,15 +761,26 @@ export default function AdminDashboard() {
             </TabsList>
           </Tabs>
 
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleLogout}
-            className="text-zinc-400 hover:text-white border-zinc-800 hover:bg-zinc-900"
-          >
-            <LogOut className="h-3.5 w-3.5 mr-1.5" />
-            Logout
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => window.open('/teams/portal', '_blank')}
+              className="text-sky-300 hover:text-white border-sky-500/30 bg-sky-500/10 hover:bg-sky-500/20 text-xs font-bold"
+            >
+              🏢 Enterprise Teams Hub &rarr;
+            </Button>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleLogout}
+              className="text-zinc-400 hover:text-white border-zinc-800 hover:bg-zinc-900"
+            >
+              <LogOut className="h-3.5 w-3.5 mr-1.5" />
+              Logout
+            </Button>
+          </div>
         </div>
       </header>
 
