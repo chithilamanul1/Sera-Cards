@@ -3,6 +3,7 @@ import prisma from '@/lib/prisma';
 import { cookies } from 'next/headers';
 import { getUserFromMemory } from '@/lib/userStore';
 import { saveCardToMemory, getCardFromMemory, getAllCardsFromMemory } from '@/lib/cardStore';
+import { getTeamMemberBySlug, getTeam, compileMemberCard } from '@/lib/teamStore';
 
 export const dynamic = 'force-dynamic';
 
@@ -117,8 +118,23 @@ export async function GET(request: Request) {
       console.warn('[Cards GET] DB lookup warning (checking memory store):', error?.message);
     }
 
-    // Check memory store fallback
-    const memCard = getCardFromMemory(cleanSlug);
+    // Check memory store and team store fallback
+    let memCard = getCardFromMemory(cleanSlug);
+    if (!memCard) {
+      try {
+        const teamMember = await getTeamMemberBySlug(cleanSlug);
+        if (teamMember) {
+          const team = await getTeam(teamMember.teamId);
+          if (team) {
+            compileMemberCard(team, teamMember);
+            memCard = getCardFromMemory(cleanSlug);
+          }
+        }
+      } catch (tErr) {
+        console.warn('[Cards GET] Team fallback error:', tErr);
+      }
+    }
+
     if (memCard) {
       return NextResponse.json({
         id: memCard.id,

@@ -6,6 +6,7 @@ import { saveLogo } from '@/lib/logoStore';
 import { sendOrderConfirmationEmail } from '@/lib/mail';
 
 import { getUserFromMemory } from '@/lib/userStore';
+import { saveOrderToMemory, getAllOrdersFromMemory } from '@/lib/orderStore';
 
 // Helper to check authorization
 async function getOrderAuth(request: Request) {
@@ -86,20 +87,32 @@ export async function GET(request: Request) {
       }
     }
 
-    const orders = await Promise.race([
-      prisma.order.findMany({
-        where: whereClause,
-        orderBy: { createdAt: 'desc' },
-      }),
-      new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Database query timed out')), 4000)
-      ),
-    ]);
+    let dbOrders: any[] = [];
+    try {
+      dbOrders = (await Promise.race([
+        prisma.order.findMany({
+          where: whereClause,
+          orderBy: { createdAt: 'desc' },
+        }),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Database query timed out')), 2500)
+        ),
+      ])) as any[];
+    } catch (dbErr: any) {
+      console.warn('[Orders API] DB lookup warning (using memory orders):', dbErr?.message);
+    }
 
-    return NextResponse.json(orders);
+    const memOrders = getAllOrdersFromMemory();
+    const existingNumbers = new Set((dbOrders || []).map((o) => o.orderNumber));
+    const merged = [
+      ...(dbOrders || []),
+      ...memOrders.filter((mo) => !existingNumbers.has(mo.orderNumber)),
+    ];
+
+    return NextResponse.json(merged);
   } catch (error: any) {
-    console.warn('[Orders API] Database query warning (returning empty list):', error?.message);
-    return NextResponse.json([]);
+    console.warn('[Orders API] Database query warning (returning memory list):', error?.message);
+    return NextResponse.json(getAllOrdersFromMemory());
   }
 }
 
@@ -262,6 +275,9 @@ export async function POST(request: Request) {
       bio: bio ? bio.toString().trim() : null,
       createdAt: new Date().toISOString(),
     };
+
+    // Always persist to resilient memory store
+    saveOrderToMemory(finalOrder as any);
 
     // Prepare response based on payment method
     let payhereParams = null;

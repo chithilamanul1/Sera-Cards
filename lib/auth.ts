@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 import { cookies } from 'next/headers';
 import prisma from './prisma';
+import { getUserFromMemory } from './userStore';
 
 /**
  * Hashes a plain password using Node.js standard built-in crypto (scrypt)
@@ -38,22 +39,44 @@ export async function getCurrentUser() {
       return null;
     }
 
-    // Try finding user by ID or session token
-    const user = await prisma.user.findUnique({
-      where: { id: userSession },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        phone: true,
-        role: true,
-        plan: true,
-        cardSlug: true,
-        createdAt: true,
-      },
-    });
+    // Try finding user by ID or session token in DB with timeout
+    try {
+      const user = await Promise.race([
+        prisma.user.findUnique({
+          where: { id: userSession },
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            phone: true,
+            role: true,
+            plan: true,
+            cardSlug: true,
+            createdAt: true,
+          },
+        }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 2500)),
+      ]) as any;
 
-    return user;
+      if (user) return user;
+    } catch {}
+
+    // Fall back to resilient memory store
+    const memUser = getUserFromMemory(userSession);
+    if (memUser) {
+      return {
+        id: memUser.id,
+        email: memUser.email,
+        name: memUser.name,
+        phone: memUser.phone,
+        role: memUser.role,
+        plan: memUser.plan,
+        cardSlug: memUser.cardSlug,
+        createdAt: memUser.createdAt,
+      };
+    }
+
+    return null;
   } catch (error) {
     console.error('[Auth getCurrentUser Error]', error);
     return null;

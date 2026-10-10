@@ -28,6 +28,10 @@ import {
   AlertCircleIcon,
   ArrowRightIcon,
   PaletteIcon,
+  ShieldCheckIcon,
+  LockIcon,
+  KeyIcon,
+  DownloadIcon,
 } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 import { Nav } from '@/components/Nav';
@@ -42,7 +46,7 @@ export default function CustomerDashboard() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'profile' | 'leads' | 'order'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'leads' | 'order' | 'security'>('profile');
   const [leads, setLeads] = useState<any[]>([]);
   const [orders, setOrders] = useState<any[]>([]);
   const [leadSearch, setLeadSearch] = useState('');
@@ -50,6 +54,17 @@ export default function CustomerDashboard() {
   const [saving, setSaving] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
+
+  // Remote Card Lock State
+  const [isCardLocked, setIsCardLocked] = useState(false);
+  const [locking, setLocking] = useState(false);
+
+  // Dynamic QR Code Modal State
+  const [showQrModal, setShowQrModal] = useState(false);
+
+  // Security & Password Change State
+  const [newPassword, setNewPassword] = useState('');
+  const [changingPassword, setChangingPassword] = useState(false);
 
   // Template & Preset Selection
   const [selectedPreset, setSelectedPreset] = useState<string>('personal_hero');
@@ -174,6 +189,11 @@ export default function CustomerDashboard() {
             catalogPdfUrl: m.catalogPdfUrl || '',
             catalogPdfTitle: m.catalogPdfTitle || '',
           }));
+          if (m.isLocked !== undefined) {
+            setIsCardLocked(Boolean(m.isLocked));
+          } else if (m.status === 'LOCKED' || m.status === 'DEACTIVATED') {
+            setIsCardLocked(true);
+          }
           if (m.presetId) {
             setSelectedPreset(m.presetId);
           }
@@ -181,6 +201,71 @@ export default function CustomerDashboard() {
       }
     } catch (err) {
       console.warn('Could not load saved card metadata:', err);
+    }
+  };
+
+  // Toggle Remote Card Lock
+  const handleToggleCardLock = async () => {
+    const targetSlug = profileForm.slug || user?.cardSlug;
+    if (!targetSlug) {
+      toast.error('Card slug is missing');
+      return;
+    }
+    const nextLockedState = !isCardLocked;
+    setLocking(true);
+    try {
+      const res = await fetch('/api/cards/lock', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slug: targetSlug, isLocked: nextLockedState }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setIsCardLocked(nextLockedState);
+        if (nextLockedState) {
+          toast.success('Card locked! NFC taps and visits will now display the frozen notice.');
+        } else {
+          toast.success('Card unlocked! Your digital card is active & live.');
+        }
+      } else {
+        toast.error(data.error || 'Failed to toggle card lock');
+      }
+    } catch {
+      toast.error('Network error updating card lock status');
+    } finally {
+      setLocking(false);
+    }
+  };
+
+  // Change Password
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newPassword || newPassword.length < 6) {
+      toast.error('Password must be at least 6 characters long');
+      return;
+    }
+    setChangingPassword(true);
+    try {
+      const res = await fetch('/api/users', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: user?.id,
+          email: user?.email,
+          password: newPassword,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        toast.success('Your dashboard password has been updated!');
+        setNewPassword('');
+      } else {
+        toast.error(data.error || 'Failed to update password');
+      }
+    } catch {
+      toast.error('Error changing password');
+    } finally {
+      setChangingPassword(false);
     }
   };
 
@@ -418,6 +503,13 @@ export default function CustomerDashboard() {
               </a>
             )}
             <button
+              onClick={() => setShowQrModal(true)}
+              className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 rounded-xl border border-white/12 bg-white/[0.04] px-4 py-2.5 text-xs font-semibold text-white hover:bg-white/[0.08] transition-colors active:scale-95"
+            >
+              <QrCodeIcon className="h-3.5 w-3.5 text-accent-400" />
+              Show QR Code
+            </button>
+            <button
               onClick={handleCopyLink}
               className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 rounded-xl border border-white/12 bg-white/[0.04] px-4 py-2.5 text-xs font-semibold text-white hover:bg-white/[0.08] transition-colors active:scale-95"
             >
@@ -445,15 +537,43 @@ export default function CustomerDashboard() {
 
         {/* Quick Stats Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-          <div className="rounded-2xl border border-white/10 bg-ink-900/60 p-5">
-            <div className="flex items-center justify-between">
-              <span className="text-xs uppercase tracking-wider font-semibold text-white/40">Card Link</span>
-              <GlobeIcon className="h-4 w-4 text-accent-400" />
+          <div className="rounded-2xl border border-white/10 bg-ink-900/60 p-5 flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between">
+                <span className="text-xs uppercase tracking-wider font-semibold text-white/40">Card Link & Status</span>
+                <GlobeIcon className="h-4 w-4 text-accent-400" />
+              </div>
+              <p className="mt-2 text-lg font-bold text-white font-mono truncate">
+                {profileForm.slug || user?.cardSlug}.{rootDomain}
+              </p>
+              <div className="mt-2 flex items-center gap-2">
+                <span
+                  className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${
+                    isCardLocked
+                      ? 'bg-amber-500/15 text-amber-400 border-amber-500/30'
+                      : 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
+                  }`}
+                >
+                  {isCardLocked ? '🔒 Remote Frozen' : '● Active & Live'}
+                </span>
+              </div>
             </div>
-            <p className="mt-2 text-lg font-bold text-white font-mono truncate">
-              {profileForm.slug || user?.cardSlug}.{rootDomain}
-            </p>
-            <p className="text-xs text-accent-400 mt-1">● Active & Live</p>
+
+            <div className="mt-4 pt-3 border-t border-white/10 flex items-center justify-between gap-2">
+              <span className="text-[11px] text-white/50">Remote NFC Lock</span>
+              <button
+                type="button"
+                onClick={handleToggleCardLock}
+                disabled={locking}
+                className={`px-3 py-1 rounded-xl text-xs font-bold transition-all shadow-sm active:scale-95 ${
+                  isCardLocked
+                    ? 'bg-emerald-500 text-black hover:bg-emerald-400'
+                    : 'bg-amber-500/20 text-amber-300 border border-amber-500/40 hover:bg-amber-500/30'
+                }`}
+              >
+                {locking ? 'Updating...' : isCardLocked ? '🔓 Unlock Card' : '🔒 Freeze Card'}
+              </button>
+            </div>
           </div>
 
           <div className="rounded-2xl border border-white/10 bg-ink-900/60 p-5">
@@ -513,6 +633,17 @@ export default function CustomerDashboard() {
           >
             <TruckIcon className="h-4 w-4" />
             Hardware & Order Tracker {orders.length > 0 && `(${orders.length})`}
+          </button>
+          <button
+            onClick={() => setActiveTab('security')}
+            className={`flex items-center gap-2 pb-3 px-4 text-sm font-semibold border-b-2 whitespace-nowrap transition-colors ${
+              activeTab === 'security'
+                ? 'border-accent-500 text-white'
+                : 'border-transparent text-white/40 hover:text-white'
+            }`}
+          >
+            <ShieldCheckIcon className="h-4 w-4" />
+            Account & Security
           </button>
         </div>
 
@@ -1103,7 +1234,199 @@ export default function CustomerDashboard() {
             )}
           </div>
         )}
+
+        {/* TAB 4: Account & Security Settings */}
+        {activeTab === 'security' && (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            <div className="lg:col-span-7 bg-ink-900/80 border border-white/10 rounded-3xl p-6 sm:p-8 space-y-6">
+              <div>
+                <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                  <ShieldCheckIcon className="h-5 w-5 text-accent-400" />
+                  Account & Login Credentials
+                </h2>
+                <p className="text-xs text-white/40 mt-1">
+                  Manage your GoSera dashboard credentials and security settings.
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-5 space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                  <div>
+                    <span className="text-white/40 block">Account Holder Name</span>
+                    <span className="text-white font-bold text-sm mt-0.5 block">{user?.name || 'Cardholder'}</span>
+                  </div>
+                  <div>
+                    <span className="text-white/40 block">Login Email</span>
+                    <span className="text-white font-mono text-sm mt-0.5 block">{user?.email}</span>
+                  </div>
+                  <div>
+                    <span className="text-white/40 block">Linked Card Subdomain</span>
+                    <span className="text-accent-400 font-mono font-bold text-sm mt-0.5 block">
+                      {profileForm.slug || user?.cardSlug}.{rootDomain}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-white/40 block">Software Subscription Plan</span>
+                    <span className="text-white font-bold text-sm mt-0.5 block">
+                      {user?.plan || 'Basic'} Tier
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Password Change Form */}
+              <form onSubmit={handleChangePassword} className="space-y-4 pt-2 border-t border-white/10">
+                <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                  <KeyIcon className="h-4 w-4 text-accent-400" />
+                  Change Dashboard Password
+                </h3>
+                <p className="text-xs text-white/40">
+                  Update your dashboard login password. Minimum 6 characters.
+                </p>
+
+                <div>
+                  <label className="block text-xs font-medium text-white/60 mb-1">New Password</label>
+                  <input
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="Enter at least 6 characters"
+                    className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-sm text-white focus:border-accent-500 focus:outline-none"
+                    minLength={6}
+                    required
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={changingPassword || !newPassword}
+                  className="rounded-xl bg-accent-500 px-6 py-2.5 text-xs font-bold text-ink-950 hover:bg-accent-400 transition-all shadow-md active:scale-95 disabled:opacity-50"
+                >
+                  {changingPassword ? 'Updating Password...' : 'Save New Password'}
+                </button>
+              </form>
+            </div>
+
+            {/* Remote Card Freeze Center */}
+            <div className="lg:col-span-5 bg-ink-900/80 border border-white/10 rounded-3xl p-6 sm:p-8 space-y-5">
+              <div>
+                <h3 className="text-base font-bold text-white flex items-center gap-2">
+                  <LockIcon className="h-4 w-4 text-amber-400" />
+                  Remote Card Freeze
+                </h3>
+                <p className="text-xs text-white/40 mt-1">
+                  Instantly disable physical NFC taps and dynamic link visits.
+                </p>
+              </div>
+
+              <div className={`rounded-2xl border p-5 transition-colors ${
+                isCardLocked
+                  ? 'border-amber-500/30 bg-amber-500/10'
+                  : 'border-emerald-500/30 bg-emerald-500/10'
+              }`}>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold uppercase tracking-wider text-white/70">
+                    Live Status
+                  </span>
+                  <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${
+                    isCardLocked
+                      ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                      : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                  }`}>
+                    {isCardLocked ? '🔒 FROZEN / LOCKED' : '● ACTIVE & READY'}
+                  </span>
+                </div>
+
+                <p className="text-xs text-white/60 mt-3 leading-relaxed">
+                  {isCardLocked
+                    ? 'Your card is currently FROZEN. When someone taps your physical card or visits your URL, they will see a safe "Card Temporarily Frozen by Owner" notice.'
+                    : 'Your card is currently ACTIVE. Tapping your physical card will immediately open your digital profile and lead capture exchange.'}
+                </p>
+
+                <button
+                  type="button"
+                  onClick={handleToggleCardLock}
+                  disabled={locking}
+                  className={`mt-4 w-full rounded-xl py-3 text-xs font-bold transition-all shadow-md active:scale-95 ${
+                    isCardLocked
+                      ? 'bg-emerald-500 text-ink-950 hover:bg-emerald-400'
+                      : 'bg-amber-500 text-ink-950 hover:bg-amber-400'
+                  }`}
+                >
+                  {locking
+                    ? 'Updating Remote Status...'
+                    : isCardLocked
+                    ? '🔓 Unlock & Reactivate Card'
+                    : '🔒 Freeze / Lock Card Now'}
+                </button>
+              </div>
+
+              <div className="rounded-2xl border border-white/5 bg-white/[0.01] p-4 text-[11px] text-white/40 space-y-1.5">
+                <p className="font-semibold text-white/60">Why freeze your card?</p>
+                <p>• If you accidentally misplaced your card at an expo or conference.</p>
+                <p>• If you want to temporarily pause leads without deleting your profile.</p>
+                <p>• You can unlock it instantly at any time from this dashboard.</p>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
+
+      {/* Dynamic QR Code Modal */}
+      {showQrModal && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-ink-900 border border-white/10 rounded-3xl max-w-sm w-full p-6 text-center shadow-2xl relative">
+            <button
+              onClick={() => setShowQrModal(false)}
+              className="absolute top-4 right-4 text-white/40 hover:text-white p-1 rounded-lg"
+            >
+              ✕
+            </button>
+            <div className="w-12 h-12 rounded-2xl bg-accent-500/10 border border-accent-500/20 text-accent-400 flex items-center justify-center mx-auto mb-3">
+              <QrCodeIcon className="h-6 w-6" />
+            </div>
+            <h3 className="text-lg font-bold text-white">Your Dynamic QR Code</h3>
+            <p className="text-xs text-white/50 mt-1">
+              Backup for non-NFC phones. Opens your live profile instantly.
+            </p>
+
+            <div className="bg-white p-4 rounded-2xl inline-block my-5 shadow-inner">
+              <img
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(
+                  `https://${profileForm.slug || user?.cardSlug || 'demo'}.${rootDomain}`
+                )}`}
+                alt="Card QR Code"
+                className="w-48 h-48 mx-auto"
+              />
+            </div>
+
+            <p className="font-mono text-xs text-accent-400 truncate mb-4">
+              {profileForm.slug || user?.cardSlug}.{rootDomain}
+            </p>
+
+            <div className="flex gap-2">
+              <a
+                href={`https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(
+                  `https://${profileForm.slug || user?.cardSlug || 'demo'}.${rootDomain}`
+                )}`}
+                download={`gosera-qr-${profileForm.slug || 'card'}.png`}
+                target="_blank"
+                rel="noreferrer"
+                className="flex-1 rounded-xl bg-accent-500 py-2.5 text-xs font-bold text-ink-950 hover:bg-accent-400 transition-colors"
+              >
+                Download QR Code
+              </a>
+              <button
+                type="button"
+                onClick={() => setShowQrModal(false)}
+                className="px-4 rounded-xl border border-white/10 bg-white/5 text-xs text-white/70 hover:bg-white/10 transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <Footer />
 

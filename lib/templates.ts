@@ -153,10 +153,19 @@ function buildLeadModal(data: TemplateData): string {
       <button onclick="toggleLeadModal(false)" style="background:none;border:none;color:#94a3b8;font-size:1.5rem;cursor:pointer;line-height:1;">&times;</button>
     </div>
     <form id="leadForm" onsubmit="submitLead(event)">
-      <input type="text" id="leadName" placeholder="Your Full Name" required style="width:100%;padding:0.85rem;border-radius:12px;background:#050506;border:1px solid rgba(255,255,255,0.12);color:#fff;margin-bottom:0.75rem;font-size:0.9rem;box-sizing:border-box;" />
-      <input type="tel" id="leadPhone" placeholder="Your Phone / WhatsApp Number" required style="width:100%;padding:0.85rem;border-radius:12px;background:#050506;border:1px solid rgba(255,255,255,0.12);color:#fff;margin-bottom:0.75rem;font-size:0.9rem;box-sizing:border-box;" />
-      <input type="text" id="leadNotes" placeholder="Company / Short Note (optional)" style="width:100%;padding:0.85rem;border-radius:12px;background:#050506;border:1px solid rgba(255,255,255,0.12);color:#fff;margin-bottom:1rem;font-size:0.9rem;box-sizing:border-box;" />
-      <button type="submit" id="leadSubmitBtn" style="width:100%;padding:0.9rem;background:#f97316;color:#fff;border:none;border-radius:14px;font-size:0.95rem;font-weight:700;cursor:pointer;">Send Contact Details</button>
+      <div style="margin-bottom:0.75rem;">
+        <label style="display:block;font-size:0.75rem;font-weight:600;color:#94a3b8;margin-bottom:0.25rem;">Your Full Name</label>
+        <input type="text" id="leadName" placeholder="e.g. John Doe" required style="width:100%;padding:0.85rem;border-radius:12px;background:#050506;border:1px solid rgba(255,255,255,0.12);color:#fff;font-size:0.9rem;box-sizing:border-box;" />
+      </div>
+      <div style="margin-bottom:0.75rem;">
+        <label style="display:block;font-size:0.75rem;font-weight:600;color:#94a3b8;margin-bottom:0.25rem;">Your Mobile / WhatsApp Number (For callback)</label>
+        <input type="tel" id="leadPhone" placeholder="e.g. 077 123 4567" required style="width:100%;padding:0.85rem;border-radius:12px;background:#050506;border:1px solid rgba(255,255,255,0.12);color:#fff;font-size:0.9rem;box-sizing:border-box;" />
+      </div>
+      <div style="margin-bottom:1rem;">
+        <label style="display:block;font-size:0.75rem;font-weight:600;color:#94a3b8;margin-bottom:0.25rem;">Company / Note (Optional)</label>
+        <input type="text" id="leadNotes" placeholder="e.g. Inquiry / Meeting follow-up" style="width:100%;padding:0.85rem;border-radius:12px;background:#050506;border:1px solid rgba(255,255,255,0.12);color:#fff;font-size:0.9rem;box-sizing:border-box;" />
+      </div>
+      <button type="submit" id="leadSubmitBtn" style="width:100%;padding:0.9rem;background:#f97316;color:#fff;border:none;border-radius:14px;font-size:0.95rem;font-weight:700;cursor:pointer;">Send Contact Details &rarr;</button>
     </form>
   </div>
 </div>`.trim();
@@ -418,13 +427,14 @@ export function generateTemplateHtml(presetId: string, data: TemplateData): stri
           <i class="fas fa-location-dot text-slate-400 text-sm"></i>
         </div>` : ''}
 
+        ${data.company ? `
         <div class="flex items-center justify-between p-3.5 bg-slate-50/80 rounded-2xl border border-slate-100">
           <div>
             <p class="text-[10px] text-slate-400 uppercase font-semibold">Company</p>
             <p class="text-xs font-semibold text-slate-800 mt-0.5">${data.company}</p>
           </div>
           <i class="fas fa-building text-slate-400 text-sm"></i>
-        </div>
+        </div>` : ''}
       </div>
 
       ${data.catalogPdfUrl ? `
@@ -462,6 +472,7 @@ export function generateTemplateHtml(presetId: string, data: TemplateData): stri
       ${data.lankaQrText ? `
       <div class="mt-5 p-3.5 bg-slate-50 rounded-2xl border border-slate-100 text-center">
         <p class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">💳 LankaQR & Bank Details</p>
+        <p class="font-bold text-slate-900 text-sm mt-1">${data.company || data.name}</p>
         <p class="text-xs font-mono text-slate-700 mt-1">${data.lankaQrText}</p>
       </div>` : ''}
 
@@ -484,27 +495,19 @@ export function generateTemplateHtml(presetId: string, data: TemplateData): stri
       var icon = document.getElementById('saveIcon');
       var text = document.getElementById('saveText');
 
-      icon.innerHTML = '<i class="fas fa-circle-notch fa-spin text-orange-500 text-lg mb-1"></i>';
-      text.innerText = 'Loading...';
+      if (icon && text) {
+        icon.innerHTML = '<i class="fas fa-circle-notch fa-spin text-orange-500 text-lg mb-1"></i>';
+        text.innerText = 'Saving...';
+      }
+
+      window.location.href = '/api/vcard?slug=' + encodeURIComponent('${data.slug}') + '&name=' + encodeURIComponent('${escapeSingleQuote(data.name)}') + '&phone=' + encodeURIComponent('${escapeSingleQuote(data.phone)}') + '&company=' + encodeURIComponent('${escapeSingleQuote(data.company)}') + '&title=' + encodeURIComponent('${escapeSingleQuote(data.title)}') + '&email=' + encodeURIComponent('${escapeSingleQuote(data.email)}');
 
       setTimeout(function() {
-        var vcardData = "${vcardPayload}";
-        var blob = new Blob([vcardData], { type: 'text/vcard;charset=utf-8;' });
-        var url = URL.createObjectURL(blob);
-        
-        var downloadLink = document.createElement('a');
-        downloadLink.href = url;
-        downloadLink.setAttribute('download', '${safeVcfName(data.slug || data.name)}.vcf');
-        document.body.appendChild(downloadLink);
-        downloadLink.click();
-        document.body.removeChild(downloadLink);
-        URL.revokeObjectURL(url);
-
-        setTimeout(function() {
+        if (icon && text) {
           icon.innerHTML = '<i class="fas fa-arrow-down-to-bracket text-orange-500 text-lg mb-1"></i>';
           text.innerText = 'Save';
-        }, 1000);
-      }, 600);
+        }
+      }, 1500);
     }
 
     function shareProfile() {
@@ -815,15 +818,7 @@ export function generateTemplateHtml(presetId: string, data: TemplateData): stri
     }
 
     function downloadCompanyVCF() {
-      var vcard = "${vcardPayload}";
-      var blob = new Blob([vcard], { type: 'text/vcard;charset=utf-8;' });
-      var url = URL.createObjectURL(blob);
-      var a = document.createElement('a');
-      a.href = url;
-      a.download = '${safeVcfName(data.slug || data.company)}.vcf';
-      document.body.appendChild(a);
-      a.click();
-      setTimeout(function() { document.body.removeChild(a); URL.revokeObjectURL(url); }, 1000);
+      window.location.href = '/api/vcard?slug=' + encodeURIComponent('${data.slug}') + '&name=' + encodeURIComponent('${escapeSingleQuote(data.company)}') + '&phone=' + encodeURIComponent('${escapeSingleQuote(data.phone)}') + '&company=' + encodeURIComponent('${escapeSingleQuote(data.company)}') + '&email=' + encodeURIComponent('${escapeSingleQuote(data.email)}');
     }
 
     function shareCompany() {
@@ -1041,15 +1036,7 @@ export function generateTemplateHtml(presetId: string, data: TemplateData): stri
     }
 
     function downloadVCard() {
-      var vcard = "${vcardPayload}";
-      var blob = new Blob([vcard], { type: 'text/vcard;charset=utf-8;' });
-      var url = URL.createObjectURL(blob);
-      var a = document.createElement('a');
-      a.href = url;
-      a.download = '${safeVcfName(data.slug || data.name)}.vcf';
-      document.body.appendChild(a);
-      a.click();
-      setTimeout(function() { document.body.removeChild(a); URL.revokeObjectURL(url); }, 1000);
+      window.location.href = '/api/vcard?slug=' + encodeURIComponent('${data.slug}') + '&name=' + encodeURIComponent('${escapeSingleQuote(data.name)}') + '&phone=' + encodeURIComponent('${escapeSingleQuote(data.phone)}') + '&company=' + encodeURIComponent('${escapeSingleQuote(data.company)}') + '&title=' + encodeURIComponent('${escapeSingleQuote(data.title)}') + '&email=' + encodeURIComponent('${escapeSingleQuote(data.email)}');
     }
   </script>
 </body>
@@ -1119,15 +1106,7 @@ export function generateTemplateHtml(presetId: string, data: TemplateData): stri
   <script>
     ${leadScript}
     function downloadVCard() {
-      var vcard = "${vcardPayload}";
-      var blob = new Blob([vcard], { type: 'text/vcard;charset=utf-8;' });
-      var url = URL.createObjectURL(blob);
-      var a = document.createElement('a');
-      a.href = url;
-      a.download = '${safeVcfName(data.slug || data.name)}.vcf';
-      document.body.appendChild(a);
-      a.click();
-      setTimeout(function() { document.body.removeChild(a); URL.revokeObjectURL(url); }, 1000);
+      window.location.href = '/api/vcard?slug=' + encodeURIComponent('${data.slug}') + '&name=' + encodeURIComponent('${escapeSingleQuote(data.name)}') + '&phone=' + encodeURIComponent('${escapeSingleQuote(data.phone)}') + '&company=' + encodeURIComponent('${escapeSingleQuote(data.company)}') + '&title=' + encodeURIComponent('${escapeSingleQuote(data.title)}') + '&email=' + encodeURIComponent('${escapeSingleQuote(data.email)}');
     }
   </script>
 </body>
@@ -1183,15 +1162,7 @@ export function generateTemplateHtml(presetId: string, data: TemplateData): stri
   <script>
     ${leadScript}
     function downloadVCard() {
-      var vcard = "${vcardPayload}";
-      var blob = new Blob([vcard], { type: 'text/vcard;charset=utf-8;' });
-      var url = URL.createObjectURL(blob);
-      var a = document.createElement('a');
-      a.href = url;
-      a.download = '${safeVcfName(data.slug || data.name)}.vcf';
-      document.body.appendChild(a);
-      a.click();
-      setTimeout(function() { document.body.removeChild(a); URL.revokeObjectURL(url); }, 1000);
+      window.location.href = '/api/vcard?slug=' + encodeURIComponent('${data.slug}') + '&name=' + encodeURIComponent('${escapeSingleQuote(data.name)}') + '&phone=' + encodeURIComponent('${escapeSingleQuote(data.phone)}') + '&company=' + encodeURIComponent('${escapeSingleQuote(data.company)}') + '&title=' + encodeURIComponent('${escapeSingleQuote(data.title)}') + '&email=' + encodeURIComponent('${escapeSingleQuote(data.email)}');
     }
   </script>
 </body>

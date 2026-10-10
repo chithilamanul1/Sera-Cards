@@ -29,6 +29,10 @@ import {
   AlertCircle,
   Search,
   Zap,
+  Pencil,
+  Key,
+  UserPlus,
+  ShieldCheck,
 } from 'lucide-react';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -96,7 +100,24 @@ export default function AdminDashboard() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [settlementData, setSettlementData] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const [activeTab, setActiveTab] = useState<'orders' | 'studio' | 'cards' | 'leads' | 'settlements' | 'activations'>('orders');
+  const [activeTab, setActiveTab] = useState<'orders' | 'studio' | 'cards' | 'leads' | 'settlements' | 'activations' | 'users'>('orders');
+
+  // User Accounts State
+  const [users, setUsers] = useState<any[]>([]);
+  const [userSearch, setUserSearch] = useState('');
+  const [isProvisionModalOpen, setIsProvisionModalOpen] = useState(false);
+  const [provisionForm, setProvisionForm] = useState({
+    name: '',
+    email: '',
+    password: '',
+    phone: '',
+    cardSlug: '',
+    role: 'USER',
+    plan: 'PRO',
+  });
+  const [isProvisioning, setIsProvisioning] = useState(false);
+  const [passwordResetUser, setPasswordResetUser] = useState<any | null>(null);
+  const [newPassword, setNewPassword] = useState('');
 
   // Search filter in leads
   const [leadSearch, setLeadSearch] = useState('');
@@ -220,6 +241,7 @@ export default function AdminDashboard() {
         fetchOrders();
         fetchSettlements();
         fetchActivations();
+        fetchUsers();
       } catch {
         window.location.href = '/login?redirect=/admin';
       }
@@ -292,6 +314,18 @@ export default function AdminDashboard() {
       }
     } catch (error) {
       console.error('Failed to load activation codes:', error);
+    }
+  };
+
+  const fetchUsers = async () => {
+    try {
+      const res = await fetch('/api/users');
+      if (res.ok) {
+        const data = await res.json();
+        setUsers(Array.isArray(data) ? data : []);
+      }
+    } catch (error) {
+      console.error('Failed to load users:', error);
     }
   };
 
@@ -635,12 +669,13 @@ export default function AdminDashboard() {
 
     setIsSubmitting(true);
     try {
+      const metadata = editorMode === 'visual' ? { ...templateForm, slug: targetSlug, preset: selectedPreset } : undefined;
       const res = await fetch('/api/cards', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ slug: targetSlug, html_content: finalHtml }),
+        body: JSON.stringify({ slug: targetSlug, html_content: finalHtml, metadata }),
       });
 
       if (!res.ok) {
@@ -654,6 +689,162 @@ export default function AdminDashboard() {
       toast.error(error.message || 'Failed to deploy card');
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleEditCard = async (targetSlug: string) => {
+    try {
+      toast.loading(`Loading profile details for /c/${targetSlug}...`, { id: 'edit-card' });
+      const res = await fetch(`/api/cards?slug=${encodeURIComponent(targetSlug)}`);
+      if (!res.ok) throw new Error('Card not found');
+      const data = await res.json();
+
+      setSlug(data.slug || targetSlug);
+      if (data.htmlContent) {
+        setRawHtmlContent(data.htmlContent);
+      }
+
+      const meta = data.metadata;
+      if (meta) {
+        setTemplateForm({
+          slug: data.slug || targetSlug,
+          name: meta.name || '',
+          title: meta.title || '',
+          company: meta.company || '',
+          phone: meta.phone || '',
+          whatsapp: meta.whatsapp || '',
+          email: meta.email || '',
+          avatarUrl: meta.avatarUrl || '',
+          coverUrl: meta.coverUrl || '',
+          bio: meta.bio || '',
+          location: meta.location || '',
+          website: meta.website || '',
+          googleReviewUrl: meta.googleReviewUrl || '',
+          lankaQrText: meta.lankaQrText || '',
+          facebook: meta.facebook || '',
+          instagram: meta.instagram || '',
+          linkedin: meta.linkedin || '',
+          tiktok: meta.tiktok || '',
+          snapchat: meta.snapchat || '',
+          catalogPdfUrl: meta.catalogPdfUrl || '',
+          catalogPdfTitle: meta.catalogPdfTitle || '',
+        });
+        if (meta.preset) {
+          setSelectedPreset(meta.preset);
+        }
+      } else {
+        const matchingOrder = orders.find((o) => o.slug === targetSlug);
+        if (matchingOrder) {
+          setTemplateForm((prev) => ({
+            ...prev,
+            slug: targetSlug,
+            name: matchingOrder.nameOnCard || prev.name,
+            title: matchingOrder.designation || prev.title,
+            company: matchingOrder.brandName || prev.company,
+            phone: matchingOrder.customerPhone || prev.phone,
+            whatsapp: (matchingOrder.customerPhone || '').replace(/[^0-9]/g, '') || prev.whatsapp,
+            email: matchingOrder.customerEmail || prev.email,
+            avatarUrl: matchingOrder.logoUrl || prev.avatarUrl,
+            location: matchingOrder.city || prev.location,
+            bio: matchingOrder.bio || prev.bio,
+            instagram: matchingOrder.instagram || prev.instagram,
+            linkedin: matchingOrder.linkedin || prev.linkedin,
+            facebook: matchingOrder.facebook || prev.facebook,
+            tiktok: matchingOrder.tiktok || prev.tiktok,
+          }));
+        }
+      }
+
+      setActiveTab('studio');
+      toast.success(`Profile /c/${targetSlug} loaded in Studio!`, { id: 'edit-card' });
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to load card for editing', { id: 'edit-card' });
+    }
+  };
+
+  const handleOpenCreateLogin = (cardSlug: string) => {
+    const relatedOrder = orders.find((o) => o.slug === cardSlug);
+    const defaultName = relatedOrder?.nameOnCard || cardSlug.replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
+    const defaultEmail = relatedOrder?.customerEmail || '';
+    const defaultPhone = relatedOrder?.customerPhone || '';
+    const defaultPassword = `${cardSlug.split('-')[0]}1234`;
+
+    setProvisionForm({
+      name: defaultName,
+      email: defaultEmail,
+      password: defaultPassword,
+      phone: defaultPhone,
+      cardSlug: cardSlug,
+      role: 'USER',
+      plan: 'PRO',
+    });
+    setIsProvisionModalOpen(true);
+  };
+
+  const handleProvisionUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!provisionForm.name || !provisionForm.email || !provisionForm.password) {
+      toast.error('Name, email, and password are required');
+      return;
+    }
+    setIsProvisioning(true);
+    try {
+      const res = await fetch('/api/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(provisionForm),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to create account');
+
+      toast.success(data.message || 'Account provisioned successfully!');
+      fetchUsers();
+      setIsProvisionModalOpen(false);
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to create user account');
+    } finally {
+      setIsProvisioning(false);
+    }
+  };
+
+  const handleDeleteUser = async (id: string, email: string) => {
+    if (!window.confirm(`Are you sure you want to delete access for ${email}?`)) return;
+    try {
+      const res = await fetch(`/api/users?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Failed to delete user');
+      toast.success('User account deleted');
+      setUsers(users.filter((u) => u.id !== id));
+    } catch {
+      toast.error('Failed to delete user');
+    }
+  };
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!passwordResetUser || !newPassword) return;
+    try {
+      const res = await fetch('/api/users', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: passwordResetUser.id, password: newPassword }),
+      });
+      if (!res.ok) throw new Error('Failed to reset password');
+      toast.success(`Password updated for ${passwordResetUser.email}!`);
+      setPasswordResetUser(null);
+      setNewPassword('');
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to update password');
+    }
+  };
+
+  const shareCredentialsWhatsApp = (user: any, rawPass?: string) => {
+    const phone = (user.phone || '').replace(/[^0-9]/g, '');
+    const passText = rawPass ? `\n*Temporary Password:* ${rawPass}` : '';
+    const msg = `🎉 *Your Sera Cards Portal Access is Ready!*\n\n*Name:* ${user.name}\n*Login Portal:* https://${rootDomain}/dashboard\n*Email / Username:* ${user.email}${passText}\n*Your Card URL:* https://${rootDomain}/c/${user.cardSlug}\n\nYou can now log in, track your live NFC taps, capture leads, and update your profile anytime!`;
+    if (phone) {
+      window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+    } else {
+      window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
     }
   };
 
@@ -757,6 +948,13 @@ export default function AdminDashboard() {
                 <span>Codes</span>
                 <Badge variant="secondary" className="ml-1 h-4 px-1.5 text-[10px]">
                   {activations.length}
+                </Badge>
+              </TabsTrigger>
+              <TabsTrigger value="users" className="flex items-center gap-1.5">
+                <Key className="h-3.5 w-3.5 text-emerald-400" />
+                <span>Accounts</span>
+                <Badge variant="secondary" className="ml-1 h-4 px-1.5 text-[10px]">
+                  {users.length}
                 </Badge>
               </TabsTrigger>
             </TabsList>
@@ -1167,7 +1365,7 @@ export default function AdminDashboard() {
                         </div>
 
                         {/* Identity */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                           <div className="space-y-1.5">
                             <Label className="text-xs uppercase tracking-wider text-zinc-400">
                               {selectedPreset === 'company_profile' ? 'Company Name' : 'Full Name'}
@@ -1193,6 +1391,17 @@ export default function AdminDashboard() {
                               type="text"
                               value={templateForm.title}
                               onChange={(e) => setTemplateForm({ ...templateForm, title: e.target.value })}
+                            />
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label className="text-xs uppercase tracking-wider text-zinc-400">
+                              Company / Organization
+                            </Label>
+                            <Input
+                              type="text"
+                              value={templateForm.company}
+                              onChange={(e) => setTemplateForm({ ...templateForm, company: e.target.value })}
+                              placeholder="e.g. CODEAERON"
                             />
                           </div>
                         </div>
@@ -1656,14 +1865,36 @@ export default function AdminDashboard() {
                           </TableCell>
 
                           <TableCell className="text-right">
-                            <Button
-                              variant="destructive"
-                              size="xs"
-                              onClick={() => handleDelete(card.id)}
-                            >
-                              <Trash2 className="h-3 w-3 mr-1" />
-                              Delete
-                            </Button>
+                            <div className="flex items-center justify-end gap-1.5">
+                              <Button
+                                variant="outline"
+                                size="xs"
+                                onClick={() => handleEditCard(card.slug)}
+                                className="text-purple-400 hover:text-purple-300 hover:bg-purple-950/40 border-purple-500/30"
+                                title="Edit Profile Details in Studio"
+                              >
+                                <Pencil className="h-3 w-3 mr-1" />
+                                Edit
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="xs"
+                                onClick={() => handleOpenCreateLogin(card.slug)}
+                                className="text-emerald-400 hover:text-emerald-300 hover:bg-emerald-950/40 border-emerald-500/30"
+                                title="Create / Provision Dashboard Login"
+                              >
+                                <Key className="h-3 w-3 mr-1" />
+                                Login
+                              </Button>
+                              <Button
+                                variant="destructive"
+                                size="xs"
+                                onClick={() => handleDelete(card.id)}
+                              >
+                                <Trash2 className="h-3 w-3 mr-1" />
+                                Delete
+                              </Button>
+                            </div>
                           </TableCell>
                         </TableRow>
                       );
@@ -2090,6 +2321,185 @@ export default function AdminDashboard() {
             </Card>
           </div>
         )}
+
+        {/* ══════════════════════════════════════════════════════════════
+            TAB 7: USER & CARDHOLDER ACCOUNTS
+           ══════════════════════════════════════════════════════════════ */}
+        {activeTab === 'users' && (
+          <div className="space-y-6">
+            <Card className="border-zinc-800 bg-zinc-900/90 shadow-xl">
+              <CardHeader className="p-6 border-b border-zinc-800/80 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                  <CardTitle className="text-xl font-bold flex items-center gap-2">
+                    <Key className="h-5 w-5 text-emerald-400" />
+                    <span>Cardholder Dashboard Logins</span>
+                  </CardTitle>
+                  <CardDescription className="text-xs text-zinc-400 mt-1">
+                    Grant cardholders direct access to manage contact details, toggle remote NFC lock, and view real-time taps
+                  </CardDescription>
+                </div>
+
+                <div className="flex items-center gap-2.5">
+                  <Button
+                    variant="purple"
+                    size="sm"
+                    className="bg-emerald-600 hover:bg-emerald-500 text-white"
+                    onClick={() => {
+                      setProvisionForm({
+                        name: '',
+                        email: '',
+                        password: 'sera' + Math.floor(1000 + Math.random() * 9000),
+                        phone: '',
+                        cardSlug: cards[0]?.slug || '',
+                        role: 'USER',
+                        plan: 'PRO',
+                      });
+                      setIsProvisionModalOpen(true);
+                    }}
+                  >
+                    <UserPlus className="h-3.5 w-3.5 mr-1.5" />
+                    Provision Account
+                  </Button>
+                  <Button variant="outline" size="icon" onClick={fetchUsers} title="Refresh">
+                    <RefreshCw className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              </CardHeader>
+
+              <div className="p-4 border-b border-zinc-800 bg-zinc-950/40 flex items-center justify-between gap-4">
+                <div className="relative flex-1 max-w-sm">
+                  <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-zinc-500" />
+                  <Input
+                    placeholder="Search by name, email, or slug..."
+                    value={userSearch}
+                    onChange={(e) => setUserSearch(e.target.value)}
+                    className="pl-9 bg-zinc-900/60 border-zinc-800 text-xs h-9"
+                  />
+                </div>
+                <span className="text-xs text-zinc-500">
+                  {users.length} active account{users.length === 1 ? '' : 's'}
+                </span>
+              </div>
+
+              <CardContent className="p-0">
+                {users.length === 0 ? (
+                  <div className="py-20 text-center text-zinc-500">
+                    <Key className="h-10 w-10 mx-auto text-zinc-600 mb-2" />
+                    <p className="font-medium text-sm">No cardholder accounts provisioned yet.</p>
+                    <p className="text-xs text-zinc-600 mt-1">
+                      Click <strong>Provision Account</strong> or click <strong>Login</strong> next to any profile to create their credentials.
+                    </p>
+                  </div>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>User & Credentials</TableHead>
+                        <TableHead>Linked Digital Card</TableHead>
+                        <TableHead>Plan & Role</TableHead>
+                        <TableHead>Created</TableHead>
+                        <TableHead className="text-right">Portal Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {users
+                        .filter((u) => {
+                          if (!userSearch.trim()) return true;
+                          const q = userSearch.toLowerCase();
+                          return (
+                            u.name?.toLowerCase().includes(q) ||
+                            u.email?.toLowerCase().includes(q) ||
+                            u.cardSlug?.toLowerCase().includes(q)
+                          );
+                        })
+                        .map((u) => (
+                          <TableRow key={u.id}>
+                            <TableCell>
+                              <div className="font-semibold text-white text-sm flex items-center gap-1.5">
+                                {u.name}
+                                {u.role === 'ADMIN' && (
+                                  <Badge variant="purple" className="text-[9px] px-1.5 py-0 h-4">ADMIN</Badge>
+                                )}
+                              </div>
+                              <p className="text-xs text-zinc-400 font-mono mt-0.5">{u.email}</p>
+                              {u.phone && <p className="text-[11px] text-zinc-500 mt-0.5">{u.phone}</p>}
+                            </TableCell>
+
+                            <TableCell>
+                              {u.cardSlug ? (
+                                <div>
+                                  <a
+                                    href={`/c/${u.cardSlug}`}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="font-mono text-xs font-bold text-amber-400 hover:underline flex items-center gap-1"
+                                  >
+                                    /c/{u.cardSlug} <ArrowUpRight className="h-3 w-3" />
+                                  </a>
+                                  <span className="text-[10px] text-zinc-500 font-mono">
+                                    {u.cardSlug}.{rootDomain}
+                                  </span>
+                                </div>
+                              ) : (
+                                <Badge variant="secondary" className="text-xs text-zinc-500">Unassigned</Badge>
+                              )}
+                            </TableCell>
+
+                            <TableCell>
+                              <div className="flex flex-col gap-1 items-start">
+                                <Badge variant={u.plan === 'ENTERPRISE' ? 'blue' : u.plan === 'PRO' ? 'purple' : 'secondary'} className="text-[10px]">
+                                  {u.plan || 'PRO'}
+                                </Badge>
+                              </div>
+                            </TableCell>
+
+                            <TableCell className="text-xs text-zinc-500">
+                              {u.createdAt ? new Date(u.createdAt).toLocaleDateString() : 'Active'}
+                            </TableCell>
+
+                            <TableCell className="text-right">
+                              <div className="flex items-center justify-end gap-1.5">
+                                <Button
+                                  variant="outline"
+                                  size="xs"
+                                  onClick={() => shareCredentialsWhatsApp(u)}
+                                  className="text-emerald-400 hover:text-emerald-300 border-emerald-500/30 hover:bg-emerald-950/40"
+                                  title="Share Login Details via WhatsApp"
+                                >
+                                  <MessageCircle className="h-3 w-3 mr-1" />
+                                  WhatsApp
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="xs"
+                                  onClick={() => {
+                                    setPasswordResetUser(u);
+                                    setNewPassword(`${u.cardSlug?.split('-')[0] || 'sera'}2025`);
+                                  }}
+                                  title="Reset Password"
+                                >
+                                  <Key className="h-3 w-3 mr-1" />
+                                  Reset
+                                </Button>
+                                <Button
+                                  variant="destructive"
+                                  size="xs"
+                                  onClick={() => handleDeleteUser(u.id, u.email)}
+                                  title="Revoke Access"
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                    </TableBody>
+                  </Table>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        )}
       </main>
 
       {/* ── Dialog 1: Programmer QR (NFC Flashing Automation) ── */}
@@ -2324,6 +2734,142 @@ export default function AdminDashboard() {
               </Button>
               <Button type="submit" variant="purple">
                 Create Order &rarr;
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Dialog 4: Provision Cardholder Login ── */}
+      <Dialog open={isProvisionModalOpen} onOpenChange={(open) => !open && setIsProvisionModalOpen(false)}>
+        <DialogContent onClose={() => setIsProvisionModalOpen(false)} className="max-w-md">
+          <DialogHeader>
+            <div className="mx-auto inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-semibold mb-2">
+              <Key className="h-3.5 w-3.5" />
+              Portal Access Provisioning
+            </div>
+            <DialogTitle className="text-center text-xl font-bold">
+              Provision Cardholder Login
+            </DialogTitle>
+            <DialogDescription className="text-center text-xs">
+              Create credentials for your client to access their private Sera Cards portal
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleProvisionUser} className="space-y-3.5 mt-2">
+            <div className="space-y-1">
+              <Label className="text-xs text-zinc-300">Client / Cardholder Full Name</Label>
+              <Input
+                type="text"
+                value={provisionForm.name}
+                onChange={(e) => setProvisionForm({ ...provisionForm, name: e.target.value })}
+                placeholder="e.g. Kasun Jayawardena"
+                required
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label className="text-xs text-zinc-300">Login Email</Label>
+                <Input
+                  type="email"
+                  value={provisionForm.email}
+                  onChange={(e) => setProvisionForm({ ...provisionForm, email: e.target.value })}
+                  placeholder="client@company.com"
+                  required
+                />
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-xs text-zinc-300">Temporary Password</Label>
+                <Input
+                  type="text"
+                  value={provisionForm.password}
+                  onChange={(e) => setProvisionForm({ ...provisionForm, password: e.target.value })}
+                  placeholder="e.g. kasun1234"
+                  className="font-mono"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label className="text-xs text-zinc-300">WhatsApp / Phone</Label>
+                <Input
+                  type="tel"
+                  value={provisionForm.phone}
+                  onChange={(e) => setProvisionForm({ ...provisionForm, phone: e.target.value })}
+                  placeholder="e.g. +94771234567"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-xs text-zinc-300">Assigned Card Slug</Label>
+                <Input
+                  type="text"
+                  value={provisionForm.cardSlug}
+                  onChange={(e) => setProvisionForm({ ...provisionForm, cardSlug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') })}
+                  placeholder="e.g. kasun"
+                  className="font-mono text-xs"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <Label className="text-xs text-zinc-300">Software Plan</Label>
+              <select
+                value={provisionForm.plan}
+                onChange={(e) => setProvisionForm({ ...provisionForm, plan: e.target.value })}
+                className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-purple-500"
+              >
+                <option value="PRO">GoSera Pro (Full Features & Analytics)</option>
+                <option value="ENTERPRISE">GoSera Enterprise (Corporate Fleet)</option>
+                <option value="BASIC">GoSera Basic (Standard)</option>
+              </select>
+            </div>
+
+            <DialogFooter className="pt-3 gap-2">
+              <Button type="button" variant="outline" onClick={() => setIsProvisionModalOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" variant="purple" className="bg-emerald-600 hover:bg-emerald-500 text-white" disabled={isProvisioning}>
+                {isProvisioning ? 'Creating Access...' : 'Create Login &rarr;'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Dialog 5: Password Reset Modal ── */}
+      <Dialog open={!!passwordResetUser} onOpenChange={(open) => !open && setPasswordResetUser(null)}>
+        <DialogContent onClose={() => setPasswordResetUser(null)} className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold">Reset Password</DialogTitle>
+            <DialogDescription className="text-xs text-zinc-400">
+              Set a new password for <span className="text-white font-mono">{passwordResetUser?.email}</span>
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleResetPassword} className="space-y-3.5 mt-2">
+            <div className="space-y-1">
+              <Label className="text-xs text-zinc-300">New Password (min 6 characters)</Label>
+              <Input
+                type="text"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="e.g. NewPass1234"
+                className="font-mono text-sm"
+                required
+              />
+            </div>
+
+            <DialogFooter className="pt-2 gap-2">
+              <Button type="button" variant="outline" onClick={() => setPasswordResetUser(null)}>
+                Cancel
+              </Button>
+              <Button type="submit" variant="purple">
+                Update Password
               </Button>
             </DialogFooter>
           </form>
