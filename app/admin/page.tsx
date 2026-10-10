@@ -33,6 +33,8 @@ import {
   Key,
   UserPlus,
   ShieldCheck,
+  Mail,
+  Send,
 } from 'lucide-react';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -118,6 +120,13 @@ export default function AdminDashboard() {
   const [isProvisioning, setIsProvisioning] = useState(false);
   const [passwordResetUser, setPasswordResetUser] = useState<any | null>(null);
   const [newPassword, setNewPassword] = useState('');
+
+  // Mailing System State
+  const [mailLogs, setMailLogs] = useState<any[]>([]);
+  const [mailStatus, setMailStatus] = useState<any>({ status: 'SIMULATED', provider: 'Resend API / Fallback', sender: 'info@seranex.lk' });
+  const [isTestMailModalOpen, setIsTestMailModalOpen] = useState(false);
+  const [testMailRecipient, setTestMailRecipient] = useState('chithilamanul1@gmail.com');
+  const [isSendingTestMail, setIsSendingTestMail] = useState(false);
 
   // Search filter in leads
   const [leadSearch, setLeadSearch] = useState('');
@@ -242,6 +251,7 @@ export default function AdminDashboard() {
         fetchSettlements();
         fetchActivations();
         fetchUsers();
+        fetchMailStatusAndLogs();
       } catch {
         window.location.href = '/login?redirect=/admin';
       }
@@ -327,6 +337,53 @@ export default function AdminDashboard() {
     } catch (error) {
       console.error('Failed to load users:', error);
     }
+  };
+
+  const fetchMailStatusAndLogs = async () => {
+    try {
+      const res = await fetch('/api/mail/test');
+      if (res.ok) {
+        const data = await res.json();
+        setMailStatus({ status: data.status, provider: data.provider, sender: data.sender });
+        setMailLogs(data.logs || []);
+      }
+    } catch (error) {
+      console.error('Failed to load mail diagnostics:', error);
+    }
+  };
+
+  const handleSendTestEmail = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!testMailRecipient.trim()) return;
+    setIsSendingTestMail(true);
+    try {
+      const res = await fetch('/api/mail/test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ to: testMailRecipient.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.error || 'Failed to dispatch test email');
+      toast.success(data.message || `Test email dispatched to ${testMailRecipient}!`);
+      setIsTestMailModalOpen(false);
+      fetchMailStatusAndLogs();
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to dispatch test email');
+    } finally {
+      setIsSendingTestMail(false);
+    }
+  };
+
+  const handleClearMailLogs = async () => {
+    try {
+      await fetch('/api/mail/test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'clear_logs' }),
+      });
+      setMailLogs([]);
+      toast.success('Mailing audit log cleared');
+    } catch {}
   };
 
   const handleGenerateBatch = async (e: React.FormEvent) => {
@@ -2498,6 +2555,114 @@ export default function AdminDashboard() {
                 )}
               </CardContent>
             </Card>
+
+            {/* Email System Status & Dispatch Logs */}
+            <Card className="border-zinc-800 bg-zinc-900/90 shadow-xl">
+              <CardHeader className="p-6 border-b border-zinc-800/80 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div className="flex items-start gap-3">
+                  <div className="p-2.5 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400">
+                    <Mail className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-lg font-bold flex items-center gap-2">
+                      <span>Mailing Pipeline & Notification Engine</span>
+                      <Badge
+                        variant={mailStatus?.status === 'CONNECTED' ? 'success' : 'purple'}
+                        className="text-[10px]"
+                      >
+                        {mailStatus?.status === 'CONNECTED' ? '● Resend API Live' : '● Simulation / Audit Mode'}
+                      </Badge>
+                    </CardTitle>
+                    <CardDescription className="text-xs text-zinc-400 mt-1">
+                      Automated transactional emails dispatched for physical activations, account logins, orders, and leads
+                    </CardDescription>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsTestMailModalOpen(true)}
+                    className="text-xs font-semibold text-purple-400 border-purple-500/30 hover:bg-purple-950/40"
+                  >
+                    <Send className="h-3.5 w-3.5 mr-1.5" />
+                    Send Test Email
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={fetchMailStatusAndLogs}
+                    title="Refresh Email Logs"
+                  >
+                    <RefreshCw className="h-3.5 w-3.5" />
+                  </Button>
+                  {mailLogs.length > 0 && (
+                    <Button
+                      variant="ghost"
+                      size="xs"
+                      onClick={handleClearMailLogs}
+                      className="text-zinc-500 hover:text-red-400 text-xs"
+                      title="Clear logs"
+                    >
+                      Clear
+                    </Button>
+                  )}
+                </div>
+              </CardHeader>
+
+              <CardContent className="p-0">
+                {mailLogs.length === 0 ? (
+                  <div className="py-12 text-center text-zinc-500">
+                    <Mail className="h-8 w-8 mx-auto text-zinc-600 mb-2 opacity-60" />
+                    <p className="text-xs text-zinc-400 font-medium">No transactional emails logged in this session.</p>
+                    <p className="text-[11px] text-zinc-600 mt-0.5">
+                      When users activate cards on /activate or you provision accounts, real delivery logs appear here.
+                    </p>
+                  </div>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Recipient</TableHead>
+                        <TableHead>Email Subject & Type</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="text-right">Time</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {mailLogs.slice(0, 10).map((log) => (
+                        <TableRow key={log.id}>
+                          <TableCell className="font-mono text-xs text-zinc-300">
+                            {log.to}
+                          </TableCell>
+                          <TableCell>
+                            <p className="text-xs font-semibold text-white">{log.subject}</p>
+                            <div className="flex items-center gap-2 mt-0.5">
+                              <Badge variant="secondary" className="text-[9px] px-1.5 py-0">
+                                {log.type}
+                              </Badge>
+                              <span className="text-[11px] text-zinc-500 truncate max-w-xs">{log.preview}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge
+                              variant={log.status === 'SENT' ? 'success' : log.status === 'FAILED' ? 'destructive' : 'purple'}
+                              className="text-[10px]"
+                            >
+                              {log.status === 'SENT' ? '✓ Delivered' : log.status === 'SIMULATED' ? '✓ Captured' : '⚠ Failed'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right text-[11px] text-zinc-500 font-mono">
+                            {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
+              </CardContent>
+            </Card>
           </div>
         )}
       </main>
@@ -2870,6 +3035,51 @@ export default function AdminDashboard() {
               </Button>
               <Button type="submit" variant="purple">
                 Update Password
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Dialog 6: Send Test Diagnostic Email ── */}
+      <Dialog open={isTestMailModalOpen} onOpenChange={(open) => !open && setIsTestMailModalOpen(false)}>
+        <DialogContent onClose={() => setIsTestMailModalOpen(false)} className="max-w-sm">
+          <DialogHeader>
+            <div className="mx-auto inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/20 text-xs font-semibold mb-2">
+              <Mail className="h-3.5 w-3.5" />
+              Email System Diagnostics
+            </div>
+            <DialogTitle className="text-center text-lg font-bold">
+              Dispatch Test Email
+            </DialogTitle>
+            <DialogDescription className="text-center text-xs">
+              Verify your transactional email pipeline and template rendering
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleSendTestEmail} className="space-y-3.5 mt-2">
+            <div className="space-y-1">
+              <Label className="text-xs text-zinc-300">Destination Email</Label>
+              <Input
+                type="email"
+                value={testMailRecipient}
+                onChange={(e) => setTestMailRecipient(e.target.value)}
+                placeholder="chithilamanul1@gmail.com"
+                required
+              />
+            </div>
+
+            <div className="text-[11px] text-zinc-400 leading-relaxed bg-zinc-950 p-2.5 rounded-lg border border-zinc-800 space-y-1">
+              <p>⚡ Status: <strong className="text-purple-400">{mailStatus?.status === 'CONNECTED' ? 'Resend Live API' : 'Simulation Mode'}</strong></p>
+              <p>From: <span className="font-mono text-zinc-300">{mailStatus?.sender || 'info@seranex.lk'}</span></p>
+            </div>
+
+            <DialogFooter className="pt-2 gap-2">
+              <Button type="button" variant="outline" onClick={() => setIsTestMailModalOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" variant="purple" disabled={isSendingTestMail}>
+                {isSendingTestMail ? 'Sending...' : 'Send Test Email &rarr;'}
               </Button>
             </DialogFooter>
           </form>

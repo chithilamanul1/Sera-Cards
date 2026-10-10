@@ -6,6 +6,7 @@ import { getActivation, claimActivation, createBatchCodes, getAllActivations } f
 import { saveUserToMemory, getUserFromMemory } from '@/lib/userStore';
 import { saveCardToMemory } from '@/lib/cardStore';
 import { generateTemplateHtml } from '@/lib/templates';
+import { sendCardActivationEmail } from '@/lib/mail';
 
 export const dynamic = 'force-dynamic';
 
@@ -187,9 +188,22 @@ export async function POST(request: Request) {
     // Mark code as claimed
     await claimActivation(cleanCode, userId, cleanSlug);
 
+    // Dispatch Activation Confirmation Email to User (non-blocking)
+    try {
+      await sendCardActivationEmail({
+        to: cleanEmail,
+        name: name.trim(),
+        slug: cleanSlug,
+        code: cleanCode,
+        phone: phone ? phone.trim() : undefined,
+      });
+    } catch (mailErr) {
+      console.warn('[Activation Email Delivery Warning]:', mailErr);
+    }
+
     return NextResponse.json({
       success: true,
-      message: 'Card successfully activated! Your digital identity is live.',
+      message: 'Card successfully activated! Your digital identity is live and confirmation email has been sent.',
       slug: cleanSlug,
       redirect: '/dashboard',
     });

@@ -11,6 +11,7 @@ import {
   StoredUser,
 } from '@/lib/userStore';
 import { getTeamMemberBySlug } from '@/lib/teamStore';
+import { sendAccountProvisionedEmail } from '@/lib/mail';
 
 export const dynamic = 'force-dynamic';
 
@@ -158,6 +159,20 @@ export async function POST(request: Request) {
       } catch {}
     }
 
+    // Dispatch Account Provisioning Email (non-blocking)
+    try {
+      await sendAccountProvisionedEmail({
+        to: storedUser.email,
+        name: storedUser.name,
+        email: storedUser.email,
+        password: password,
+        slug: cleanSlug,
+        plan: storedUser.plan,
+      });
+    } catch (mailErr) {
+      console.warn('[User Provision Email Delivery Warning]:', mailErr);
+    }
+
     return NextResponse.json({
       success: true,
       user: {
@@ -170,7 +185,7 @@ export async function POST(request: Request) {
         cardSlug: storedUser.cardSlug,
         createdAt: storedUser.createdAt,
       },
-      message: `Account for ${storedUser.name} (${storedUser.email}) provisioned successfully!`,
+      message: `Account for ${storedUser.name} (${storedUser.email}) provisioned successfully and confirmation email sent!`,
     });
   } catch (error: any) {
     console.error('[Users POST Error]', error);

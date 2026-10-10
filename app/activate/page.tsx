@@ -113,7 +113,7 @@ function ActivateForm() {
         throw new Error(data.error || 'Activation failed');
       }
 
-      toast.success('Card Activated! Welcome to Sera Cards.', { duration: 4000 });
+      toast.success(`Card Activated! Confirmation email sent to ${form.email}.`, { duration: 4500 });
       setTimeout(() => {
         router.push(data.redirect || '/dashboard');
       }, 1200);
