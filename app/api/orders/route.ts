@@ -323,10 +323,12 @@ export async function POST(request: Request) {
       `*Price:* LKR ${resolvedUnitPrice.toLocaleString()}`,
       `*Delivery Fee:* LKR ${resolvedDelivery.toLocaleString()}`,
       `*Total Amount:* LKR ${totalAmount.toLocaleString()}`,
-      `*Payment Method:* ${paymentMethod}`,
+      `*Payment Method:* ${paymentMethod === 'MINTPAY' ? `Mintpay (3x Installments: 3 x LKR ${(totalAmount / 3).toFixed(2)})` : paymentMethod}`,
       notes ? `*Notes:* ${notes}` : '',
       `---------------------------------`,
-      `Please confirm my order and share design preview!`,
+      paymentMethod === 'MINTPAY'
+        ? `Please send me the Mintpay payment link and confirm my card design proof!`
+        : `Please confirm my order and share design preview!`,
     ]
       .filter(Boolean)
       .join('\n');

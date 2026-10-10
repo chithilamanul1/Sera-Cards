@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useState } from 'react';
 import {
@@ -18,12 +18,22 @@ interface OrderModalProps {
   isOpen: boolean;
   onClose: () => void;
   initialConfig: CardConfig;
+  preselectedProduct?: {
+    name: string;
+    price?: number;
+    finish?: string;
+    isCustomQuote?: boolean;
+  };
 }
 
-export function OrderModal({ isOpen, onClose, initialConfig }: OrderModalProps) {
+export function OrderModal({ isOpen, onClose, initialConfig, preselectedProduct }: OrderModalProps) {
   // Edition selection: 'signature' (LKR 3,500) vs 'custom' (LKR 5,000)
   const [edition, setEdition] = useState<'signature' | 'custom'>(
-    initialConfig.materialId === 'custom' ? 'custom' : 'signature'
+    preselectedProduct?.name?.includes('3,500') || preselectedProduct?.name?.includes('UV')
+      ? 'signature'
+      : initialConfig.materialId === 'custom' || preselectedProduct?.price === 5000
+      ? 'custom'
+      : 'signature'
   );
 
   const [customerName, setCustomerName] = useState(initialConfig.name || '');
@@ -47,7 +57,7 @@ export function OrderModal({ isOpen, onClose, initialConfig }: OrderModalProps) 
   const [facebook, setFacebook] = useState('');
   const [tiktok, setTiktok] = useState('');
 
-  const [paymentMethod, setPaymentMethod] = useState<'PAYHERE' | 'WHATSAPP'>('WHATSAPP');
+  const [paymentMethod, setPaymentMethod] = useState<'PAYHERE' | 'WHATSAPP' | 'MINTPAY'>('WHATSAPP');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [submittedOrder, setSubmittedOrder] = useState<{
@@ -58,7 +68,7 @@ export function OrderModal({ isOpen, onClose, initialConfig }: OrderModalProps) 
   if (!isOpen) return null;
 
   // Dynamic pricing calculation
-  const unitPrice = edition === 'signature' ? 3500 : 5000;
+  const unitPrice = preselectedProduct?.price ?? (edition === 'signature' ? 3500 : 5000);
   const originalPrice = edition === 'signature' ? 5000 : 7000;
   const deliveryFee = 350;
   const totalAmount = unitPrice + deliveryFee;
@@ -119,7 +129,11 @@ export function OrderModal({ isOpen, onClose, initialConfig }: OrderModalProps) 
 
     try {
       const finishName =
-        edition === 'signature' ? 'Sera Signature PVC (LKR 3,500)' : 'Full Custom Print PVC (LKR 5,000)';
+        preselectedProduct?.name
+          ? `${preselectedProduct.name} (LKR ${unitPrice.toLocaleString()})`
+          : edition === 'signature'
+          ? 'Sera Signature PVC (LKR 3,500)'
+          : 'Full Custom Print PVC (LKR 5,000)';
 
       const response = await fetch('/api/orders', {
         method: 'POST',
@@ -279,6 +293,21 @@ export function OrderModal({ isOpen, onClose, initialConfig }: OrderModalProps) 
             <span className="text-xs font-semibold uppercase tracking-wider text-white/40 block">
               1. Choose Card Package
             </span>
+
+            {preselectedProduct && (
+              <div className="flex items-center justify-between rounded-2xl border border-purple-500/30 bg-purple-500/[0.06] p-3.5 text-xs">
+                <div>
+                  <span className="text-white/40 block text-[10px] uppercase tracking-wider">Preselected Card</span>
+                  <span className="font-bold text-white text-sm">{preselectedProduct.name}</span>
+                </div>
+                {preselectedProduct.price ? (
+                  <span className="font-mono font-bold text-purple-400 text-sm">
+                    LKR {preselectedProduct.price.toLocaleString()}
+                  </span>
+                ) : null}
+              </div>
+            )}
+
             <div className="grid gap-3 sm:grid-cols-2">
               <label
                 onClick={() => setEdition('signature')}
@@ -595,7 +624,7 @@ export function OrderModal({ isOpen, onClose, initialConfig }: OrderModalProps) 
             <span className="text-xs font-semibold uppercase tracking-wider text-white/40 block">
               5. Select Payment Method
             </span>
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid gap-3 sm:grid-cols-3">
               <label
                 onClick={() => setPaymentMethod('WHATSAPP')}
                 className={`flex cursor-pointer items-start gap-3 rounded-2xl border p-4 transition-all ${
@@ -614,10 +643,36 @@ export function OrderModal({ isOpen, onClose, initialConfig }: OrderModalProps) 
                 <div>
                   <div className="flex items-center gap-2">
                     <MessageSquareIcon className="h-4 w-4 text-purple-400" />
-                    <span className="font-semibold text-white">Order via WhatsApp</span>
+                    <span className="font-semibold text-white">WhatsApp</span>
                   </div>
                   <p className="mt-1 text-xs leading-relaxed text-white/50">
-                    Direct confirmation with design proof sent to your WhatsApp.
+                    Direct confirmation & proof via chat.
+                  </p>
+                </div>
+              </label>
+
+              <label
+                onClick={() => setPaymentMethod('MINTPAY')}
+                className={`flex cursor-pointer items-start gap-3 rounded-2xl border p-4 transition-all ${
+                  paymentMethod === 'MINTPAY'
+                    ? 'border-[#00e5be] bg-[#00e5be]/[0.08] shadow-[0_0_20px_-5px_rgba(0,229,190,0.3)]'
+                    : 'border-white/10 bg-white/[0.02] hover:border-white/20'
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="payment"
+                  checked={paymentMethod === 'MINTPAY'}
+                  onChange={() => setPaymentMethod('MINTPAY')}
+                  className="mt-0.5 text-[#00e5be]"
+                />
+                <div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[#00e5be] font-black text-xs leading-none">///</span>
+                    <span className="font-semibold text-white">Mintpay</span>
+                  </div>
+                  <p className="mt-1 text-xs leading-relaxed text-white/50">
+                    3 x LKR {(totalAmount / 3).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (0% interest).
                   </p>
                 </div>
               </label>
@@ -640,10 +695,10 @@ export function OrderModal({ isOpen, onClose, initialConfig }: OrderModalProps) 
                 <div>
                   <div className="flex items-center gap-2">
                     <CreditCardIcon className="h-4 w-4 text-purple-400" />
-                    <span className="font-semibold text-white">Pay Online (PayHere)</span>
+                    <span className="font-semibold text-white">Pay Online</span>
                   </div>
                   <p className="mt-1 text-xs leading-relaxed text-white/50">
-                    Visa, MasterCard, FriMi, Genie, eZ Cash, or Bank Transfer.
+                    Visa, Master, FriMi & Genie.
                   </p>
                 </div>
               </label>
@@ -655,7 +710,11 @@ export function OrderModal({ isOpen, onClose, initialConfig }: OrderModalProps) 
             <button
               type="submit"
               disabled={isSubmitting}
-              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-purple-500 py-4 text-sm sm:text-base font-bold text-black shadow-[0_0_40px_-10px_rgba(168,85,247,0.8)] transition-all hover:bg-purple-400 active:scale-[0.98] disabled:opacity-50"
+              className={`flex w-full items-center justify-center gap-2 rounded-2xl py-4 text-sm sm:text-base font-bold text-black transition-all active:scale-[0.98] disabled:opacity-50 ${
+                paymentMethod === 'MINTPAY'
+                  ? 'bg-[#00e5be] hover:brightness-110 shadow-[0_0_40px_-10px_rgba(0,229,190,0.8)]'
+                  : 'bg-purple-500 hover:bg-purple-400 shadow-[0_0_40px_-10px_rgba(168,85,247,0.8)]'
+              }`}
             >
               {isSubmitting ? (
                 <>
@@ -664,6 +723,8 @@ export function OrderModal({ isOpen, onClose, initialConfig }: OrderModalProps) 
                 </>
               ) : paymentMethod === 'PAYHERE' ? (
                 `Proceed to PayHere Checkout (LKR ${totalAmount.toLocaleString()})`
+              ) : paymentMethod === 'MINTPAY' ? (
+                `Confirm with Mintpay (3 x LKR ${(totalAmount / 3).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })})`
               ) : (
                 `Confirm & Send via WhatsApp (LKR ${totalAmount.toLocaleString()})`
               )}

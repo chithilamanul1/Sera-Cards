@@ -5,22 +5,23 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   ShieldCheckIcon,
   TruckIcon,
-  SparklesIcon,
-  RotateCcwIcon,
-  CheckIcon,
-  MessageSquareIcon,
-  RadioIcon,
-  FileTextIcon,
   AwardIcon,
   DropletIcon,
   LayersIcon,
   ZapIcon,
-  ArrowRightIcon,
+  CheckIcon,
   XIcon,
-  ExternalLinkIcon,
+  MessageSquareIcon,
+  SparklesIcon,
+  StarIcon,
 } from 'lucide-react';
 import { CARD_PRODUCTS, PRODUCT_RANGES, CardProduct } from '@/data/products';
 import { brand } from '@/data/content';
+import { StackedCardMockup } from './StackedCardMockup';
+import { MintpayBadge } from './MintpayBadge';
+import { MintpayModal } from './MintpayModal';
+import { OrderModal } from './OrderModal';
+import { useCardConfig } from '@/hooks/useCardConfig';
 
 const valuePillars = [
   {
@@ -61,51 +62,49 @@ const valuePillars = [
   },
 ];
 
-const unboxingItems = [
-  {
-    num: '01',
-    title: 'Custom NFC Smart Business Card',
-    detail: 'Engineered in your chosen finish with embedded NXP NTAG215 microchip.',
-  },
-  {
-    num: '02',
-    title: 'Matte Protective Velvet Sleeve',
-    detail: 'Luxury anti-scratch sleeve for protection in wallets and briefcases.',
-  },
-  {
-    num: '03',
-    title: 'Instant Tap Setup & Activation Guide',
-    detail: 'Step-by-step instructions to configure your profile in under 60 seconds.',
-  },
-  {
-    num: '04',
-    title: '1-Year Warranty & Authenticity Seal',
-    detail: 'Official serial verification certificate with priority WhatsApp support.',
-  },
-];
-
 export function ProductRangeCatalog() {
+  const cardApi = useCardConfig();
   const [selectedRange, setSelectedRange] = useState<string>('all');
-  const [flippedCards, setFlippedCards] = useState<Record<string, boolean>>({});
   const [activeSpecProduct, setActiveSpecProduct] = useState<CardProduct | null>(null);
-
-  const toggleFlip = (id: string) => {
-    setFlippedCards((prev) => ({ ...prev, [id]: !prev[id] }));
-  };
+  const [mintpayModalProduct, setMintpayModalProduct] = useState<CardProduct | null>(null);
+  const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
+  const [selectedOrderProduct, setSelectedOrderProduct] = useState<CardProduct | null>(null);
 
   const filteredProducts =
     selectedRange === 'all'
       ? CARD_PRODUCTS
       : CARD_PRODUCTS.filter((p) => p.rangeId === selectedRange);
 
-  const buildWhatsappOrderLink = (product: CardProduct) => {
+  const handlePlaceOrder = (product: CardProduct) => {
+    setSelectedOrderProduct(product);
+    if (product.materialId) {
+      cardApi.setMaterial(product.materialId);
+    }
+    setIsOrderModalOpen(true);
+  };
+
+  const buildWhatsappLink = (product: CardProduct) => {
+    if (product.isCustomQuote || !product.priceLkr) {
+      const text = [
+        `Hi Sera Cards — I would like to inquire about a custom 24K Gold Card:`,
+        ``,
+        `*Product:* ${product.name}`,
+        `*Finish:* ${product.surfaceType}`,
+        `*Material:* ${product.materialComposition}`,
+        ``,
+        `Please share bespoke quotation details and design options.`,
+      ].join('\n');
+      return `https://wa.me/${brand.whatsapp}?text=${encodeURIComponent(text)}`;
+    }
+
+    const installment = (product.priceLkr / 3).toFixed(2);
     const text = [
       `Hi Sera Cards — I would like to order the following card:`,
       ``,
       `*Product:* ${product.name}`,
-      `*Range:* ${product.rangeName}`,
-      `*Finish:* ${product.surfaceType}`,
-      `*Price:* LKR ${product.priceLkr.toLocaleString()} (Free Island-Wide Delivery)`,
+      `*Material:* ${product.materialType}`,
+      `*Design Type:* ${product.designType}`,
+      `*Price:* LKR ${product.priceLkr.toLocaleString()} (or 3 x LKR ${installment} with Mintpay)`,
       ``,
       `Please guide me with the design & delivery details.`,
     ].join('\n');
@@ -113,31 +112,26 @@ export function ProductRangeCatalog() {
   };
 
   return (
-    <section id="products" className="relative border-t border-white/[0.07] bg-ink-950 py-20 lg:py-28">
-      {/* Background Glow */}
+    <section id="products" className="relative border-t border-white/[0.07] bg-black py-20 lg:py-28">
+      {/* Background Radial Glow */}
       <div
         aria-hidden
-        className="pointer-events-none absolute top-1/4 left-1/2 h-[600px] w-[1100px] -translate-x-1/2 rounded-full bg-accent-500/[0.07] blur-[160px]"
+        className="pointer-events-none absolute top-1/4 left-1/2 h-[600px] w-[1100px] -translate-x-1/2 rounded-full bg-purple-500/[0.06] blur-[160px]"
       />
 
       <div className="relative mx-auto max-w-content px-5 sm:px-8">
-        {/* Section Header */}
+        {/* ─── SECTION TITLE (Matching user screenshot) ─── */}
         <div className="mx-auto max-w-3xl text-center">
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-accent-500/30 bg-accent-500/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-accent-400">
-            <RadioIcon className="h-3.5 w-3.5" />
-            Engineered Hardware Collection
-          </span>
-          <h2 className="mt-4 text-3xl font-bold tracking-tightest text-white sm:text-4xl lg:text-5xl">
-            3 Product Ranges. <br className="hidden sm:block" />
-            <span className="text-accent-400">10 Masterpiece Cards.</span>
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-white">
+            Pick the card that matches your style and business.
           </h2>
-          <p className="mt-4 text-base leading-relaxed text-white/60 sm:text-lg">
-            Choose from stealth matte PVC composites, surgical-grade stainless steel, and 24K electroplated mirror gold. All cards feature genuine NXP NTAG215 microchips, laser-etched dynamic QR codes, and 100% waterproof construction.
+          <p className="mt-3 text-sm sm:text-base text-white/50 max-w-xl mx-auto">
+            High-speed NFC smart business cards engineered for modern Sri Lankan professionals. Zero monthly subscriptions and free island-wide delivery.
           </p>
         </div>
 
         {/* Range Filter Tabs */}
-        <div className="mt-12 flex flex-wrap items-center justify-center gap-2 sm:gap-3">
+        <div className="mt-10 flex flex-wrap items-center justify-center gap-2 sm:gap-2.5">
           {PRODUCT_RANGES.map((r) => {
             const isActive = selectedRange === r.id;
             return (
@@ -145,9 +139,9 @@ export function ProductRangeCatalog() {
                 key={r.id}
                 type="button"
                 onClick={() => setSelectedRange(r.id)}
-                className={`rounded-full px-5 py-2.5 text-xs font-bold transition-all sm:text-sm ${
+                className={`rounded-full px-5 py-2 text-xs sm:text-sm font-semibold transition-all ${
                   isActive
-                    ? 'bg-accent-500 text-ink-950 shadow-[0_0_30px_-5px_rgba(168,85,247,0.8)]'
+                    ? 'bg-white text-black shadow-lg shadow-white/10'
                     : 'border border-white/10 bg-white/[0.03] text-white/70 hover:border-white/20 hover:text-white'
                 }`}
               >
@@ -157,11 +151,11 @@ export function ProductRangeCatalog() {
           })}
         </div>
 
-        {/* 10 Products Grid */}
-        <div className="mt-14 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+        {/* ─── PRODUCTS GRID (Exact 2-Column Card Layout) ─── */}
+        <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-2 max-w-5xl mx-auto">
           {filteredProducts.map((product) => {
-            const isFlipped = !!flippedCards[product.id];
-            const design = product.cardDesign;
+            const isBestSeller = !!product.isBestSeller;
+            const isGold = !!product.isCustomQuote || product.id.includes('gold');
 
             return (
               <motion.div
@@ -170,351 +164,269 @@ export function ProductRangeCatalog() {
                 initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.28 }}
-                className="group relative flex flex-col justify-between rounded-3xl border border-white/10 bg-ink-900/60 p-6 shadow-xl transition-all hover:border-accent-500/40 hover:bg-ink-900/80"
+                className={`group relative flex flex-col justify-between rounded-3xl p-6 sm:p-8 transition-all overflow-hidden ${
+                  isGold
+                    ? 'border border-amber-500/40 bg-gradient-to-b from-amber-950/25 via-[#12141a] to-[#12141a] shadow-[0_0_60px_-25px_rgba(245,158,11,0.35)]'
+                    : isBestSeller
+                    ? 'border border-purple-500/35 bg-gradient-to-b from-purple-950/20 via-[#12141a] to-[#12141a] shadow-[0_0_60px_-25px_rgba(168,85,247,0.3)]'
+                    : 'border border-white/10 bg-[#12141a] hover:border-white/20 hover:bg-[#151720]'
+                }`}
               >
-                <div>
-                  {/* Top Badges */}
-                  <div className="flex items-center justify-between gap-2 mb-4">
-                    <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[11px] font-semibold text-white/70 uppercase tracking-wider">
-                      {product.rangeName}
-                    </span>
-                    <span className="rounded-full bg-accent-500/10 px-3 py-1 text-[11px] font-bold text-accent-300 border border-accent-500/20">
-                      {product.badge}
-                    </span>
-                  </div>
-
-                  {/* ─── REAL PHYSICAL CARD VISUAL MOCKUP (Front / Back Flip) ─── */}
-                  <div className="relative aspect-[1.586/1] w-full overflow-hidden rounded-2xl shadow-2xl border border-white/10">
+                {/* Gold / Ribbon Badge */}
+                {product.badge && (
+                  <div className="absolute top-0 left-0">
                     <div
-                      className="absolute inset-0 p-5 flex flex-col justify-between select-none transition-transform duration-500"
-                      style={{
-                        backgroundColor: design.backgroundColor,
-                        backgroundImage: design.backgroundImage,
-                        color: design.textColor,
-                        boxShadow: `inset 0 0 0 1px ${design.edgeBorder}`,
-                      }}
+                      className={`relative flex items-center gap-1 px-4 py-1.5 rounded-br-2xl text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-black shadow-lg ${
+                        isGold || isBestSeller
+                          ? 'bg-gradient-to-r from-amber-400 to-amber-500'
+                          : 'bg-gradient-to-r from-zinc-200 to-zinc-300'
+                      }`}
                     >
-                      {/* Subtle Specular Sheen */}
-                      <div
-                        aria-hidden
-                        className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-transparent via-white/[0.06] to-transparent"
-                      />
-
-                      {!isFlipped ? (
-                        /* ── CARD FRONT ── */
-                        <>
-                          <div className="flex items-center justify-between relative z-10">
-                            <span className="text-[9px] font-mono tracking-widest uppercase opacity-60">
-                              {product.specs.chipset.split(' ')[0]}
-                            </span>
-                            {/* Contactless Wave Icon */}
-                            <svg
-                              viewBox="0 0 24 24"
-                              className="h-5 w-5 opacity-80"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2.2"
-                              strokeLinecap="round"
-                            >
-                              <path d="M8.5 16.5a5 5 0 0 1 0-9" />
-                              <path d="M12 19a8.5 8.5 0 0 1 0-14" />
-                              <path d="M15.5 21.5a12 12 0 0 1 0-19" />
-                            </svg>
-                          </div>
-
-                          {/* Center Brand / Typography */}
-                          <div className="flex-1 flex flex-col items-center justify-center text-center px-3 relative z-10">
-                            {design.hasLogo ? (
-                              <div className="space-y-1">
-                                <span className="text-xl sm:text-2xl font-black tracking-tightest uppercase block">
-                                  SERA
-                                </span>
-                                <span className="text-[9px] uppercase tracking-[0.25em] block opacity-70">
-                                  SMART CARD
-                                </span>
-                              </div>
-                            ) : (
-                              <div className="space-y-1">
-                                <span className="text-lg sm:text-xl font-bold tracking-tight uppercase block leading-tight">
-                                  CHITHILA MANUL
-                                </span>
-                                <span className="text-[9px] uppercase tracking-widest block opacity-75">
-                                  FOUNDER & CEO
-                                </span>
-                              </div>
-                            )}
-                          </div>
-
-                          <div className="flex items-center justify-between text-[8px] font-mono uppercase tracking-widest opacity-60 relative z-10">
-                            <span>SERANEX.LK</span>
-                            <span>{product.surfaceType}</span>
-                          </div>
-                        </>
-                      ) : (
-                        /* ── CARD BACK (DYNAMIC QR + CREDENTIALS) ── */
-                        <>
-                          <div className="flex items-center justify-between text-[9px] font-mono uppercase tracking-wider opacity-70 relative z-10">
-                            <span className="font-bold">BACK VIEW</span>
-                            <span>DYNAMIC QR</span>
-                          </div>
-
-                          <div className="flex items-center justify-between gap-3 relative z-10 my-auto">
-                            {/* Realistic Dynamic QR Mock */}
-                            <div className="w-16 h-16 sm:w-20 sm:h-20 bg-white p-1.5 rounded-lg shadow-md shrink-0 flex items-center justify-center">
-                              <div className="w-full h-full bg-slate-900 rounded p-1 flex flex-col justify-between">
-                                <div className="flex justify-between">
-                                  <div className="w-2.5 h-2.5 bg-white rounded-xs" />
-                                  <div className="w-2.5 h-2.5 bg-white rounded-xs" />
-                                </div>
-                                <div className="text-[7px] text-white font-mono text-center font-bold">
-                                  SERA
-                                </div>
-                                <div className="flex justify-between">
-                                  <div className="w-2.5 h-2.5 bg-white rounded-xs" />
-                                  <div className="w-1.5 h-1.5 bg-purple-400 rounded-full" />
-                                </div>
-                              </div>
-                            </div>
-
-                            {/* Details List */}
-                            <div className="text-right text-[9px] leading-tight space-y-1 opacity-80 min-w-0">
-                              <p className="font-bold truncate text-[10px]">CHITHILA MANUL</p>
-                              <p className="opacity-75 truncate">072 838 2638</p>
-                              <p className="opacity-75 truncate">hello@seranex.lk</p>
-                              <p className="font-mono text-purple-300 truncate">chithila.seranex.lk</p>
-                            </div>
-                          </div>
-
-                          <div className="flex items-center justify-between text-[8px] font-mono opacity-50 relative z-10">
-                            <span>SCAN WITH CAMERA</span>
-                            <span>IP68 WATERPROOF</span>
-                          </div>
-                        </>
-                      )}
+                      <StarIcon className="h-3 w-3 fill-black text-black" />
+                      {product.badge}
                     </div>
                   </div>
+                )}
 
-                  {/* Flip Front / Back Toggle Button */}
-                  <div className="mt-3 flex items-center justify-between">
-                    <button
-                      type="button"
-                      onClick={() => toggleFlip(product.id)}
-                      className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-1 text-[11px] font-medium text-white/70 hover:bg-white/10 hover:text-white transition"
-                    >
-                      <RotateCcw className="h-3 w-3" />
-                      {isFlipped ? 'Show Front Face' : 'Show Back Face (QR)'}
-                    </button>
-                    <span className="text-[11px] font-mono text-white/40">
-                      {product.weightGrams}g Weight
-                    </span>
+                <div>
+                  {/* Card Header: Title & Subtitle */}
+                  <div className="text-center pt-2">
+                    <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
+                      {product.name}
+                    </h3>
+                    <p className="mt-1 text-xs sm:text-sm text-white/50 font-medium">
+                      {product.subtitle || 'Smart Business Card'}
+                    </p>
                   </div>
 
-                  {/* Product Title & Price */}
-                  <div className="mt-5">
-                    <h3 className="text-xl font-bold text-white">{product.name}</h3>
-                    <p className="text-xs text-white/50 mt-1">{product.tagline}</p>
-                    <div className="mt-4 flex items-baseline gap-2">
-                      <span className="text-xs font-semibold text-white/40">LKR</span>
-                      <span className="text-3xl font-extrabold text-white">
-                        {product.priceLkr.toLocaleString()}
-                      </span>
-                      <span className="text-xs text-accent-400 font-semibold">● Free Delivery</span>
-                    </div>
+                  {/* ─── 3D STACKED FLOATING CARD MOCKUP WITH IMAGES ─── */}
+                  <div className="my-2">
+                    <StackedCardMockup product={product} />
                   </div>
 
-                  {/* Bullet Highlights */}
-                  <ul className="mt-5 space-y-2 border-t border-white/[0.08] pt-4 text-xs text-white/65">
-                    {product.bullets.slice(0, 4).map((b) => (
-                      <li key={b} className="flex items-start gap-2">
-                        <CheckIcon className="h-3.5 w-3.5 text-accent-400 shrink-0 mt-0.5" />
-                        <span>{b}</span>
-                      </li>
-                    ))}
-                  </ul>
+                  {/* Price Section */}
+                  <div className="text-center space-y-1.5 mt-2 min-h-[58px] flex flex-col items-center justify-center">
+                    {product.isCustomQuote || !product.priceLkr ? (
+                      /* Custom Gold Card — WITHOUT FIXED PRICE */
+                      <div>
+                        <div className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/40 bg-amber-500/10 px-4 py-1 text-sm sm:text-base font-extrabold text-amber-400">
+                          <SparklesIcon className="h-4 w-4 text-amber-400" />
+                          <span>{product.priceDisplay || 'Price on Request'}</span>
+                        </div>
+                        <p className="mt-1 text-[11px] text-amber-200/60 font-medium">
+                          Bespoke 24K Gold · Custom Quote on WhatsApp
+                        </p>
+                      </div>
+                    ) : (
+                      /* Fixed Price Cards */
+                      <>
+                        <div className="flex items-center justify-center gap-2.5">
+                          <span className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+                            LKR {product.priceLkr.toLocaleString()}
+                          </span>
+
+                          {product.originalPriceLkr && (
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-xs sm:text-sm text-red-400/80 line-through">
+                                LKR {product.originalPriceLkr.toLocaleString()}
+                              </span>
+                              <span className="rounded bg-red-500/20 px-1.5 py-0.5 text-[10px] font-bold text-red-400">
+                                -{product.discountPercent}%
+                              </span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Mintpay BNPL Installment Display */}
+                        <div className="flex justify-center">
+                          <MintpayBadge
+                            price={product.priceLkr}
+                            onInfoClick={() => setMintpayModalProduct(product)}
+                          />
+                        </div>
+                      </>
+                    )}
+                  </div>
+
+                  {/* Feature Bullets (Matching screenshot) */}
+                  <div className="mt-6 space-y-2 border-t border-white/[0.07] pt-5 text-center text-xs sm:text-sm text-white/70">
+                    <p className="flex items-center justify-center gap-2">
+                      <CheckIcon className="h-4 w-4 text-emerald-400 shrink-0" />
+                      <span>{product.designType}</span>
+                    </p>
+                    <p className="flex items-center justify-center gap-2">
+                      <CheckIcon className="h-4 w-4 text-emerald-400 shrink-0" />
+                      <span>{product.materialType}</span>
+                    </p>
+                  </div>
                 </div>
 
-                {/* Card Actions */}
-                <div className="mt-6 space-y-2.5">
-                  <a
-                    href={buildWhatsappOrderLink(product)}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-accent-500 py-3 text-xs font-bold text-ink-950 shadow-[0_0_30px_-8px_rgba(168,85,247,0.8)] hover:bg-accent-400 transition active:scale-[0.98]"
-                  >
-                    <MessageSquareIcon className="h-3.5 w-3.5" />
-                    Order via WhatsApp
-                  </a>
+                {/* ─── ACTION BUTTONS ─── */}
+                <div className="mt-7 space-y-2.5">
+                  {product.isCustomQuote || !product.priceLkr ? (
+                    /* Bespoke Inquire Button for Custom Gold */
+                    <a
+                      href={buildWhatsappLink(product)}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 py-3.5 text-sm sm:text-base font-extrabold text-black hover:brightness-105 transition active:scale-[0.98] shadow-lg shadow-amber-500/25"
+                    >
+                      <MessageSquareIcon className="h-4 w-4" />
+                      Inquire via WhatsApp
+                    </a>
+                  ) : (
+                    /* Primary High-Contrast "Place Order" button from screenshot */
+                    <button
+                      type="button"
+                      onClick={() => handlePlaceOrder(product)}
+                      className="w-full rounded-2xl bg-white py-3.5 text-sm sm:text-base font-bold text-black hover:bg-zinc-200 transition active:scale-[0.98] shadow-md shadow-white/10"
+                    >
+                      Place Order
+                    </button>
+                  )}
 
-                  <button
-                    type="button"
-                    onClick={() => setActiveSpecProduct(product)}
-                    className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-white/12 bg-white/[0.03] py-2.5 text-xs font-semibold text-white hover:bg-white/[0.08] transition"
-                  >
-                    <FileTextIcon className="h-3.5 w-3.5 text-accent-400" />
-                    View Technical Specifications
-                  </button>
+                  <div className="flex items-center justify-between text-[11px] text-white/40 px-1">
+                    <button
+                      type="button"
+                      onClick={() => setActiveSpecProduct(product)}
+                      className="hover:text-white transition underline underline-offset-4"
+                    >
+                      Technical Specs
+                    </button>
+                    <a
+                      href={buildWhatsappLink(product)}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex items-center gap-1 text-emerald-400 hover:text-emerald-300 transition"
+                    >
+                      <MessageSquareIcon className="h-3 w-3" />
+                      {product.isCustomQuote ? 'Inquire on WhatsApp' : 'Order via WhatsApp'}
+                    </a>
+                  </div>
                 </div>
               </motion.div>
             );
           })}
         </div>
 
-        {/* ─── 6 CORE VALUE PILLARS (Luviroyal Benchmark) ─── */}
-        <div className="mt-24 border-t border-white/[0.08] pt-16">
+        {/* ─── 6 CORE TRUST PILLARS ─── */}
+        <div className="mt-24 border-t border-white/10 pt-16">
           <div className="mx-auto max-w-2xl text-center mb-12">
-            <span className="text-xs font-bold uppercase tracking-widest text-accent-400">
-              The Sera Standard
+            <span className="text-xs font-bold uppercase tracking-widest text-purple-400">
+              Executive Guarantee
             </span>
-            <h3 className="mt-2 text-2xl font-bold tracking-tight text-white sm:text-3xl">
-              Why Sri Lankan Professionals Choose Sera Cards
+            <h3 className="mt-2 text-2xl sm:text-3xl font-bold text-white">
+              Why Sri Lankan Leaders Choose Sera Cards
             </h3>
-            <p className="mt-2 text-sm text-white/50">
-              Zero monthly fees, bulletproof water resistance, and free island-wide replacement warranty.
-            </p>
           </div>
 
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {valuePillars.map((pillar) => (
               <div
                 key={pillar.title}
-                className="rounded-2xl border border-white/10 bg-ink-900/50 p-6 hover:border-white/20 transition"
+                className="flex flex-col justify-between rounded-2xl border border-white/10 bg-[#12141a] p-6 hover:border-white/20 transition"
               >
-                <div className="flex items-center justify-between">
-                  <div className="w-10 h-10 rounded-xl bg-accent-500/10 text-accent-400 flex items-center justify-center">
-                    <pillar.icon className="h-5 w-5" />
+                <div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-500/10 text-purple-400">
+                      <pillar.icon className="h-5 w-5" />
+                    </div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-purple-300 rounded-full border border-purple-500/30 px-2.5 py-0.5">
+                      {pillar.tag}
+                    </span>
                   </div>
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-accent-300 bg-accent-500/10 px-2.5 py-0.5 rounded-full border border-accent-500/20">
-                    {pillar.tag}
-                  </span>
+                  <h4 className="mt-4 text-base font-bold text-white">{pillar.title}</h4>
+                  <p className="mt-2 text-xs leading-relaxed text-white/50">{pillar.body}</p>
                 </div>
-                <h4 className="mt-4 text-base font-bold text-white">{pillar.title}</h4>
-                <p className="mt-2 text-xs leading-relaxed text-white/60">{pillar.body}</p>
               </div>
             ))}
           </div>
         </div>
-
-        {/* ─── WHAT'S IN THE BOX UNBOXING BREAKDOWN ─── */}
-        <div className="mt-20 rounded-3xl border border-white/10 bg-gradient-to-r from-ink-900/90 via-ink-950 to-ink-900/90 p-8 sm:p-12">
-          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8">
-            <div className="max-w-xl">
-              <span className="text-xs font-bold uppercase tracking-widest text-accent-400">
-                Premium Unboxing Experience
-              </span>
-              <h3 className="mt-2 text-2xl sm:text-3xl font-bold text-white">
-                What's In Your Sera Card Package
-              </h3>
-              <p className="mt-3 text-sm text-white/60 leading-relaxed">
-                Every order is meticulously inspected, encoded, and packaged in a luxury matte presentation box before dispatch via tracked island-wide delivery.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full lg:max-w-xl">
-              {unboxingItems.map((item) => (
-                <div key={item.title} className="p-4 rounded-xl border border-white/10 bg-white/[0.02]">
-                  <span className="font-mono text-sm font-bold text-accent-400">{item.num}</span>
-                  <h4 className="text-xs font-bold text-white mt-1">{item.title}</h4>
-                  <p className="text-[11px] text-white/50 mt-1">{item.detail}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
       </div>
 
-      {/* ─── FULL TECHNICAL SPECIFICATIONS MODAL ─── */}
+      {/* ─── TECH SPECS MODAL ─── */}
       <AnimatePresence>
         {activeSpecProduct && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="relative w-full max-w-lg rounded-3xl border border-white/15 bg-ink-900 p-6 sm:p-8 text-white shadow-2xl"
-            >
+            <div className="relative w-full max-w-lg rounded-3xl border border-white/10 bg-[#111317] p-6 sm:p-8 text-white">
               <button
                 type="button"
                 onClick={() => setActiveSpecProduct(null)}
-                className="absolute top-5 right-5 text-white/50 hover:text-white"
+                className="absolute top-5 right-5 rounded-full p-2 text-white/50 hover:bg-white/10 hover:text-white"
               >
                 <XIcon className="h-5 w-5" />
               </button>
 
-              <span className="text-xs font-bold uppercase tracking-wider text-accent-400">
-                {activeSpecProduct.rangeName}
-              </span>
-              <h3 className="text-2xl font-bold mt-1">{activeSpecProduct.name}</h3>
-              <p className="text-xs text-white/50 mt-1">{activeSpecProduct.description}</p>
+              <h3 className="text-xl font-bold text-white">{activeSpecProduct.name}</h3>
+              <p className="text-xs text-white/50 mt-1">{activeSpecProduct.surfaceType} · Technical Specs</p>
 
-              {/* Spec Table */}
-              <div className="mt-6 divide-y divide-white/[0.08] text-xs">
-                <div className="py-2.5 flex justify-between">
-                  <span className="text-white/40">Material Composition</span>
-                  <span className="font-semibold">{activeSpecProduct.materialComposition}</span>
-                </div>
-                <div className="py-2.5 flex justify-between">
-                  <span className="text-white/40">Dimensions</span>
-                  <span className="font-semibold">{activeSpecProduct.specs.dimensions}</span>
-                </div>
-                <div className="py-2.5 flex justify-between">
-                  <span className="text-white/40">Thickness & Weight</span>
-                  <span className="font-semibold">{activeSpecProduct.specs.thickness} ({activeSpecProduct.specs.weight})</span>
-                </div>
-                <div className="py-2.5 flex justify-between">
-                  <span className="text-white/40">Microchip</span>
-                  <span className="font-semibold text-accent-300">{activeSpecProduct.specs.chipset}</span>
-                </div>
-                <div className="py-2.5 flex justify-between">
-                  <span className="text-white/40">Read Range</span>
-                  <span className="font-semibold">{activeSpecProduct.specs.readDistance}</span>
-                </div>
-                <div className="py-2.5 flex justify-between">
-                  <span className="text-white/40">Water Resistance</span>
-                  <span className="font-semibold text-emerald-400">{activeSpecProduct.specs.waterproof}</span>
-                </div>
-                <div className="py-2.5 flex justify-between">
-                  <span className="text-white/40">Warranty</span>
-                  <span className="font-semibold text-emerald-400">{activeSpecProduct.specs.warranty}</span>
-                </div>
-                <div className="py-2.5 flex justify-between">
-                  <span className="text-white/40">Monthly / Yearly Fees</span>
-                  <span className="font-semibold text-accent-400">{activeSpecProduct.specs.monthlyFee}</span>
-                </div>
-              </div>
+              <dl className="mt-6 divide-y divide-white/10 text-xs">
+                {Object.entries(activeSpecProduct.specs).map(([k, v]) => (
+                  <div key={k} className="py-2.5 flex justify-between gap-4">
+                    <dt className="text-white/50 uppercase tracking-wider text-[10px]">{k}</dt>
+                    <dd className="font-semibold text-white text-right">{v}</dd>
+                  </div>
+                ))}
+              </dl>
 
-              <div className="mt-6 flex gap-3">
-                <a
-                  href={buildWhatsappOrderLink(activeSpecProduct)}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-accent-500 py-3 text-xs font-bold text-ink-950 hover:bg-accent-400 transition"
-                >
-                  <MessageSquareIcon className="h-4 w-4" />
-                  Order via WhatsApp (LKR {activeSpecProduct.priceLkr.toLocaleString()})
-                </a>
+              <div className="mt-6">
+                {activeSpecProduct.isCustomQuote ? (
+                  <a
+                    href={buildWhatsappLink(activeSpecProduct)}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 py-3 text-sm font-bold text-black hover:brightness-105 transition"
+                  >
+                    <MessageSquareIcon className="h-4 w-4" />
+                    Inquire on WhatsApp for {activeSpecProduct.name}
+                  </a>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const p = activeSpecProduct;
+                      setActiveSpecProduct(null);
+                      handlePlaceOrder(p);
+                    }}
+                    className="w-full rounded-xl bg-white py-3 text-sm font-bold text-black hover:bg-zinc-200 transition"
+                  >
+                    Place Order for {activeSpecProduct.name}
+                  </button>
+                )}
               </div>
-            </motion.div>
+            </div>
           </div>
         )}
       </AnimatePresence>
-    </section>
-  );
-}
 
-// Icon helper
-function RotateCcw(props: any) {
-  return (
-    <svg
-      {...props}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-      <path d="M3 3v5h5" />
-    </svg>
+      {/* ─── MINTPAY INFO MODAL ─── */}
+      <MintpayModal
+        isOpen={!!mintpayModalProduct}
+        onClose={() => setMintpayModalProduct(null)}
+        productPrice={mintpayModalProduct?.priceLkr}
+        productName={mintpayModalProduct?.name}
+      />
+
+      {/* ─── ORDER MODAL ─── */}
+      <OrderModal
+        isOpen={isOrderModalOpen}
+        onClose={() => setIsOrderModalOpen(false)}
+        initialConfig={{
+          ...cardApi.config,
+          business: selectedOrderProduct?.name || cardApi.config.business,
+          materialId: selectedOrderProduct?.materialId || cardApi.config.materialId,
+        }}
+        preselectedProduct={
+          selectedOrderProduct
+            ? {
+                name: selectedOrderProduct.name,
+                price: selectedOrderProduct.priceLkr,
+                finish: selectedOrderProduct.surfaceType,
+                isCustomQuote: selectedOrderProduct.isCustomQuote,
+              }
+            : undefined
+        }
+      />
+    </section>
   );
 }
