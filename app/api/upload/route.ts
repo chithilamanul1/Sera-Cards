@@ -5,43 +5,50 @@ export const dynamic = 'force-dynamic';
 /**
  * POST /api/upload
  * Validates and accepts image uploads (logos, profile photos)
- * Accepts JSON with { image: string (base64 data URL), fileName?: string }
+ * and PDF documents (company catalogs, menus, price sheets, brochures)
+ * Accepts JSON with { image?: string, file?: string, fileName?: string }
  */
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { image, fileName = 'card-logo.png' } = body;
+    const fileData = body.file || body.image;
+    const fileName = body.fileName || 'document';
 
-    if (!image || typeof image !== 'string') {
-      return NextResponse.json({ error: 'No image data provided' }, { status: 400 });
+    if (!fileData || typeof fileData !== 'string') {
+      return NextResponse.json({ error: 'No file or image data provided' }, { status: 400 });
     }
 
-    // Verify it is a valid data URL
-    if (!image.startsWith('data:image/')) {
+    const isImage = fileData.startsWith('data:image/');
+    const isPdf = fileData.startsWith('data:application/pdf');
+
+    if (!isImage && !isPdf) {
       return NextResponse.json(
-        { error: 'Invalid image format. Expected a base64 image data URL (PNG, JPEG, WebP, SVG).' },
+        { error: 'Invalid file format. Please upload an image (PNG, JPG, WebP) or a PDF document.' },
         { status: 400 }
       );
     }
 
-    // Check size limit: max 5MB base64 (~7MB string)
-    const approximateByteLength = (image.length * 3) / 4;
-    const maxBytes = 5 * 1024 * 1024; // 5MB
+    // Check size limit: max 10MB for PDFs, 5MB for images
+    const approximateByteLength = (fileData.length * 3) / 4;
+    const maxBytes = isPdf ? 10 * 1024 * 1024 : 5 * 1024 * 1024;
+
     if (approximateByteLength > maxBytes) {
       return NextResponse.json(
-        { error: 'Image file too large. Maximum allowed size is 5MB.' },
+        { error: `File too large. Maximum allowed size is ${isPdf ? '10MB for PDFs' : '5MB for images'}.` },
         { status: 400 }
       );
     }
 
-    // Return the base64 URL directly (compatible with MongoDB storage and direct preview)
+    const fileType = isPdf ? 'pdf' : 'image';
+
     return NextResponse.json({
       success: true,
-      url: image,
+      url: fileData,
       fileName,
+      fileType,
     });
   } catch (error: any) {
     console.error('Upload error:', error);
-    return NextResponse.json({ error: 'Failed to upload image' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to upload file', details: error.message }, { status: 500 });
   }
 }

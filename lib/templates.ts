@@ -18,6 +18,8 @@ export interface TemplateData {
   linkedin?: string;
   tiktok?: string;
   snapchat?: string;
+  catalogPdfUrl?: string;
+  catalogPdfTitle?: string;
 }
 
 export const TEMPLATE_PRESETS = [
@@ -160,6 +162,117 @@ function buildLeadModal(data: TemplateData): string {
 </div>`.trim();
 }
 
+// ─── Smart Google Review Booster Helpers ─────────────────────────────────────
+
+function buildSmartReviewScript(reviewUrl?: string, ownerWa?: string): string {
+  const safeReviewUrl = reviewUrl || '#';
+  const cleanWa = (ownerWa || '').replace(/[^0-9]/g, '');
+
+  return `
+function openSmartReviewModal() {
+  var m = document.getElementById('smartReviewModal');
+  if (m) {
+    document.getElementById('reviewStep1').style.display = 'block';
+    document.getElementById('reviewStepHigh').style.display = 'none';
+    document.getElementById('reviewStepLow').style.display = 'none';
+    m.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  }
+}
+function closeSmartReviewModal() {
+  var m = document.getElementById('smartReviewModal');
+  if (m) {
+    m.style.display = 'none';
+    document.body.style.overflow = '';
+  }
+}
+function highlightStars(count) {
+  var stars = document.querySelectorAll('.star-item');
+  for (var i = 0; i < stars.length; i++) {
+    stars[i].style.color = i < count ? '#fbbf24' : '#475569';
+  }
+}
+function resetStars() {
+  highlightStars(0);
+}
+function handleStarClick(rating) {
+  document.getElementById('reviewStep1').style.display = 'none';
+  if (rating >= 4) {
+    document.getElementById('reviewStepHigh').style.display = 'block';
+  } else {
+    document.getElementById('reviewStepLow').style.display = 'block';
+  }
+}
+function submitPrivateFeedback() {
+  var text = document.getElementById('privateFeedbackText').value.trim();
+  if (!text) return;
+  var wa = '${cleanWa}';
+  if (wa) {
+    var msg = '⚠️ *Private Feedback from Digital Card:*\\n\\n' + text;
+    window.open('https://wa.me/' + wa + '?text=' + encodeURIComponent(msg), '_blank');
+  } else {
+    alert('Thank you for your feedback! We will address it immediately.');
+  }
+  closeSmartReviewModal();
+}`.trim();
+}
+
+function buildSmartReviewModal(data: TemplateData): string {
+  const nameToUse = data.name || data.company || 'Us';
+  const reviewUrl = data.googleReviewUrl || '#';
+
+  return `
+<div id="smartReviewModal" style="position:fixed;inset:0;background:rgba(0,0,0,0.85);display:none;align-items:center;justify-content:center;z-index:9999;backdrop-filter:blur(6px);padding:1rem;" onclick="if(event.target===this)closeSmartReviewModal()">
+  <div style="width:100%;max-width:390px;background:#111116;border-radius:24px;border:1px solid rgba(255,255,255,0.12);padding:1.75rem;text-align:center;color:#fff;box-shadow:0 25px 50px -12px rgba(0,0,0,0.8);">
+    <div style="display:flex;justify-content:flex-end;margin-bottom:0.25rem;">
+      <button onclick="closeSmartReviewModal()" style="background:none;border:none;color:#94a3b8;font-size:1.5rem;cursor:pointer;line-height:1;">&times;</button>
+    </div>
+
+    <!-- Step 1: 5-Star Selection -->
+    <div id="reviewStep1">
+      <div style="font-size:2.4rem;margin-bottom:0.5rem;">⭐</div>
+      <h3 style="font-size:1.2rem;font-weight:700;margin:0 0 0.4rem 0;">Rate Your Experience</h3>
+      <p style="font-size:0.8rem;color:#94a3b8;margin:0 0 1.25rem 0;">How was your interaction with ${nameToUse}?</p>
+      
+      <div style="display:flex;justify-content:center;gap:0.5rem;font-size:2.2rem;margin-bottom:1rem;color:#475569;cursor:pointer;" id="starContainer">
+        <span onclick="handleStarClick(1)" onmouseover="highlightStars(1)" onmouseout="resetStars()" class="star-item">★</span>
+        <span onclick="handleStarClick(2)" onmouseover="highlightStars(2)" onmouseout="resetStars()" class="star-item">★</span>
+        <span onclick="handleStarClick(3)" onmouseover="highlightStars(3)" onmouseout="resetStars()" class="star-item">★</span>
+        <span onclick="handleStarClick(4)" onmouseover="highlightStars(4)" onmouseout="resetStars()" class="star-item">★</span>
+        <span onclick="handleStarClick(5)" onmouseover="highlightStars(5)" onmouseout="resetStars()" class="star-item">★</span>
+      </div>
+      <p style="font-size:0.75rem;color:#64748b;">Tap a star to rate</p>
+    </div>
+
+    <!-- Step 2A: 4 or 5 Stars -> Google Review Redirect -->
+    <div id="reviewStepHigh" style="display:none;">
+      <div style="font-size:2.4rem;margin-bottom:0.5rem;">🎉</div>
+      <h3 style="font-size:1.2rem;font-weight:700;margin:0 0 0.4rem 0;">Thank You!</h3>
+      <p style="font-size:0.8rem;color:#cbd5e1;line-height:1.5;margin:0 0 1.5rem 0;">
+        We're thrilled you had a 5-star experience! Would you take 10 seconds to publish your review on Google Maps?
+      </p>
+      <a href="${reviewUrl}" target="_blank" onclick="closeSmartReviewModal()" style="display:block;width:100%;padding:0.9rem 1rem;background:linear-gradient(135deg,#f59e0b,#ea580c);color:#fff;font-weight:700;font-size:0.9rem;border-radius:14px;text-decoration:none;box-shadow:0 10px 25px -5px rgba(245,158,11,0.5);">
+        ⭐ Post Review on Google Maps ↗
+      </a>
+    </div>
+
+    <!-- Step 2B: 1, 2, or 3 Stars -> Private Feedback Protection -->
+    <div id="reviewStepLow" style="display:none;text-align:left;">
+      <div style="text-align:center;font-size:2.2rem;margin-bottom:0.5rem;">💬</div>
+      <h3 style="text-align:center;font-size:1.15rem;font-weight:700;margin:0 0 0.4rem 0;">We Want to Make It Right</h3>
+      <p style="text-align:center;font-size:0.8rem;color:#94a3b8;margin:0 0 1.25rem 0;">Please share your feedback privately so we can assist you directly:</p>
+      
+      <textarea id="privateFeedbackText" rows="3" placeholder="Tell us what went wrong..." style="width:100%;padding:0.85rem;background:#050506;border:1px solid rgba(255,255,255,0.15);border-radius:12px;color:#fff;font-size:0.85rem;resize:none;margin-bottom:1rem;outline:none;box-sizing:border-box;"></textarea>
+      
+      <button onclick="submitPrivateFeedback()" style="display:block;width:100%;padding:0.85rem;background:#a855f7;color:#fff;font-weight:700;font-size:0.9rem;border-radius:14px;border:none;cursor:pointer;">
+        Send Private Feedback
+      </button>
+    </div>
+
+  </div>
+</div>`.trim();
+}
+
 // ─── Template Generators ─────────────────────────────────────────────────────
 
 export function generateTemplateHtml(presetId: string, data: TemplateData): string {
@@ -168,6 +281,8 @@ export function generateTemplateHtml(presetId: string, data: TemplateData): stri
   const waNumber = data.whatsapp.replace(/[^0-9]/g, '');
   const leadScript = buildLeadCaptureScript(data.slug, data.name || data.company, waNumber);
   const leadModal = buildLeadModal(data);
+  const smartReviewScript = buildSmartReviewScript(data.googleReviewUrl, waNumber);
+  const smartReviewModal = buildSmartReviewModal(data);
   const vcardPayload = getVCardPayload(data, fullUrl);
 
   // ════════════════════════════════════════════════════════════════
@@ -312,6 +427,38 @@ export function generateTemplateHtml(presetId: string, data: TemplateData): stri
         </div>
       </div>
 
+      ${data.catalogPdfUrl ? `
+      <div class="mt-4">
+        <a href="${data.catalogPdfUrl}" target="_blank" download="${safeVcfName(data.catalogPdfTitle || 'Company_Catalog')}.pdf" class="flex items-center justify-between p-3.5 bg-gradient-to-r from-purple-500/10 to-indigo-500/10 rounded-2xl border border-purple-200/80 hover:border-purple-300 transition">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl bg-purple-600 text-white flex items-center justify-center font-bold text-sm shadow-sm">
+              📄
+            </div>
+            <div>
+              <p class="text-[10px] text-purple-600 uppercase font-bold tracking-wider">Company Document</p>
+              <p class="text-xs font-bold text-slate-800 mt-0.5">${data.catalogPdfTitle || 'View Catalog & Brochure (PDF)'}</p>
+            </div>
+          </div>
+          <i class="fas fa-arrow-down-to-bracket text-purple-600 text-sm"></i>
+        </a>
+      </div>` : ''}
+
+      ${data.googleReviewUrl ? `
+      <div class="mt-3">
+        <button type="button" onclick="openSmartReviewModal()" class="w-full flex items-center justify-between p-3.5 bg-gradient-to-r from-amber-500/10 to-orange-500/10 rounded-2xl border border-amber-200/80 hover:border-amber-300 transition cursor-pointer">
+          <div class="flex items-center gap-3 text-left">
+            <div class="w-9 h-9 rounded-xl bg-amber-500 text-white flex items-center justify-center font-bold text-sm shadow-sm">
+              ⭐
+            </div>
+            <div>
+              <p class="text-[10px] text-amber-700 uppercase font-bold tracking-wider">Verified Feedback</p>
+              <p class="text-xs font-bold text-slate-800 mt-0.5">Rate Your Experience</p>
+            </div>
+          </div>
+          <span class="text-xs text-amber-500 font-extrabold tracking-widest">★★★★★</span>
+        </button>
+      </div>` : ''}
+
       ${data.lankaQrText ? `
       <div class="mt-5 p-3.5 bg-slate-50 rounded-2xl border border-slate-100 text-center">
         <p class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">💳 LankaQR & Bank Details</p>
@@ -327,9 +474,11 @@ export function generateTemplateHtml(presetId: string, data: TemplateData): stri
   </div>
 
   ${leadModal}
+  ${smartReviewModal}
 
   <script>
     ${leadScript}
+    ${smartReviewScript}
 
     function triggerSaveContact() {
       var icon = document.getElementById('saveIcon');
@@ -527,9 +676,27 @@ export function generateTemplateHtml(presetId: string, data: TemplateData): stri
           </div>
         </div>
 
+        ${data.catalogPdfUrl ? `
+        <div class="px-5 mt-4">
+          <a href="${data.catalogPdfUrl}" target="_blank" download="${safeVcfName(data.catalogPdfTitle || 'Company_Catalog')}.pdf" class="block p-3.5 bg-gradient-to-r from-purple-500/10 to-indigo-500/10 border border-purple-200 rounded-2xl transition hover:border-purple-300">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-purple-600 text-white flex items-center justify-center font-bold text-xs shadow-sm">
+                  📄
+                </div>
+                <div>
+                  <span class="text-[10px] text-purple-600 uppercase font-bold tracking-wider block">Company Document</span>
+                  <span class="text-xs font-bold text-slate-800">${data.catalogPdfTitle || 'View Company Catalog / Portfolio (PDF)'}</span>
+                </div>
+              </div>
+              <i class="fas fa-arrow-down-to-bracket text-purple-600 text-sm"></i>
+            </div>
+          </a>
+        </div>` : ''}
+
         ${data.googleReviewUrl ? `
         <div class="px-5 mt-4">
-          <a href="${data.googleReviewUrl}" target="_blank" class="block p-3.5 bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-200 rounded-2xl transition hover:border-amber-300">
+          <button type="button" onclick="openSmartReviewModal()" class="w-full block p-3.5 bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-200 rounded-2xl transition hover:border-amber-300 text-left cursor-pointer">
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-2">
                 <i class="fab fa-google text-amber-500 text-lg"></i>
@@ -537,7 +704,7 @@ export function generateTemplateHtml(presetId: string, data: TemplateData): stri
               </div>
               <span class="text-xs text-amber-600 font-extrabold">★★★★★</span>
             </div>
-          </a>
+          </button>
         </div>` : ''}
       </div>
 
@@ -627,9 +794,11 @@ export function generateTemplateHtml(presetId: string, data: TemplateData): stri
   </div>
 
   ${leadModal}
+  ${smartReviewModal}
 
   <script>
     ${leadScript}
+    ${smartReviewScript}
 
     function switchTab(tabId, element) {
       document.querySelectorAll('.tab-content').forEach(function(el) { el.classList.remove('active'); });

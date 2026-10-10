@@ -74,6 +74,8 @@ export default function CustomerDashboard() {
     tiktok: '',
     lankaQrText: '',
     googleReviewUrl: '',
+    catalogPdfUrl: '',
+    catalogPdfTitle: '',
   });
 
   const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'seranex.lk';
@@ -151,6 +153,8 @@ export default function CustomerDashboard() {
             tiktok: m.tiktok || '',
             lankaQrText: m.lankaQrText || '',
             googleReviewUrl: m.googleReviewUrl || '',
+            catalogPdfUrl: m.catalogPdfUrl || '',
+            catalogPdfTitle: m.catalogPdfTitle || '',
           }));
           if (m.presetId) {
             setSelectedPreset(m.presetId);
@@ -717,6 +721,56 @@ export default function CustomerDashboard() {
                         placeholder="https://g.page/r/your-review-link"
                         className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-sm text-white focus:border-accent-500 focus:outline-none"
                       />
+                    </div>
+                  </div>
+
+                  {/* Catalog / Brochure PDF Upload */}
+                  <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold uppercase tracking-wider text-accent-400">
+                        📄 Company Catalog / Price List (PDF)
+                      </span>
+                      {profileForm.catalogPdfUrl && (
+                        <span className="text-[10px] text-accent-400 bg-accent-500/10 px-2 py-0.5 rounded-full border border-accent-500/20">
+                          ✓ PDF Attached
+                        </span>
+                      )}
+                    </div>
+                    
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <div>
+                        <label className="block text-[11px] text-white/50 mb-1">Catalog Display Title</label>
+                        <input
+                          type="text"
+                          value={profileForm.catalogPdfTitle || ''}
+                          onChange={(e) => setProfileForm({ ...profileForm, catalogPdfTitle: e.target.value })}
+                          placeholder="e.g. 2026 Price List & Brochure"
+                          className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2 text-xs text-white focus:border-accent-500 focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] text-white/50 mb-1">Upload PDF Document</label>
+                        <input
+                          type="file"
+                          accept="application/pdf"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              const reader = new FileReader();
+                              reader.onload = (ev) => {
+                                setProfileForm((prev) => ({
+                                  ...prev,
+                                  catalogPdfUrl: ev.target?.result as string,
+                                  catalogPdfTitle: prev.catalogPdfTitle || file.name.replace(/\.pdf$/i, ''),
+                                }));
+                                toast.success('Catalog PDF attached!');
+                              };
+                              reader.readAsDataURL(file);
+                            }
+                          }}
+                          className="w-full text-xs text-white/50 file:mr-2 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:bg-white/10 file:text-white file:text-xs hover:file:bg-white/20 cursor-pointer"
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>

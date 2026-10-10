@@ -23,6 +23,7 @@ const RESERVED_ROOT_PATHS = new Set([
   'how-it-works',
   'teams',
   'order',
+  'activate',
   'api',
   'c',
   '_next',

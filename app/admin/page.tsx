@@ -95,10 +95,17 @@ export default function AdminDashboard() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [settlementData, setSettlementData] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const [activeTab, setActiveTab] = useState<'orders' | 'studio' | 'cards' | 'leads' | 'settlements'>('orders');
+  const [activeTab, setActiveTab] = useState<'orders' | 'studio' | 'cards' | 'leads' | 'settlements' | 'activations'>('orders');
 
   // Search filter in leads
   const [leadSearch, setLeadSearch] = useState('');
+
+  // Hardware Activation Codes State
+  const [activations, setActivations] = useState<any[]>([]);
+  const [batchCount, setBatchCount] = useState('10');
+  const [batchPrefix, setBatchPrefix] = useState('SERA');
+  const [batchName, setBatchName] = useState('BATCH-1');
+  const [isGeneratingBatch, setIsGeneratingBatch] = useState(false);
 
   // Quick Order Modal State
   const [isQuickOrderOpen, setIsQuickOrderOpen] = useState(false);
@@ -138,6 +145,8 @@ export default function AdminDashboard() {
     linkedin: 'https://linkedin.com',
     tiktok: '',
     snapchat: '',
+    catalogPdfUrl: '',
+    catalogPdfTitle: '',
   });
 
   // Modals
@@ -209,6 +218,7 @@ export default function AdminDashboard() {
         fetchLeads();
         fetchOrders();
         fetchSettlements();
+        fetchActivations();
       } catch {
         window.location.href = '/login?redirect=/admin';
       }
@@ -270,6 +280,74 @@ export default function AdminDashboard() {
     } catch (error) {
       console.error('Failed to load settlements:', error);
     }
+  };
+
+  const fetchActivations = async () => {
+    try {
+      const res = await fetch('/api/activate?action=list');
+      if (res.ok) {
+        const data = await res.json();
+        setActivations(Array.isArray(data) ? data : []);
+      }
+    } catch (error) {
+      console.error('Failed to load activation codes:', error);
+    }
+  };
+
+  const handleGenerateBatch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsGeneratingBatch(true);
+    try {
+      const res = await fetch('/api/activate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'generate',
+          count: Number(batchCount) || 10,
+          prefix: batchPrefix || 'SERA',
+          batch: batchName || 'BATCH-1',
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        toast.success(`Generated ${data.count} unassigned activation codes!`);
+        fetchActivations();
+      } else {
+        toast.error(data.error || 'Failed to generate batch');
+      }
+    } catch {
+      toast.error('Failed to generate batch');
+    } finally {
+      setIsGeneratingBatch(false);
+    }
+  };
+
+  const exportActivationsCsv = () => {
+    if (activations.length === 0) {
+      toast.error('No activation codes to export');
+      return;
+    }
+    const headers = ['Code', 'Batch', 'Status', 'Claimed By', 'Assigned Slug', 'Activation Link', 'Created At'];
+    const rows = activations.map((a) => [
+      `"${a.code}"`,
+      `"${a.batch}"`,
+      `"${a.status}"`,
+      `"${a.claimedBy || ''}"`,
+      `"${a.assignedSlug || ''}"`,
+      `"https://card.${rootDomain}/activate?code=${a.code}"`,
+      `"${new Date(a.createdAt).toLocaleDateString()}"`,
+    ]);
+    const csvContent =
+      'data:text/csv;charset=utf-8,' +
+      [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `sera-activation-codes-${Date.now()}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success('Activation codes CSV exported!');
   };
 
   const handleUpdateOrderStatus = async (
@@ -672,6 +750,13 @@ export default function AdminDashboard() {
               <TabsTrigger value="settlements" className="flex items-center gap-1.5">
                 <Scale className="h-3.5 w-3.5" />
                 <span>Ledger</span>
+              </TabsTrigger>
+              <TabsTrigger value="activations" className="flex items-center gap-1.5">
+                <Zap className="h-3.5 w-3.5 text-amber-400" />
+                <span>Codes</span>
+                <Badge variant="secondary" className="ml-1 h-4 px-1.5 text-[10px]">
+                  {activations.length}
+                </Badge>
               </TabsTrigger>
             </TabsList>
           </Tabs>
@@ -1242,13 +1327,65 @@ export default function AdminDashboard() {
                             />
                           </div>
                           <div className="space-y-1.5">
-                            <Label className="text-xs text-zinc-400">Google Review Boost URL</Label>
+                            <div className="flex items-center justify-between">
+                              <Label className="text-xs text-zinc-400">Google Review Boost URL</Label>
+                              <Badge variant="amber" className="text-[9px]">Smart 5★ Filter</Badge>
+                            </div>
                             <Input
                               type="url"
                               value={templateForm.googleReviewUrl}
                               onChange={(e) => setTemplateForm({ ...templateForm, googleReviewUrl: e.target.value })}
                               placeholder="https://g.page/r/..."
                             />
+                            <p className="text-[10px] text-zinc-500">
+                              4-5★ ratings route to Google Maps; 1-3★ collect private WhatsApp feedback.
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Catalog / Brochure PDF Upload */}
+                        <div className="p-4 bg-purple-950/20 border border-purple-500/30 rounded-xl space-y-2">
+                          <div className="flex items-center justify-between">
+                            <Label className="text-xs font-bold text-purple-400 uppercase tracking-wider">
+                              📄 Company Catalog / Price List (PDF)
+                            </Label>
+                            {templateForm.catalogPdfUrl && (
+                              <Badge variant="purple" className="text-[10px]">✓ PDF Attached</Badge>
+                            )}
+                          </div>
+                          
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                              <label className="text-[11px] text-zinc-400 block mb-1">Upload PDF Document</label>
+                              <input
+                                type="file"
+                                accept="application/pdf"
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0];
+                                  if (file) {
+                                    const reader = new FileReader();
+                                    reader.onload = (ev) => {
+                                      setTemplateForm((prev) => ({
+                                        ...prev,
+                                        catalogPdfUrl: ev.target?.result as string,
+                                        catalogPdfTitle: prev.catalogPdfTitle || file.name.replace(/\.pdf$/i, ''),
+                                      }));
+                                      toast.success('Catalog PDF loaded!');
+                                    };
+                                    reader.readAsDataURL(file);
+                                  }
+                                }}
+                                className="w-full text-xs text-zinc-400 file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:bg-purple-950 file:text-purple-400 hover:file:bg-purple-900 cursor-pointer"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-[11px] text-zinc-400 block mb-1">Catalog Display Title</label>
+                              <Input
+                                placeholder="e.g. Aura Living 2026 Collection"
+                                value={templateForm.catalogPdfTitle || ''}
+                                onChange={(e) => setTemplateForm({ ...templateForm, catalogPdfTitle: e.target.value })}
+                              />
+                            </div>
                           </div>
                         </div>
 
@@ -1768,6 +1905,172 @@ export default function AdminDashboard() {
                           </TableCell>
                         </TableRow>
                       ))}
+                    </TableBody>
+                  </Table>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* ══════════════════════════════════════════════════════════════
+            WORKSPACE 6: HARDWARE ACTIVATION CODES (Unassigned Cards)
+           ══════════════════════════════════════════════════════════════ */}
+        {activeTab === 'activations' && (
+          <div className="space-y-6">
+            {/* Batch Generator Header */}
+            <Card className="border-zinc-800 bg-zinc-900/90 shadow-xl">
+              <CardHeader className="p-6 border-b border-zinc-800/80 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                  <Badge variant="amber" className="text-[10px] uppercase font-bold tracking-wider mb-2">
+                    Physical Card Retail Engine
+                  </Badge>
+                  <CardTitle className="text-xl font-bold flex items-center gap-2">
+                    <Zap className="h-5 w-5 text-amber-400" />
+                    <span>Unassigned Hardware Activation Codes</span>
+                  </CardTitle>
+                  <CardDescription className="text-xs text-zinc-400 mt-1">
+                    Pre-program unassigned chips for retail packaging. Customers tap to activate their card in 60 seconds with zero admin work.
+                  </CardDescription>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" size="sm" onClick={exportActivationsCsv}>
+                    <Download className="h-3.5 w-3.5 mr-1.5" />
+                    Export CSV
+                  </Button>
+                  <Button variant="outline" size="icon" onClick={fetchActivations} title="Refresh">
+                    <RefreshCw className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              </CardHeader>
+
+              <CardContent className="p-6">
+                <form onSubmit={handleGenerateBatch} className="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-zinc-300">Batch Label</Label>
+                    <Input
+                      value={batchName}
+                      onChange={(e) => setBatchName(e.target.value)}
+                      placeholder="e.g. BATCH-MATTE-01"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-zinc-300">Code Prefix</Label>
+                    <Input
+                      value={batchPrefix}
+                      onChange={(e) => setBatchPrefix(e.target.value.toUpperCase())}
+                      placeholder="SERA"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-zinc-300">Number of Cards</Label>
+                    <Input
+                      type="number"
+                      min="1"
+                      max="100"
+                      value={batchCount}
+                      onChange={(e) => setBatchCount(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Button
+                      type="submit"
+                      variant="purple"
+                      disabled={isGeneratingBatch}
+                      className="w-full font-bold shadow-md"
+                    >
+                      {isGeneratingBatch ? 'Generating...' : '+ Generate Batch Codes'}
+                    </Button>
+                  </div>
+                </form>
+              </CardContent>
+            </Card>
+
+            {/* Activation Codes Table */}
+            <Card className="border-zinc-800 bg-zinc-900/90 shadow-xl">
+              <CardHeader className="p-6 border-b border-zinc-800/80">
+                <CardTitle className="text-base font-bold flex items-center justify-between">
+                  <span>Active Hardware Codes Inventory</span>
+                  <Badge variant="purple">{activations.length} Total Codes</Badge>
+                </CardTitle>
+              </CardHeader>
+
+              <CardContent className="p-0">
+                {activations.length === 0 ? (
+                  <div className="py-16 text-center text-zinc-500 text-xs">
+                    No activation codes generated yet. Use the batch generator above!
+                  </div>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Serial Code</TableHead>
+                        <TableHead>Batch</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Claimed Identity</TableHead>
+                        <TableHead>Activation URL</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {activations.map((item: any) => {
+                        const isClaimed = item.status === 'ACTIVATED';
+                        const activationUrl = `https://card.${rootDomain}/activate?code=${item.code}`;
+
+                        return (
+                          <TableRow key={item.id}>
+                            <TableCell className="font-mono font-bold text-amber-300 text-sm">
+                              {item.code}
+                            </TableCell>
+                            <TableCell className="text-zinc-400 text-xs">{item.batch}</TableCell>
+                            <TableCell>
+                              <Badge variant={isClaimed ? 'success' : 'amber'} className="text-[10px]">
+                                {isClaimed ? '✓ ACTIVATED' : '⚡ READY TO TAP'}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              {isClaimed ? (
+                                <div>
+                                  <span className="font-mono text-purple-400 text-xs font-bold">
+                                    @{item.assignedSlug}
+                                  </span>
+                                  {item.claimedBy && (
+                                    <p className="text-[10px] text-zinc-500 font-mono mt-0.5">{item.claimedBy}</p>
+                                  )}
+                                </div>
+                              ) : (
+                                <span className="text-zinc-600 text-xs">Unclaimed</span>
+                              )}
+                            </TableCell>
+                            <TableCell className="font-mono text-[11px] text-zinc-400 truncate max-w-xs">
+                              {activationUrl}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <div className="flex items-center justify-end gap-1.5">
+                                <Button
+                                  variant="outline"
+                                  size="xs"
+                                  onClick={() => copyToClipboard(activationUrl, 'Activation Link')}
+                                >
+                                  <Copy className="h-3 w-3 mr-1" />
+                                  Copy
+                                </Button>
+                                <Button
+                                  variant="secondary"
+                                  size="xs"
+                                  onClick={() => window.open(activationUrl, '_blank')}
+                                >
+                                  <ExternalLink className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
                     </TableBody>
                   </Table>
                 )}
