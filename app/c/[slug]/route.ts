@@ -331,7 +331,7 @@ export async function GET(request: Request, { params }: { params: { slug: string
       }
     }
 
-    // ─── Layer 7: Founder & Core Persona Guaranteed Fallback ─────────────────────
+    // ─── Layer 7: Founder & Core VIP Personas Guaranteed Fallback ─────────────────────
     if (!htmlContent && (cleanSlug === 'chithila' || cleanSlug === 'chithilaa')) {
       htmlContent = generateTemplateHtml('personal_hero', {
         slug: cleanSlug,
@@ -358,6 +358,39 @@ export async function GET(request: Request, { params }: { params: { slug: string
         where: { slug: cleanSlug },
         update: { htmlContent },
         create: { slug: cleanSlug, htmlContent },
+      }).catch(() => {});
+    } else if (!htmlContent && cleanSlug === 'kosala') {
+      htmlContent = generateTemplateHtml('personal_hero', {
+        slug: 'kosala',
+        name: 'Kosala Fernando',
+        title: 'CEO & Founder',
+        company: 'CODEAERON',
+        phone: '+94711691008',
+        whatsapp: '947711691008',
+        email: 'kosala.codeaeron@gmail.com',
+        avatarUrl: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=800&q=80',
+        coverUrl: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=800&q=80',
+        bio: "Hi! I'm Kosala Fernando. I'm the CEO & Founder of CODEAERON. Building next-gen web, AI, and digital platforms.",
+        location: 'No 113A, Hakmana Road, Matara',
+        website: 'https://www.codeaeron.com',
+        lankaQrText: 'Bank of Ceylon: 0008392810 / LankaQR: CODEAERON-PAY',
+        googleReviewUrl: 'https://g.page/r/codeaeron/review',
+        facebook: 'https://facebook.com',
+        instagram: 'https://instagram.com',
+        linkedin: 'https://linkedin.com',
+      });
+
+      saveCardToMemory('kosala', htmlContent, {
+        name: 'Kosala Fernando',
+        slug: 'kosala',
+        email: 'kosala.codeaeron@gmail.com',
+        phone: '+94711691008',
+      });
+
+      prisma.client.upsert({
+        where: { slug: 'kosala' },
+        update: { htmlContent },
+        create: { slug: 'kosala', htmlContent },
       }).catch(() => {});
     }
 

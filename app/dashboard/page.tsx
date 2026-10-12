@@ -1046,30 +1046,62 @@ export default function CustomerDashboard() {
             {/* Live Card Preview Box */}
             <div className="lg:col-span-4 bg-ink-900/80 border border-white/10 rounded-3xl p-6 text-center sticky top-28">
               <h3 className="text-xs uppercase tracking-wider font-bold text-white/40 mb-4">Live Preview</h3>
-              <div className="w-full max-w-[280px] mx-auto rounded-3xl border border-zinc-800 bg-black p-5 shadow-2xl">
-                <div className="relative mx-auto h-20 w-20 overflow-hidden rounded-full border-2 border-accent-400 shadow-lg mb-3">
-                  <img
-                    src={profileForm.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300'}
-                    alt="Preview avatar"
-                    className="h-full w-full object-cover"
-                  />
+              <div className="w-full max-w-[290px] mx-auto rounded-[36px] border-[4px] border-zinc-800 bg-black p-3.5 shadow-2xl ring-1 ring-white/10">
+                {/* Mini Browser Bar */}
+                <div className="flex items-center justify-between border-b border-white/10 bg-ink-900/90 px-3 py-1.5 text-[9px] text-white/60 rounded-t-2xl mb-3">
+                  <span className="text-accent-400 font-mono flex items-center gap-1 truncate">
+                    <LockIcon className="h-2.5 w-2.5 shrink-0" />
+                    {profileForm.slug || 'yourname'}.seranex.lk
+                  </span>
+                  <span className="text-[8px] bg-accent-500/20 text-accent-400 px-1.5 py-0.5 rounded font-bold shrink-0">
+                    No App Needed
+                  </span>
                 </div>
-                <h4 className="font-bold text-white text-base truncate">{profileForm.name || 'Your Name'}</h4>
-                <p className="text-xs text-accent-400 font-medium truncate">{profileForm.title || 'Job Title'}</p>
-                <p className="text-[11px] text-white/40 truncate mt-0.5">{profileForm.company || 'Company'}</p>
-                
-                {profileForm.bio && (
-                  <p className="text-[10px] text-white/60 bg-white/5 p-2 rounded-lg mt-3 line-clamp-2">
-                    {profileForm.bio}
-                  </p>
-                )}
 
-                <div className="mt-4 space-y-1.5">
-                  <div className="h-8 w-full rounded-xl bg-white/10 flex items-center justify-center text-[10px] text-white/70 font-medium">
-                    💾 Save Contact (.vcf)
+                {/* Profile Card Header with Purple Glow */}
+                <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-accent-500/20 to-ink-950/90 p-4 text-center">
+                  <div className="relative mx-auto h-20 w-20 overflow-hidden rounded-full border-2 border-accent-400/90 shadow-[0_0_25px_rgba(168,85,247,0.5)] mb-2.5">
+                    <img
+                      src={profileForm.avatarUrl || 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=300'}
+                      alt="Preview avatar"
+                      className="h-full w-full object-cover"
+                    />
                   </div>
-                  <div className="h-8 w-full rounded-xl bg-accent-500/20 border border-accent-500/40 flex items-center justify-center text-[10px] text-accent-400 font-bold">
-                    💬 WhatsApp Direct
+                  <div className="flex items-center justify-center gap-1.5">
+                    <h4 className="font-bold text-white text-base truncate">{profileForm.name || 'Your Name'}</h4>
+                    <CheckCircle2Icon className="h-4 w-4 text-accent-400 shrink-0" />
+                  </div>
+                  <p className="text-xs text-accent-300 font-medium truncate">{profileForm.title || 'Job Title'}</p>
+                  <p className="text-[11px] text-white/50 truncate mt-0.5">{profileForm.company || 'Company'}</p>
+                  
+                  {profileForm.bio && (
+                    <p className="text-[10px] text-white/60 bg-white/5 p-2 rounded-lg mt-2.5 line-clamp-2">
+                      {profileForm.bio}
+                    </p>
+                  )}
+
+                  {/* Primary Action Button: Save Contact (.vcf) */}
+                  <div className="mt-3.5 flex w-full items-center justify-center gap-1.5 rounded-xl bg-accent-500 py-2.5 text-xs font-bold text-ink-950 shadow-[0_0_20px_rgba(168,85,247,0.7)]">
+                    <Share2Icon className="h-3.5 w-3.5" />
+                    Save Contact to Phone (.vcf)
+                  </div>
+                </div>
+
+                {/* Quick Link Buttons */}
+                <div className="mt-3 space-y-2">
+                  <div className="flex items-center justify-between rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-xs text-white">
+                    <span className="font-medium flex items-center gap-1.5 text-emerald-300 text-[11px]">
+                      💬 Direct WhatsApp Chat
+                    </span>
+                    <span className="text-[9px] bg-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded font-bold">1-Tap</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    <div className="rounded-xl border border-white/10 bg-white/5 p-2 text-[10px] text-white/70 font-medium text-center">
+                      📞 Call Direct
+                    </div>
+                    <div className="rounded-xl border border-white/10 bg-white/5 p-2 text-[10px] text-white/70 font-medium text-center">
+                      ✉️ Email Us
+                    </div>
                   </div>
                 </div>
               </div>
