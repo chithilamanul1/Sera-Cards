@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   XIcon,
   UploadCloudIcon,
@@ -10,45 +10,75 @@ import {
   AlertCircleIcon,
   Loader2Icon,
   SparklesIcon,
+  Building2Icon,
+  ShieldCheckIcon,
+  TruckIcon,
+  ChevronDownIcon,
+  Trash2Icon,
+  LayersIcon,
+  StarIcon,
 } from 'lucide-react';
 import type { CardConfig } from '../types/card';
 import { brand } from '../data/content';
+import { CARD_PRODUCTS, CardProduct } from '../data/products';
+
+export interface OrderModalProduct {
+  id?: string;
+  name: string;
+  subtitle?: string;
+  price?: number;
+  originalPrice?: number;
+  finish?: string;
+  surfaceType?: string;
+  materialType?: string;
+  designType?: string;
+  badge?: string;
+  rangeId?: string;
+  isCustomQuote?: boolean;
+  bulkDiscountNotice?: string;
+}
 
 interface OrderModalProps {
   isOpen: boolean;
   onClose: () => void;
-  initialConfig: CardConfig;
-  preselectedProduct?: {
-    name: string;
-    price?: number;
-    finish?: string;
-    isCustomQuote?: boolean;
-  };
+  initialConfig?: CardConfig;
+  preselectedProduct?: OrderModalProduct | CardProduct;
 }
 
 export function OrderModal({ isOpen, onClose, initialConfig, preselectedProduct }: OrderModalProps) {
-  // Edition selection: 'signature' (LKR 3,500) vs 'custom' (LKR 5,000)
-  const [edition, setEdition] = useState<'signature' | 'custom'>(
-    preselectedProduct?.name?.includes('3,500') || preselectedProduct?.name?.includes('UV')
-      ? 'signature'
-      : initialConfig.materialId === 'custom' || preselectedProduct?.price === 5000
-      ? 'custom'
-      : 'signature'
-  );
+  // Find or match initial product
+  const initialProduct = useMemo(() => {
+    if (!preselectedProduct) return CARD_PRODUCTS[3]; // Default to Full Custom Brand Card
+    if ('id' in preselectedProduct && preselectedProduct.id) {
+      const found = CARD_PRODUCTS.find((p) => p.id === preselectedProduct.id);
+      if (found) return found;
+    }
+    // Match by name
+    const byName = CARD_PRODUCTS.find(
+      (p) => p.name.toLowerCase() === preselectedProduct.name.toLowerCase()
+    );
+    if (byName) return byName;
+    return CARD_PRODUCTS[3];
+  }, [preselectedProduct]);
 
-  const [customerName, setCustomerName] = useState(initialConfig.name || '');
+  const [currentProduct, setCurrentProduct] = useState<CardProduct>(initialProduct);
+  const [quantity, setQuantity] = useState<number>(1);
+
+  // Customer Contact & Shipping Details
+  const [customerName, setCustomerName] = useState(initialConfig?.name || '');
   const [customerPhone, setCustomerPhone] = useState('');
   const [customerEmail, setCustomerEmail] = useState('');
   const [deliveryAddress, setDeliveryAddress] = useState('');
   const [city, setCity] = useState('');
 
-  // Card details
-  const [brandName, setBrandName] = useState(initialConfig.business || 'SERANEX');
-  const [tagline, setTagline] = useState(initialConfig.tagline || 'Web & Software Solutions');
-  const [nameOnCard, setNameOnCard] = useState(initialConfig.name || 'Chithila Manul');
-  const [designation, setDesignation] = useState(initialConfig.title || 'Founder & CEO');
-  const [slug, setSlug] = useState(initialConfig.slug || 'chithila');
+  // Card Personalization Details
+  const [brandName, setBrandName] = useState(initialConfig?.business || 'SERANEX');
+  const [tagline, setTagline] = useState(initialConfig?.tagline || 'Web & Software Solutions');
+  const [nameOnCard, setNameOnCard] = useState(initialConfig?.name || 'Chithila Manul');
+  const [designation, setDesignation] = useState(initialConfig?.title || 'Founder & CEO');
+  const [slug, setSlug] = useState(initialConfig?.slug || 'chithila');
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [corporateRosterNotes, setCorporateRosterNotes] = useState('');
 
   // Digital Profile & Social Media Links
   const [bio, setBio] = useState('');
@@ -57,7 +87,7 @@ export function OrderModal({ isOpen, onClose, initialConfig, preselectedProduct 
   const [facebook, setFacebook] = useState('');
   const [tiktok, setTiktok] = useState('');
 
-  const [paymentMethod, setPaymentMethod] = useState<'PAYHERE' | 'WHATSAPP' | 'MINTPAY'>('WHATSAPP');
+  const [paymentMethod, setPaymentMethod] = useState<'WHATSAPP' | 'PAYHERE' | 'MINTPAY'>('WHATSAPP');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [submittedOrder, setSubmittedOrder] = useState<{
@@ -65,13 +95,34 @@ export function OrderModal({ isOpen, onClose, initialConfig, preselectedProduct 
     whatsappUrl: string;
   } | null>(null);
 
+  // Sync state when preselectedProduct changes
+  useEffect(() => {
+    if (initialProduct) {
+      setCurrentProduct(initialProduct);
+    }
+  }, [initialProduct]);
+
   if (!isOpen) return null;
 
-  // Dynamic pricing calculation
-  const unitPrice = preselectedProduct?.price ?? (edition === 'signature' ? 3500 : 5000);
-  const originalPrice = edition === 'signature' ? 5000 : 7000;
-  const deliveryFee = 350;
-  const totalAmount = unitPrice + deliveryFee;
+  // ─── DYNAMIC PRICING & VOLUME DISCOUNT CALCULATIONS ───
+  const baseUnitPrice = currentProduct.priceLkr || (preselectedProduct?.price ?? 5000);
+
+  // Corporate / Bulk Tier Discount:
+  // 1-4 cards: 0% discount
+  // 5-9 cards: 10% discount
+  // 10-24 cards: 20% discount
+  // 25+ cards: 30% discount
+  let discountPercent = 0;
+  if (quantity >= 25) discountPercent = 30;
+  else if (quantity >= 10) discountPercent = 20;
+  else if (quantity >= 5) discountPercent = 10;
+
+  const unitPriceAfterDiscount = Math.round(baseUnitPrice * (1 - discountPercent / 100));
+  const subtotal = unitPriceAfterDiscount * quantity;
+
+  // Free delivery for 5+ cards islandwide
+  const deliveryFee = quantity >= 5 ? 0 : 350;
+  const totalAmount = subtotal + deliveryFee;
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -128,12 +179,7 @@ export function OrderModal({ isOpen, onClose, initialConfig, preselectedProduct 
     setIsSubmitting(true);
 
     try {
-      const finishName =
-        preselectedProduct?.name
-          ? `${preselectedProduct.name} (LKR ${unitPrice.toLocaleString()})`
-          : edition === 'signature'
-          ? 'Sera Signature PVC (LKR 3,500)'
-          : 'Full Custom Print PVC (LKR 5,000)';
+      const finishName = `${currentProduct.name} (Qty: ${quantity}, Unit: LKR ${unitPriceAfterDiscount.toLocaleString()}${discountPercent > 0 ? ` - ${discountPercent}% Bulk Disc.` : ''}) - ${currentProduct.surfaceType}`;
 
       const response = await fetch('/api/orders', {
         method: 'POST',
@@ -150,9 +196,11 @@ export function OrderModal({ isOpen, onClose, initialConfig, preselectedProduct 
           designation,
           slug,
           finish: finishName,
-          customAmount: unitPrice,
+          customAmount: totalAmount - deliveryFee,
+          unitPrice: unitPriceAfterDiscount,
           deliveryFee,
           logoUrl: logoPreview,
+          notes: corporateRosterNotes || null,
           bio,
           instagram,
           linkedin,
@@ -170,7 +218,6 @@ export function OrderModal({ isOpen, onClose, initialConfig, preselectedProduct 
       }
 
       if (paymentMethod === 'PAYHERE' && data.payhereParams) {
-        // Create an HTML form and submit to PayHere
         const form = document.createElement('form');
         form.method = 'POST';
         form.action = data.payhereParams.checkout_url;
@@ -209,13 +256,18 @@ export function OrderModal({ isOpen, onClose, initialConfig, preselectedProduct 
       <div className="relative flex max-h-[94vh] w-full max-w-2xl flex-col overflow-hidden rounded-3xl border border-white/10 bg-[#0a0a0c] shadow-[0_25px_60px_rgba(0,0,0,0.95)] my-auto">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-white/10 px-5 sm:px-6 py-4 sm:py-5">
-          <div>
-            <span className="text-[10px] font-bold uppercase tracking-widest text-purple-400">
-              Direct Order Portal
+          <div className="flex items-center gap-2.5">
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-purple-500/15 text-purple-400">
+              <SparklesIcon className="h-4 w-4" />
             </span>
-            <h2 className="text-lg sm:text-xl font-bold tracking-tight text-white">
-              Order Your Sera Smart NFC Card
-            </h2>
+            <div>
+              <span className="text-[10px] font-bold uppercase tracking-widest text-purple-400">
+                Direct Order Form
+              </span>
+              <h2 className="text-base sm:text-lg font-bold tracking-tight text-white leading-tight">
+                {currentProduct.name} Setup &amp; Order
+              </h2>
+            </div>
           </div>
           <button
             onClick={onClose}
@@ -238,7 +290,7 @@ export function OrderModal({ isOpen, onClose, initialConfig, preselectedProduct 
                 #{submittedOrder.orderNumber}
               </h3>
               <p className="mt-2 text-sm text-white/60 max-w-sm mx-auto">
-                Your order is confirmed. Opening WhatsApp to connect with our design team and review your card proof.
+                Your order for {currentProduct.name} ({quantity} {quantity === 1 ? 'card' : 'cards'}) is confirmed. Opening WhatsApp to connect with our design team.
               </p>
 
               {logoPreview && (
@@ -251,7 +303,7 @@ export function OrderModal({ isOpen, onClose, initialConfig, preselectedProduct 
                   <div className="text-xs">
                     <span className="font-semibold text-purple-400 block">✓ Logo Attached to Order</span>
                     <span className="text-white/60 text-[11px] leading-tight block">
-                      A direct view/download link is in your WhatsApp message. You can also attach the file directly in the chat.
+                      A direct view/download link is in your WhatsApp message.
                     </span>
                   </div>
                 </div>
@@ -261,496 +313,594 @@ export function OrderModal({ isOpen, onClose, initialConfig, preselectedProduct 
               <a
                 href={submittedOrder.whatsappUrl}
                 target="_blank"
-                rel="noopener noreferrer"
-                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-purple-500 py-4 font-bold text-black shadow-[0_0_30px_rgba(168,85,247,0.4)] transition hover:bg-purple-400 active:scale-[0.98]"
+                rel="noreferrer"
+                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-500 py-3.5 text-sm font-bold text-black hover:bg-emerald-400 transition"
               >
-                <MessageSquareIcon className="h-5 w-5" />
-                Open WhatsApp Chat
+                <MessageSquareIcon className="h-4 w-4" />
+                Continue on WhatsApp &rarr;
               </a>
               <button
                 type="button"
-                onClick={() => {
-                  setSubmittedOrder(null);
-                  onClose();
-                }}
-                className="w-full py-2.5 text-xs font-semibold text-white/40 hover:text-white transition"
+                onClick={onClose}
+                className="w-full rounded-2xl border border-white/10 py-3 text-xs text-white/50 hover:bg-white/5"
               >
-                Close Window
+                Close Order Window
               </button>
             </div>
           </div>
         ) : (
-          <form onSubmit={handleSubmitOrder} className="flex-1 space-y-6 overflow-y-auto px-5 sm:px-6 py-5 text-sm">
+          <form onSubmit={handleSubmitOrder} className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-6">
             {errorMessage && (
-              <div className="flex items-center gap-3 rounded-2xl border border-red-500/20 bg-red-500/10 p-4 text-xs text-red-300">
+              <div className="flex items-center gap-2 rounded-2xl border border-red-500/20 bg-red-500/10 p-3.5 text-xs text-red-300">
                 <AlertCircleIcon className="h-4 w-4 shrink-0 text-red-400" />
                 <span>{errorMessage}</span>
               </div>
             )}
 
-          {/* Section 1: Edition & Pricing Selection */}
-          <div className="space-y-3">
-            <span className="text-xs font-semibold uppercase tracking-wider text-white/40 block">
-              1. Choose Card Package
-            </span>
-
-            {preselectedProduct && (
-              <div className="flex items-center justify-between rounded-2xl border border-purple-500/30 bg-purple-500/[0.06] p-3.5 text-xs">
+            {/* ─── DEDICATED PRODUCT SUMMARY BANNER ─── */}
+            <div className="relative overflow-hidden rounded-2xl border border-purple-500/30 bg-gradient-to-r from-purple-950/40 via-zinc-950 to-zinc-900 p-4 sm:p-5">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div>
-                  <span className="text-white/40 block text-[10px] uppercase tracking-wider">Preselected Card</span>
-                  <span className="font-bold text-white text-sm">{preselectedProduct.name}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold uppercase tracking-widest text-purple-400">
+                      {currentProduct.badge || 'Selected Card'}
+                    </span>
+                    <span className="text-[10px] text-white/40">·</span>
+                    <span className="text-xs text-white/60 font-medium">{currentProduct.rangeName}</span>
+                  </div>
+                  <h3 className="text-lg sm:text-xl font-bold text-white mt-1">
+                    {currentProduct.name}
+                  </h3>
+                  <p className="text-xs text-white/60 mt-0.5">
+                    {currentProduct.designType} · {currentProduct.materialType}
+                  </p>
                 </div>
-                {preselectedProduct.price ? (
-                  <span className="font-mono font-bold text-purple-400 text-sm">
-                    LKR {preselectedProduct.price.toLocaleString()}
+
+                <div className="text-left sm:text-right shrink-0">
+                  <span className="text-xs text-white/40 block">Unit Price</span>
+                  <div className="flex items-baseline sm:justify-end gap-1.5">
+                    <span className="text-xl sm:text-2xl font-bold text-white font-mono">
+                      LKR {unitPriceAfterDiscount.toLocaleString()}
+                    </span>
+                    {discountPercent > 0 && (
+                      <span className="text-xs text-emerald-400 font-bold font-mono">
+                        ({discountPercent}% OFF)
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-[10px] text-emerald-400 block mt-0.5">
+                    ● Lifetime Cloud Profile Included
                   </span>
-                ) : null}
+                </div>
               </div>
-            )}
 
-            <div className="grid gap-3 sm:grid-cols-2">
-              <label
-                onClick={() => setEdition('signature')}
-                className={`flex cursor-pointer flex-col justify-between rounded-2xl border p-4 transition-all ${
-                  edition === 'signature'
-                    ? 'border-purple-500 bg-purple-500/[0.08] shadow-[0_0_30px_-10px_rgba(168,85,247,0.5)]'
-                    : 'border-white/10 bg-white/[0.02] hover:border-white/20'
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="radio"
-                      name="edition"
-                      checked={edition === 'signature'}
-                      onChange={() => setEdition('signature')}
-                      className="text-purple-500"
-                    />
-                    <span className="font-bold text-white text-sm">SERA Signature PVC</span>
+              {/* Quantity & Fleet Volume Adjustment Selector */}
+              <div className="mt-4 pt-3.5 border-t border-white/10 flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-white/70 font-semibold">Quantity:</span>
+                  <div className="flex items-center rounded-xl border border-white/10 bg-white/[0.04] p-0.5">
+                    {[1, 5, 10, 25].map((q) => (
+                      <button
+                        key={q}
+                        type="button"
+                        onClick={() => setQuantity(q)}
+                        className={`px-3 py-1 text-xs font-bold rounded-lg transition ${
+                          quantity === q
+                            ? 'bg-purple-600 text-white shadow-sm'
+                            : 'text-white/60 hover:text-white'
+                        }`}
+                      >
+                        {q} {q === 1 ? 'card' : 'cards'}
+                      </button>
+                    ))}
                   </div>
-                  <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-400">
-                    LKR 3,500
-                  </span>
                 </div>
-                <p className="mt-2 text-xs leading-relaxed text-white/55">
-                  Physical card printed with official SERA logo. <strong>100% custom digital profile</strong>, contact saving & payments.
-                </p>
-              </label>
 
-              <label
-                onClick={() => setEdition('custom')}
-                className={`flex cursor-pointer flex-col justify-between rounded-2xl border p-4 transition-all ${
-                  edition === 'custom'
-                    ? 'border-purple-500 bg-purple-500/[0.08] shadow-[0_0_30px_-10px_rgba(168,85,247,0.5)]'
-                    : 'border-white/10 bg-white/[0.02] hover:border-white/20'
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="radio"
-                      name="edition"
-                      checked={edition === 'custom'}
-                      onChange={() => setEdition('custom')}
-                      className="text-purple-500"
-                    />
-                    <span className="font-bold text-white text-sm">Full Custom Print PVC</span>
-                  </div>
-                  <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-400">
-                    LKR 5,000
-                  </span>
+                {/* Custom Quantity Input */}
+                <div className="flex items-center gap-2 text-xs">
+                  <span className="text-white/50">Custom Qty:</span>
+                  <input
+                    type="number"
+                    min={1}
+                    max={500}
+                    value={quantity}
+                    onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+                    className="w-16 rounded-lg border border-white/10 bg-white/[0.04] px-2 py-1 text-center font-mono text-white text-xs focus:border-purple-500 focus:outline-none"
+                  />
                 </div>
-                <p className="mt-2 text-xs leading-relaxed text-white/55">
-                  Full custom printed design with <strong>your company logo, custom branding & artwork</strong> on both card faces.
-                </p>
-              </label>
+              </div>
+
+              {/* Volume Discount Notice */}
+              {discountPercent > 0 && (
+                <div className="mt-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 px-3 py-1.5 text-xs text-emerald-300 flex items-center justify-between">
+                  <span>🏢 Corporate Volume Tier Applied: <strong>{discountPercent}% OFF</strong> + Free Island-Wide Delivery!</span>
+                  <span className="font-mono font-bold">LKR {unitPriceAfterDiscount.toLocaleString()}/card</span>
+                </div>
+              )}
             </div>
 
-            {/* Price Breakdown Banner */}
-            <div className="rounded-2xl border border-purple-500/20 bg-purple-500/[0.05] p-3.5 flex flex-wrap items-center justify-between gap-2">
+            {/* ─── SECTION 1: DEDICATED PRODUCT CONFIGURATION ─── */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold uppercase tracking-wider text-purple-400 block">
+                  1. {currentProduct.id === 'company-card' ? 'Corporate Company Setup' : currentProduct.id === 'metal-black' || currentProduct.id === 'metal-silver' ? 'Laser-Etched Metal Setup' : 'Custom Printed Information'}
+                </span>
+                <span className="text-[11px] text-white/40">Specific to {currentProduct.name}</span>
+              </div>
+
+              {/* ─── FORM TYPE A: COMPANY CARD DEDICATED FORM ─── */}
+              {currentProduct.id === 'company-card' && (
+                <div className="space-y-4 rounded-2xl border border-white/10 bg-white/[0.02] p-4">
+                  <div className="rounded-xl bg-purple-500/10 border border-purple-500/20 p-3 text-xs text-purple-300">
+                    🏢 <strong>Fixed Corporate Design:</strong> Your official company logo will be etched on the front face. Employee name, title, and dynamic QR are printed on the back.
+                  </div>
+
+                  {/* Company Logo Upload */}
+                  <div>
+                    <label className="block text-xs font-semibold text-white/80 uppercase tracking-wider mb-1.5">
+                      Company Logo (Front Face) *
+                    </label>
+                    <div className="flex items-center gap-4">
+                      {logoPreview ? (
+                        <div className="relative h-16 w-16 shrink-0 rounded-xl border border-purple-500/40 bg-black/60 p-1">
+                          <img src={logoPreview} alt="Company logo preview" className="h-full w-full object-contain" />
+                          <button
+                            type="button"
+                            onClick={() => setLogoPreview(null)}
+                            className="absolute -top-1.5 -right-1.5 rounded-full bg-red-500 p-0.5 text-white"
+                          >
+                            <XIcon className="h-3 w-3" />
+                          </button>
+                        </div>
+                      ) : (
+                        <label className="flex h-16 w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-white/20 bg-white/[0.03] px-4 text-xs text-white/60 hover:border-purple-400 hover:text-white transition">
+                          <UploadCloudIcon className="h-4 w-4 text-purple-400" />
+                          <span>Upload High-Res Company Logo (PNG / SVG / JPEG)</span>
+                          <input type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
+                        </label>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="grid gap-3.5 sm:grid-cols-2">
+                    <div>
+                      <label className="block text-xs font-medium text-white/70">Company Name *</label>
+                      <input
+                        type="text"
+                        required
+                        value={brandName}
+                        onChange={(e) => setBrandName(e.target.value)}
+                        placeholder="e.g. Aura Living & Investments"
+                        className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-white placeholder-white/20 focus:border-purple-500 focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-white/70">Company Tagline / Slogan</label>
+                      <input
+                        type="text"
+                        value={tagline}
+                        onChange={(e) => setTagline(e.target.value)}
+                        placeholder="e.g. Luxury Living & Architecture"
+                        className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-white placeholder-white/20 focus:border-purple-500 focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-white/70">Cardholder Employee Name (Back) *</label>
+                      <input
+                        type="text"
+                        required
+                        value={nameOnCard}
+                        onChange={(e) => setNameOnCard(e.target.value)}
+                        placeholder="e.g. Kasun Fernando"
+                        className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-white placeholder-white/20 focus:border-purple-500 focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-white/70">Employee Designation *</label>
+                      <input
+                        type="text"
+                        required
+                        value={designation}
+                        onChange={(e) => setDesignation(e.target.value)}
+                        placeholder="e.g. Senior Project Architect"
+                        className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-white placeholder-white/20 focus:border-purple-500 focus:outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  {quantity > 1 && (
+                    <div>
+                      <label className="block text-xs font-medium text-white/70">
+                        Multiple Employee Roster &amp; Names (Optional)
+                      </label>
+                      <textarea
+                        rows={2}
+                        value={corporateRosterNotes}
+                        onChange={(e) => setCorporateRosterNotes(e.target.value)}
+                        placeholder="Enter employee names & designations for your fleet (or send Excel / WhatsApp roster after order)."
+                        className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2 text-xs text-white placeholder-white/20 focus:border-purple-500 focus:outline-none"
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* ─── FORM TYPE B: FULL CUSTOM BRAND CARD DEDICATED FORM ─── */}
+              {currentProduct.id === 'custom-card' && (
+                <div className="space-y-4 rounded-2xl border border-white/10 bg-white/[0.02] p-4">
+                  <div className="rounded-xl bg-purple-500/10 border border-purple-500/20 p-3 text-xs text-purple-300">
+                    🎨 <strong>100% Bespoke Artwork:</strong> Edge-to-edge full color UV printing on both card faces. You can upload custom graphics or logo below.
+                  </div>
+
+                  {/* Artwork / Logo Upload */}
+                  <div>
+                    <label className="block text-xs font-semibold text-white/80 uppercase tracking-wider mb-1.5">
+                      Front &amp; Back Custom Artwork / Logo File
+                    </label>
+                    <div className="flex items-center gap-4">
+                      {logoPreview ? (
+                        <div className="relative h-16 w-16 shrink-0 rounded-xl border border-purple-500/40 bg-black/60 p-1">
+                          <img src={logoPreview} alt="Custom artwork preview" className="h-full w-full object-contain" />
+                          <button
+                            type="button"
+                            onClick={() => setLogoPreview(null)}
+                            className="absolute -top-1.5 -right-1.5 rounded-full bg-red-500 p-0.5 text-white"
+                          >
+                            <XIcon className="h-3 w-3" />
+                          </button>
+                        </div>
+                      ) : (
+                        <label className="flex h-16 w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-white/20 bg-white/[0.03] px-4 text-xs text-white/60 hover:border-purple-400 hover:text-white transition">
+                          <UploadCloudIcon className="h-4 w-4 text-purple-400" />
+                          <span>Upload Vector Artwork, Logo or Graphic Design (PDF / PNG / SVG)</span>
+                          <input type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
+                        </label>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="grid gap-3.5 sm:grid-cols-2">
+                    <div>
+                      <label className="block text-xs font-medium text-white/70">Brand Name (Front) *</label>
+                      <input
+                        type="text"
+                        required
+                        value={brandName}
+                        onChange={(e) => setBrandName(e.target.value)}
+                        placeholder="e.g. SERANEX"
+                        className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-white placeholder-white/20 focus:border-purple-500 focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-white/70">Tagline / Slogan</label>
+                      <input
+                        type="text"
+                        value={tagline}
+                        onChange={(e) => setTagline(e.target.value)}
+                        placeholder="e.g. Web & Software Solutions"
+                        className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-white placeholder-white/20 focus:border-purple-500 focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-white/70">Name on Card (Back) *</label>
+                      <input
+                        type="text"
+                        required
+                        value={nameOnCard}
+                        onChange={(e) => setNameOnCard(e.target.value)}
+                        placeholder="e.g. Chithila Manul"
+                        className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-white placeholder-white/20 focus:border-purple-500 focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-white/70">Designation (Back) *</label>
+                      <input
+                        type="text"
+                        required
+                        value={designation}
+                        onChange={(e) => setDesignation(e.target.value)}
+                        placeholder="e.g. Founder & CEO"
+                        className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-white placeholder-white/20 focus:border-purple-500 focus:outline-none"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ─── FORM TYPE C: EXECUTIVE METAL CARD DEDICATED FORM ─── */}
+              {(currentProduct.id === 'metal-black' || currentProduct.id === 'metal-silver') && (
+                <div className="space-y-4 rounded-2xl border border-white/10 bg-white/[0.02] p-4">
+                  <div className="rounded-xl bg-purple-500/10 border border-purple-500/20 p-3 text-xs text-purple-300">
+                    ⚡ <strong>Solid Surgical 304 Stainless Steel (22g):</strong> Diamond-laser etching typography that will never fade. Includes luxury presentation velvet box.
+                  </div>
+
+                  <div className="grid gap-3.5 sm:grid-cols-2">
+                    <div>
+                      <label className="block text-xs font-medium text-white/70">Laser-Etched Full Name *</label>
+                      <input
+                        type="text"
+                        required
+                        value={nameOnCard}
+                        onChange={(e) => setNameOnCard(e.target.value)}
+                        placeholder="e.g. DR. SANJEEWA PERERA"
+                        className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-white placeholder-white/20 focus:border-purple-500 focus:outline-none uppercase"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-white/70">Laser-Etched Designation *</label>
+                      <input
+                        type="text"
+                        required
+                        value={designation}
+                        onChange={(e) => setDesignation(e.target.value)}
+                        placeholder="e.g. MANAGING DIRECTOR"
+                        className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-white placeholder-white/20 focus:border-purple-500 focus:outline-none uppercase"
+                      />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <label className="block text-xs font-medium text-white/70">Company Wordmark / Monogram (Front Center) *</label>
+                      <input
+                        type="text"
+                        required
+                        value={brandName}
+                        onChange={(e) => setBrandName(e.target.value)}
+                        placeholder="e.g. APEX CAPITAL PARTNERS"
+                        className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-white placeholder-white/20 focus:border-purple-500 focus:outline-none uppercase"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ─── FORM TYPE D: CLASSIC UV / MATTE / GLOSS PVC DEDICATED FORM ─── */}
+              {currentProduct.id !== 'company-card' &&
+                currentProduct.id !== 'custom-card' &&
+                currentProduct.id !== 'metal-black' &&
+                currentProduct.id !== 'metal-silver' && (
+                  <div className="space-y-4 rounded-2xl border border-white/10 bg-white/[0.02] p-4">
+                    <div className="rounded-xl bg-purple-500/10 border border-purple-500/20 p-3 text-xs text-purple-300">
+                      ✨ <strong>{currentProduct.name}:</strong> Physical card features crisp typography on the front and your dynamic contact QR on the back.
+                    </div>
+
+                    <div className="grid gap-3.5 sm:grid-cols-2">
+                      <div>
+                        <label className="block text-xs font-medium text-white/70">Brand Wordmark (Front) *</label>
+                        <input
+                          type="text"
+                          required
+                          value={brandName}
+                          onChange={(e) => setBrandName(e.target.value)}
+                          placeholder="e.g. SERANEX"
+                          className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-white placeholder-white/20 focus:border-purple-500 focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-white/70">Tagline / Designation (Front)</label>
+                        <input
+                          type="text"
+                          value={tagline}
+                          onChange={(e) => setTagline(e.target.value)}
+                          placeholder="e.g. Web Solutions"
+                          className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-white placeholder-white/20 focus:border-purple-500 focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-white/70">Cardholder Name (Back) *</label>
+                        <input
+                          type="text"
+                          required
+                          value={nameOnCard}
+                          onChange={(e) => setNameOnCard(e.target.value)}
+                          placeholder="e.g. Chithila Manul"
+                          className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-white placeholder-white/20 focus:border-purple-500 focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-white/70">Designation (Back) *</label>
+                        <input
+                          type="text"
+                          required
+                          value={designation}
+                          onChange={(e) => setDesignation(e.target.value)}
+                          placeholder="e.g. Founder & CEO"
+                          className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-white placeholder-white/20 focus:border-purple-500 focus:outline-none"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+              {/* Subdomain Handle (Shared) */}
               <div>
-                <span className="text-xs uppercase tracking-wider text-white/50 block">Package Price</span>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-xl sm:text-2xl font-bold text-white font-mono">
-                    LKR {unitPrice.toLocaleString()}
+                <label className="block text-xs font-medium text-white/70">
+                  Card Digital Subdomain Link *
+                </label>
+                <div className="mt-1 flex items-stretch rounded-xl border border-white/10 bg-white/[0.03] focus-within:border-purple-500">
+                  <input
+                    type="text"
+                    required
+                    value={slug}
+                    onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                    placeholder="yourname"
+                    className="min-w-0 flex-1 bg-transparent px-3.5 py-2.5 text-sm text-white placeholder-white/20 outline-none"
+                  />
+                  <span className="flex items-center border-l border-white/10 bg-white/[0.03] px-3 text-xs text-purple-400 font-mono">
+                    .{brand.domain}
                   </span>
-                  <span className="text-xs text-white/40 line-through font-mono">
-                    LKR {originalPrice.toLocaleString()}
+                </div>
+              </div>
+            </div>
+
+            {/* ─── SECTION 2: CUSTOMER CONTACT & DELIVERY ADDRESS ─── */}
+            <div className="space-y-4">
+              <span className="text-xs font-semibold uppercase tracking-wider text-purple-400 block">
+                2. Contact &amp; Delivery Address
+              </span>
+              <div className="grid gap-3.5 sm:grid-cols-2">
+                <div>
+                  <label className="block text-xs font-medium text-white/70">Your Full Name *</label>
+                  <input
+                    type="text"
+                    required
+                    value={customerName}
+                    onChange={(e) => setCustomerName(e.target.value)}
+                    placeholder="e.g. Chithila Manul"
+                    className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-white placeholder-white/20 focus:border-purple-500 focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-white/70">WhatsApp / Phone Number *</label>
+                  <input
+                    type="tel"
+                    required
+                    value={customerPhone}
+                    onChange={(e) => setCustomerPhone(e.target.value)}
+                    placeholder="e.g. 0728382638"
+                    className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-white placeholder-white/20 focus:border-purple-500 focus:outline-none"
+                  />
+                </div>
+
+                <div className="sm:col-span-2">
+                  <label className="block text-xs font-medium text-white/70">Email Address (Optional)</label>
+                  <input
+                    type="email"
+                    value={customerEmail}
+                    onChange={(e) => setCustomerEmail(e.target.value)}
+                    placeholder="e.g. you@domain.com"
+                    className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-white placeholder-white/20 focus:border-purple-500 focus:outline-none"
+                  />
+                </div>
+
+                <div className="sm:col-span-2">
+                  <label className="block text-xs font-medium text-white/70">Delivery Address *</label>
+                  <input
+                    type="text"
+                    required
+                    value={deliveryAddress}
+                    onChange={(e) => setDeliveryAddress(e.target.value)}
+                    placeholder="House number, Street, Area"
+                    className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-white placeholder-white/20 focus:border-purple-500 focus:outline-none"
+                  />
+                </div>
+
+                <div className="sm:col-span-2">
+                  <label className="block text-xs font-medium text-white/70">City / District</label>
+                  <input
+                    type="text"
+                    value={city}
+                    onChange={(e) => setCity(e.target.value)}
+                    placeholder="e.g. Colombo, Seeduwa, Kandy"
+                    className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-white placeholder-white/20 focus:border-purple-500 focus:outline-none"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* ─── SECTION 3: PRICING BREAKDOWN & TOTAL ─── */}
+            <div className="rounded-2xl border border-purple-500/20 bg-purple-500/[0.05] p-4 flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <span className="text-xs uppercase tracking-wider text-white/50 block">Order Total</span>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-2xl font-bold text-white font-mono">
+                    LKR {totalAmount.toLocaleString()}
+                  </span>
+                  <span className="text-xs text-white/40">
+                    ({quantity} {quantity === 1 ? 'card' : 'cards'})
                   </span>
                 </div>
               </div>
               <div className="text-right text-xs">
-                <span className="text-white/60 block">Island-wide Delivery: LKR {deliveryFee}</span>
+                <span className="text-white/60 block">
+                  Delivery: {deliveryFee === 0 ? <strong className="text-emerald-400">FREE</strong> : `LKR ${deliveryFee}`}
+                </span>
                 <span className="text-purple-400 font-bold font-mono text-sm">
-                  Total: LKR {totalAmount.toLocaleString()}
+                  Net: LKR {totalAmount.toLocaleString()}
                 </span>
               </div>
             </div>
 
-            {/* Corporate Bulk Orders Callout */}
-            <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-3 text-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-              <div className="text-white/60">
-                <span className="font-semibold text-white">🏢 Need cards for your entire team or company?</span>
-                <p className="text-[11px] text-white/50 mt-0.5">
-                  For large corporate quantities (5+ cards), we adjust unit prices with custom volume discounts.
-                </p>
-              </div>
-              <a
-                href={`https://wa.me/${brand.whatsapp}?text=${encodeURIComponent(
-                  "Hi Sera Cards — I would like to inquire about bulk corporate pricing for multiple cards (large quantities)."
-                )}`}
-                target="_blank"
-                rel="noreferrer"
-                className="shrink-0 px-3 py-1.5 rounded-xl border border-purple-500/30 bg-purple-500/10 text-purple-300 font-semibold text-[11px] hover:bg-purple-500/20 transition whitespace-nowrap"
-              >
-                Inquire Bulk Rate &rarr;
-              </a>
-            </div>
-          </div>
+            {/* Payment Method Selector */}
+            <div className="space-y-3">
+              <span className="text-xs font-semibold uppercase tracking-wider text-purple-400 block">
+                3. Choose Payment Method
+              </span>
 
-          {/* Section 2: Customer & Shipping Details */}
-          <div className="space-y-4">
-            <span className="text-xs font-semibold uppercase tracking-wider text-white/40 block">
-              2. Customer Contact & Delivery Address
-            </span>
-            <div className="grid gap-3.5 sm:grid-cols-2">
-              <div>
-                <label className="block text-xs font-medium text-white/70">Your Full Name *</label>
-                <input
-                  type="text"
-                  required
-                  value={customerName}
-                  onChange={(e) => setCustomerName(e.target.value)}
-                  placeholder="e.g. Chithila Manul"
-                  className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-white placeholder-white/20 focus:border-purple-500 focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-white/70">WhatsApp / Phone Number *</label>
-                <input
-                  type="tel"
-                  required
-                  value={customerPhone}
-                  onChange={(e) => setCustomerPhone(e.target.value)}
-                  placeholder="e.g. 0728382638"
-                  className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-white placeholder-white/20 focus:border-purple-500 focus:outline-none"
-                />
-              </div>
-
-              <div className="sm:col-span-2">
-                <label className="block text-xs font-medium text-white/70">Email Address (Optional)</label>
-                <input
-                  type="email"
-                  value={customerEmail}
-                  onChange={(e) => setCustomerEmail(e.target.value)}
-                  placeholder="e.g. you@domain.com"
-                  className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-white placeholder-white/20 focus:border-purple-500 focus:outline-none"
-                />
-              </div>
-
-              <div className="sm:col-span-2">
-                <label className="block text-xs font-medium text-white/70">Delivery Address *</label>
-                <input
-                  type="text"
-                  required
-                  value={deliveryAddress}
-                  onChange={(e) => setDeliveryAddress(e.target.value)}
-                  placeholder="House number, Street, Area"
-                  className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-white placeholder-white/20 focus:border-purple-500 focus:outline-none"
-                />
-              </div>
-
-              <div className="sm:col-span-2">
-                <label className="block text-xs font-medium text-white/70">City / District</label>
-                <input
-                  type="text"
-                  value={city}
-                  onChange={(e) => setCity(e.target.value)}
-                  placeholder="e.g. Colombo, Seeduwa, Kandy"
-                  className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-white placeholder-white/20 focus:border-purple-500 focus:outline-none"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Section 3: Printed Card Information */}
-          <div className="space-y-4">
-            <span className="text-xs font-semibold uppercase tracking-wider text-white/40 block">
-              3. Printed Card Information
-            </span>
-
-            {edition === 'signature' && (
-              <p className="text-xs text-white/50 bg-white/[0.02] p-3 rounded-xl border border-white/5">
-                💡 <strong>SERA Signature PVC:</strong> Physical card features the official SERA logo on the front. Your name and designation are printed on the back.
-              </p>
-            )}
-
-            {edition === 'custom' && (
-              <p className="text-xs text-purple-400 bg-purple-500/[0.05] p-3 rounded-xl border border-purple-500/20">
-                🎨 <strong>Full Custom Print PVC:</strong> Your brand name, logo, and custom graphics will be printed on both card faces. Please upload your logo below.
-              </p>
-            )}
-
-            <div className="grid gap-3.5 sm:grid-cols-2">
-              <div>
-                <label className="block text-xs font-medium text-white/70">Brand Name (Front) *</label>
-                <input
-                  type="text"
-                  required
-                  value={brandName}
-                  onChange={(e) => setBrandName(e.target.value)}
-                  placeholder="e.g. SERANEX"
-                  className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-white placeholder-white/20 focus:border-purple-500 focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-white/70">Tagline (Front)</label>
-                <input
-                  type="text"
-                  value={tagline}
-                  onChange={(e) => setTagline(e.target.value)}
-                  placeholder="e.g. Web & Software Solutions"
-                  className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-white placeholder-white/20 focus:border-purple-500 focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-white/70">Name on Card (Back) *</label>
-                <input
-                  type="text"
-                  required
-                  value={nameOnCard}
-                  onChange={(e) => setNameOnCard(e.target.value)}
-                  placeholder="e.g. Chithila Manul"
-                  className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-white placeholder-white/20 focus:border-purple-500 focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-white/70">Designation (Back)</label>
-                <input
-                  type="text"
-                  value={designation}
-                  onChange={(e) => setDesignation(e.target.value)}
-                  placeholder="e.g. Founder & CEO"
-                  className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-white placeholder-white/20 focus:border-purple-500 focus:outline-none"
-                />
-              </div>
-
-              <div className="sm:col-span-2">
-                <label className="block text-xs font-medium text-white/70">Sub-page Profile Link</label>
-                <div className="mt-1 flex items-center rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2">
-                  <span className="text-white/40 text-xs">https://</span>
-                  <input
-                    type="text"
-                    value={slug}
-                    onChange={(e) => setSlug(e.target.value)}
-                    placeholder="yourname"
-                    className="min-w-0 flex-1 bg-transparent px-1 font-mono text-purple-400 text-xs sm:text-sm outline-none"
-                  />
-                  <span className="font-mono text-xs text-purple-400">.{brand.domain}</span>
-                </div>
-              </div>
-
-              {/* Logo / Artwork Upload */}
-              <div className="sm:col-span-2">
-                <label className="block text-xs font-medium text-white/70">
-                  {edition === 'custom' ? 'Upload Company Logo for Printing *' : 'Profile Photo / Logo (Optional)'}
-                </label>
-                <div className="mt-2 flex flex-wrap items-center gap-3">
-                  <label className="flex cursor-pointer items-center gap-2 rounded-xl border border-dashed border-white/20 bg-white/[0.02] px-4 py-3 text-xs text-white/70 transition-colors hover:border-purple-500 hover:text-white">
-                    <UploadCloudIcon className="h-4 w-4 text-purple-400" />
-                    <span>{logoPreview ? 'Change Image' : 'Choose Logo / Photo (PNG, JPG)'}</span>
-                    <input type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
-                  </label>
-                  {logoPreview && (
-                    <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] p-1.5">
-                      <img src={logoPreview} alt="Logo preview" className="h-8 w-8 rounded-lg object-contain" />
-                      <span className="text-[11px] text-purple-400 font-medium">Image attached</span>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <label
+                  onClick={() => setPaymentMethod('WHATSAPP')}
+                  className={`flex cursor-pointer items-center justify-between rounded-2xl border p-3.5 transition-all ${
+                    paymentMethod === 'WHATSAPP'
+                      ? 'border-emerald-500 bg-emerald-500/10'
+                      : 'border-white/10 bg-white/[0.02] hover:border-white/20'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      checked={paymentMethod === 'WHATSAPP'}
+                      onChange={() => setPaymentMethod('WHATSAPP')}
+                      className="text-emerald-500"
+                    />
+                    <div>
+                      <span className="text-xs font-bold text-white block">WhatsApp Direct Order</span>
+                      <span className="text-[11px] text-white/50 block">Bank transfer / Cash on delivery</span>
                     </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Section 4: Digital Profile & Socials (Live on Tap) */}
-          <div className="space-y-3.5">
-            <span className="text-xs font-semibold uppercase tracking-wider text-white/40 block">
-              4. Digital Profile Details (Opens on NFC Tap)
-            </span>
-            <div>
-              <label className="block text-xs font-medium text-white/70">Short Bio / Overview</label>
-              <textarea
-                rows={2}
-                value={bio}
-                onChange={(e) => setBio(e.target.value)}
-                placeholder="e.g. Founder at Seranex. Building innovative software and NFC solutions."
-                className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-white placeholder-white/20 focus:border-purple-500 focus:outline-none"
-              />
-            </div>
-
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div>
-                <label className="block text-xs font-medium text-white/70">Instagram</label>
-                <input
-                  type="text"
-                  value={instagram}
-                  onChange={(e) => setInstagram(e.target.value)}
-                  placeholder="https://instagram.com/yourhandle"
-                  className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2 text-xs sm:text-sm text-white placeholder-white/20 focus:border-purple-500 focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-white/70">LinkedIn</label>
-                <input
-                  type="text"
-                  value={linkedin}
-                  onChange={(e) => setLinkedin(e.target.value)}
-                  placeholder="https://linkedin.com/in/yourhandle"
-                  className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2 text-xs sm:text-sm text-white placeholder-white/20 focus:border-purple-500 focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-white/70">Facebook</label>
-                <input
-                  type="text"
-                  value={facebook}
-                  onChange={(e) => setFacebook(e.target.value)}
-                  placeholder="https://facebook.com/yourpage"
-                  className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2 text-xs sm:text-sm text-white placeholder-white/20 focus:border-purple-500 focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-white/70">TikTok (Optional)</label>
-                <input
-                  type="text"
-                  value={tiktok}
-                  onChange={(e) => setTiktok(e.target.value)}
-                  placeholder="https://tiktok.com/@yourhandle"
-                  className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2 text-xs sm:text-sm text-white placeholder-white/20 focus:border-purple-500 focus:outline-none"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Section 5: Payment Method */}
-          <div className="space-y-3">
-            <span className="text-xs font-semibold uppercase tracking-wider text-white/40 block">
-              5. Select Payment Method
-            </span>
-            <div className="grid gap-3 sm:grid-cols-3">
-              <label
-                onClick={() => setPaymentMethod('WHATSAPP')}
-                className={`flex cursor-pointer items-start gap-3 rounded-2xl border p-4 transition-all ${
-                  paymentMethod === 'WHATSAPP'
-                    ? 'border-purple-500 bg-purple-500/[0.08]'
-                    : 'border-white/10 bg-white/[0.02] hover:border-white/20'
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="payment"
-                  checked={paymentMethod === 'WHATSAPP'}
-                  onChange={() => setPaymentMethod('WHATSAPP')}
-                  className="mt-0.5 text-purple-500"
-                />
-                <div>
-                  <div className="flex items-center gap-2">
-                    <MessageSquareIcon className="h-4 w-4 text-purple-400" />
-                    <span className="font-semibold text-white">WhatsApp</span>
                   </div>
-                  <p className="mt-1 text-xs leading-relaxed text-white/50">
-                    Direct confirmation & proof via chat.
-                  </p>
-                </div>
-              </label>
+                  <MessageSquareIcon className="h-4 w-4 text-emerald-400" />
+                </label>
 
-              <label
-                onClick={() => setPaymentMethod('MINTPAY')}
-                className={`flex cursor-pointer items-start gap-3 rounded-2xl border p-4 transition-all ${
-                  paymentMethod === 'MINTPAY'
-                    ? 'border-[#00e5be] bg-[#00e5be]/[0.08] shadow-[0_0_20px_-5px_rgba(0,229,190,0.3)]'
-                    : 'border-white/10 bg-white/[0.02] hover:border-white/20'
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="payment"
-                  checked={paymentMethod === 'MINTPAY'}
-                  onChange={() => setPaymentMethod('MINTPAY')}
-                  className="mt-0.5 text-[#00e5be]"
-                />
-                <div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-[#00e5be] font-black text-xs leading-none">///</span>
-                    <span className="font-semibold text-white">Mintpay</span>
+                <label
+                  onClick={() => setPaymentMethod('PAYHERE')}
+                  className={`flex cursor-pointer items-center justify-between rounded-2xl border p-3.5 transition-all ${
+                    paymentMethod === 'PAYHERE'
+                      ? 'border-purple-500 bg-purple-500/10'
+                      : 'border-white/10 bg-white/[0.02] hover:border-white/20'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      checked={paymentMethod === 'PAYHERE'}
+                      onChange={() => setPaymentMethod('PAYHERE')}
+                      className="text-purple-500"
+                    />
+                    <div>
+                      <span className="text-xs font-bold text-white block">PayHere Online Gateway</span>
+                      <span className="text-[11px] text-white/50 block">Visa, Mastercard, Frimi, Genie</span>
+                    </div>
                   </div>
-                  <p className="mt-1 text-xs leading-relaxed text-white/50">
-                    3 x LKR {(totalAmount / 3).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (0% interest).
-                  </p>
-                </div>
-              </label>
-
-              <label
-                onClick={() => setPaymentMethod('PAYHERE')}
-                className={`flex cursor-pointer items-start gap-3 rounded-2xl border p-4 transition-all ${
-                  paymentMethod === 'PAYHERE'
-                    ? 'border-purple-500 bg-purple-500/[0.08]'
-                    : 'border-white/10 bg-white/[0.02] hover:border-white/20'
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="payment"
-                  checked={paymentMethod === 'PAYHERE'}
-                  onChange={() => setPaymentMethod('PAYHERE')}
-                  className="mt-0.5 text-purple-500"
-                />
-                <div>
-                  <div className="flex items-center gap-2">
-                    <CreditCardIcon className="h-4 w-4 text-purple-400" />
-                    <span className="font-semibold text-white">Pay Online</span>
-                  </div>
-                  <p className="mt-1 text-xs leading-relaxed text-white/50">
-                    Visa, Master, FriMi & Genie.
-                  </p>
-                </div>
-              </label>
+                  <CreditCardIcon className="h-4 w-4 text-purple-400" />
+                </label>
+              </div>
             </div>
-          </div>
 
-          {/* Submit Button */}
-          <div className="pt-2">
+            {/* Submit Button */}
             <button
               type="submit"
               disabled={isSubmitting}
-              className={`flex w-full items-center justify-center gap-2 rounded-2xl py-4 text-sm sm:text-base font-bold text-black transition-all active:scale-[0.98] disabled:opacity-50 ${
-                paymentMethod === 'MINTPAY'
-                  ? 'bg-[#00e5be] hover:brightness-110 shadow-[0_0_40px_-10px_rgba(0,229,190,0.8)]'
-                  : 'bg-purple-500 hover:bg-purple-400 shadow-[0_0_40px_-10px_rgba(168,85,247,0.8)]'
-              }`}
+              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-purple-600 py-4 text-sm font-bold text-white shadow-lg shadow-purple-600/30 hover:bg-purple-500 transition active:scale-[0.98] disabled:opacity-50"
             >
               {isSubmitting ? (
                 <>
-                  <Loader2Icon className="h-5 w-5 animate-spin" />
-                  Processing Order...
+                  <Loader2Icon className="h-4 w-4 animate-spin" />
+                  Generating Order Proof...
                 </>
               ) : paymentMethod === 'PAYHERE' ? (
-                `Proceed to PayHere Checkout (LKR ${totalAmount.toLocaleString()})`
-              ) : paymentMethod === 'MINTPAY' ? (
-                `Confirm with Mintpay (3 x LKR ${(totalAmount / 3).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })})`
+                <>
+                  <CreditCardIcon className="h-4 w-4" />
+                  Pay Online (LKR {totalAmount.toLocaleString()}) &rarr;
+                </>
               ) : (
-                `Confirm & Send via WhatsApp (LKR ${totalAmount.toLocaleString()})`
+                <>
+                  <MessageSquareIcon className="h-4 w-4" />
+                  Confirm &amp; Order {currentProduct.name} (LKR {totalAmount.toLocaleString()}) &rarr;
+                </>
               )}
             </button>
-          </div>
-        </form>
+          </form>
         )}
       </div>
     </div>

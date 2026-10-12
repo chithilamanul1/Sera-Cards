@@ -484,16 +484,7 @@ export function ProductRangeCatalog() {
           business: selectedOrderProduct?.name || cardApi.config.business,
           materialId: selectedOrderProduct?.materialId || cardApi.config.materialId,
         }}
-        preselectedProduct={
-          selectedOrderProduct
-            ? {
-                name: selectedOrderProduct.name,
-                price: selectedOrderProduct.priceLkr,
-                finish: selectedOrderProduct.surfaceType,
-                isCustomQuote: selectedOrderProduct.isCustomQuote,
-              }
-            : undefined
-        }
+        preselectedProduct={selectedOrderProduct || undefined}
       />
     </section>
   );

@@ -20,6 +20,7 @@ import {
 import { Nav } from '@/components/Nav'
 import { Footer } from '@/components/Footer'
 import { OrderModal } from '@/components/OrderModal'
+import { CARD_PRODUCTS, CardProduct } from '@/data/products'
 import type { CardConfig } from '@/types/card'
 
 const ease = [0.23, 1, 0.32, 1] as const
@@ -191,6 +192,7 @@ const faqs = [
 export default function PricingPage() {
   const [openFaq, setOpenFaq] = useState<number | null>(0)
   const [isOrderModalOpen, setIsOrderModalOpen] = useState(false)
+  const [selectedProductForModal, setSelectedProductForModal] = useState<CardProduct | undefined>(undefined)
   const [selectedConfig, setSelectedConfig] = useState<CardConfig>({
     business: 'SERANEX',
     tagline: 'Web & Software Solutions',
@@ -202,18 +204,23 @@ export default function PricingPage() {
 
   const openOrderWithEdition = (editionId: 'pvc' | 'premium' | 'metal') => {
     if (editionId === 'metal') {
-      window.open(
-        'https://wa.me/94728382638?text=' +
-          encodeURIComponent('Hi GoSera team, I would like to inquire about the Executive Metal Card tier.'),
-        '_blank'
-      )
+      const metalProd = CARD_PRODUCTS.find((p) => p.id === 'metal-black')
+      setSelectedProductForModal(metalProd)
+      setSelectedConfig((prev) => ({ ...prev, materialId: 'metal_black' }))
+      setIsOrderModalOpen(true)
       return
     }
 
-    setSelectedConfig((prev) => ({
-      ...prev,
-      materialId: editionId === 'premium' ? 'custom' : 'matte',
-    }))
+    if (editionId === 'premium') {
+      const customProd = CARD_PRODUCTS.find((p) => p.id === 'custom-card')
+      setSelectedProductForModal(customProd)
+      setSelectedConfig((prev) => ({ ...prev, materialId: 'custom' }))
+    } else {
+      const pvcProd = CARD_PRODUCTS.find((p) => p.id === 'classic-white')
+      setSelectedProductForModal(pvcProd)
+      setSelectedConfig((prev) => ({ ...prev, materialId: 'epic_white' }))
+    }
+
     setIsOrderModalOpen(true)
   }
 
@@ -552,6 +559,7 @@ export default function PricingPage() {
         isOpen={isOrderModalOpen}
         onClose={() => setIsOrderModalOpen(false)}
         initialConfig={selectedConfig}
+        preselectedProduct={selectedProductForModal}
       />
     </div>
   )
