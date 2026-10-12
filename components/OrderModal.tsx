@@ -27,7 +27,9 @@ export interface OrderModalProduct {
   name: string;
   subtitle?: string;
   price?: number;
+  priceLkr?: number;
   originalPrice?: number;
+  originalPriceLkr?: number;
   finish?: string;
   surfaceType?: string;
   materialType?: string;
@@ -105,7 +107,15 @@ export function OrderModal({ isOpen, onClose, initialConfig, preselectedProduct 
   if (!isOpen) return null;
 
   // ─── DYNAMIC PRICING & VOLUME DISCOUNT CALCULATIONS ───
-  const baseUnitPrice = currentProduct.priceLkr || (preselectedProduct?.price ?? 5000);
+  const rawPreselectedPrice = preselectedProduct
+    ? ('priceLkr' in preselectedProduct && preselectedProduct.priceLkr
+        ? preselectedProduct.priceLkr
+        : 'price' in preselectedProduct && typeof (preselectedProduct as any).price === 'number'
+        ? (preselectedProduct as any).price
+        : null)
+    : null;
+
+  const baseUnitPrice = currentProduct.priceLkr || rawPreselectedPrice || 5000;
 
   // Corporate / Bulk Tier Discount:
   // 1-4 cards: 0% discount
