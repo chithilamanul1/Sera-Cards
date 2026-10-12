@@ -24,7 +24,7 @@ function getStore(): Map<string, StoredCard> {
  */
 export function saveCardToMemory(
   slug: string,
-  htmlContent: string,
+  htmlContent?: string | null,
   metadata?: any,
   cardId?: string
 ): StoredCard {
@@ -36,7 +36,7 @@ export function saveCardToMemory(
   const stored: StoredCard = {
     id: cardId || existing?.id || `mem_${cleanSlug}_${Date.now()}`,
     slug: cleanSlug,
-    htmlContent,
+    htmlContent: htmlContent || existing?.htmlContent || '',
     metadata: metadata || existing?.metadata,
     createdAt: existing?.createdAt || now,
     updatedAt: now,

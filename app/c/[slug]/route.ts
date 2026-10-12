@@ -125,7 +125,7 @@ export async function GET(request: Request, { params }: { params: { slug: string
         } catch {}
       }
 
-      if (client?.htmlContent) {
+      if (client?.htmlContent && typeof client.htmlContent === 'string') {
         htmlContent = client.htmlContent;
         saveCardToMemory(cleanSlug, htmlContent);
       }
