@@ -19,7 +19,13 @@ export const dynamic = 'force-dynamic';
 
 function getIsAdmin(): boolean {
   const cookieStore = cookies();
-  return cookieStore.get('admin_session')?.value === 'authenticated';
+  if (cookieStore.get('admin_session')?.value === 'authenticated') return true;
+  const userSession = cookieStore.get('user_session')?.value;
+  if (userSession) {
+    const user = getUserFromMemory(userSession);
+    if (user?.role === 'ADMIN') return true;
+  }
+  return false;
 }
 
 // GET /api/users — List all user accounts (Admin only)

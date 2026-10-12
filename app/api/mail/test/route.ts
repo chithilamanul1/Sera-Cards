@@ -5,9 +5,17 @@ import { getAllEmailLogs, clearEmailLogs } from '@/lib/mailStore';
 
 export const dynamic = 'force-dynamic';
 
+import { getUserFromMemory } from '@/lib/userStore';
+
 function getIsAdmin(): boolean {
   const cookieStore = cookies();
-  return cookieStore.get('admin_session')?.value === 'authenticated';
+  if (cookieStore.get('admin_session')?.value === 'authenticated') return true;
+  const userSession = cookieStore.get('user_session')?.value;
+  if (userSession) {
+    const user = getUserFromMemory(userSession);
+    if (user?.role === 'ADMIN') return true;
+  }
+  return false;
 }
 
 // GET /api/mail/test — Get mail service status and recent audit logs

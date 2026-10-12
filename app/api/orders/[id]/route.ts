@@ -5,13 +5,20 @@ import { getOrderFromMemory, saveOrderToMemory, deleteOrderFromMemory } from '@/
 
 export const dynamic = 'force-dynamic';
 
+import { getUserFromMemory } from '@/lib/userStore';
+
 function isAuthorized(request: Request) {
   const session = cookies().get('admin_session');
   if (session && session.value === 'authenticated') {
     return true;
   }
+  const userSession = cookies().get('user_session')?.value;
+  if (userSession) {
+    const user = getUserFromMemory(userSession);
+    if (user?.role === 'ADMIN') return true;
+  }
   const authHeader = request.headers.get('x-admin-secret');
-  return authHeader === process.env.ADMIN_SECRET;
+  return !!process.env.ADMIN_SECRET && authHeader === process.env.ADMIN_SECRET;
 }
 
 // GET /api/orders/[id] — Fetch specific order

@@ -10,6 +10,17 @@ import { sendCardActivationEmail } from '@/lib/mail';
 
 export const dynamic = 'force-dynamic';
 
+function getIsAdmin(): boolean {
+  const cookieStore = cookies();
+  if (cookieStore.get('admin_session')?.value === 'authenticated') return true;
+  const userSession = cookieStore.get('user_session')?.value;
+  if (userSession) {
+    const user = getUserFromMemory(userSession);
+    if (user?.role === 'ADMIN') return true;
+  }
+  return false;
+}
+
 // GET /api/activate?code=SERA-XXXX
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -18,8 +29,7 @@ export async function GET(request: Request) {
 
   // Admin listing all codes
   if (action === 'list') {
-    const adminSession = cookies().get('admin_session')?.value;
-    if (adminSession !== 'authenticated') {
+    if (!getIsAdmin()) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     const all = getAllActivations();
@@ -55,8 +65,7 @@ export async function POST(request: Request) {
 
     // 1. Admin bulk generation of codes
     if (action === 'generate') {
-      const adminSession = cookies().get('admin_session')?.value;
-      if (adminSession !== 'authenticated') {
+      if (!getIsAdmin()) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
       }
 

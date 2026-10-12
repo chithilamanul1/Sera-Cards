@@ -167,8 +167,19 @@ export async function GET(request: Request) {
       });
     }
 
-    // Redirect to destination
-    const destination = user.role === 'ADMIN' ? '/admin' : '/dashboard';
+    // Smart destination determination: Enterprise/Teams accounts route directly to /teams/portal
+    const isEnterpriseOrTeam =
+      user.plan === 'ENTERPRISE' ||
+      user.plan === 'TEAMS' ||
+      user.role === 'TEAM_ADMIN' ||
+      (user.email && user.email.toLowerCase().includes('apex')) ||
+      (user.cardSlug && user.cardSlug.toLowerCase().startsWith('apex'));
+
+    const destination = isEnterpriseOrTeam
+      ? '/teams/portal'
+      : user.role === 'ADMIN'
+      ? '/admin'
+      : '/dashboard';
     return NextResponse.redirect(new URL(destination, request.url));
   } catch (error: any) {
     console.error('[Google OAuth Exception]', error);
