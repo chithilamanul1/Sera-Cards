@@ -59,8 +59,9 @@ export default function RegisterPage() {
         throw new Error(data.error || 'Failed to create account.');
       }
 
-      // Success -> Redirect to Customer Portal
-      router.push('/dashboard');
+      // Success -> Redirect to Interactive Onboarding Studio
+      const finalSlug = form.cardSlug || form.name.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 16);
+      router.push(`/onboarding?slug=${encodeURIComponent(finalSlug)}&name=${encodeURIComponent(form.name)}&email=${encodeURIComponent(form.email)}&phone=${encodeURIComponent(form.phone)}`);
       router.refresh();
     } catch (err: any) {
       setError(err.message || 'Something went wrong.');

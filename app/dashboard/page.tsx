@@ -525,6 +525,14 @@ export default function CustomerDashboard() {
               <ExternalLinkIcon className="h-3.5 w-3.5" />
               View Live Card
             </a>
+            <a
+              href={`/onboarding?slug=${profileForm.slug || user?.cardSlug || ''}&name=${encodeURIComponent(user?.name || '')}&email=${encodeURIComponent(user?.email || '')}`}
+              className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.04] px-3.5 py-2.5 text-xs font-semibold text-white/80 hover:bg-white/[0.08] hover:text-white transition-colors"
+              title="Launch Onboarding Studio"
+            >
+              <SparklesIcon className="h-3.5 w-3.5 text-accent-400" />
+              Onboarding Studio
+            </a>
             <button
               onClick={handleLogout}
               className="inline-flex items-center justify-center rounded-xl border border-red-500/20 bg-red-500/10 p-2.5 text-red-400 hover:bg-red-500/20 transition-colors"

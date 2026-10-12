@@ -111,22 +111,22 @@ function LoginForm() {
       <div className="relative flex items-center justify-center my-6">
         <div className="border-t border-white/10 w-full" />
         <span className="bg-[#0e0e12] px-3 text-xs uppercase tracking-wider text-white/40 absolute font-semibold">
-          or with email
+          or sign in with credentials
         </span>
       </div>
 
       <form onSubmit={handleLogin} className="space-y-4">
         <div>
           <label className="block text-xs font-medium text-white/70 uppercase tracking-wider mb-1.5">
-            Email Address
+            Email Address or Mobile Number
           </label>
           <div className="relative">
             <MailIcon className="absolute left-3.5 top-3.5 h-4 w-4 text-white/30" />
             <input
-              type="email"
+              type="text"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@company.com"
+              placeholder="you@company.com or 0728382638"
               className="w-full rounded-xl border border-white/10 bg-white/[0.03] pl-10 pr-4 py-3 text-sm text-white placeholder-white/20 focus:border-accent-500 focus:outline-none transition-colors"
               required
             />

@@ -2678,6 +2678,9 @@ export default function AdminDashboard() {
                     </TableBody>
                   </Table>
                 )}
+              </CardContent>
+            </Card>
+
             {/* Google OAuth & Cloud Console Diagnostics */}
             <Card className="border-zinc-800 bg-zinc-900/90 shadow-xl">
               <CardHeader className="p-6 border-b border-zinc-800/80 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">

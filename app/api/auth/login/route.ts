@@ -12,18 +12,30 @@ export async function POST(req: Request) {
 
     if (!email || !password) {
       return NextResponse.json(
-        { message: 'Email and password are required' },
+        { message: 'Email or phone number and password are required' },
         { status: 400 }
       );
     }
 
-    const cleanEmail = email.trim().toLowerCase();
+    const rawInput = String(email).trim();
+    const cleanEmail = rawInput.toLowerCase();
 
-    // 1. Check Super Admin Credentials
+    // Extract digits for phone lookup (e.g. +94728382638 -> 94728382638 or 0728382638)
+    const digitsOnly = rawInput.replace(/[^0-9]/g, '');
+    const localPhone = digitsOnly.startsWith('94') ? '0' + digitsOnly.slice(2) : digitsOnly;
+    const intlPhone = digitsOnly.startsWith('0') ? '94' + digitsOnly.slice(1) : digitsOnly;
+    const plusIntlPhone = '+' + intlPhone;
+
+    // 1. Check Super Admin Credentials (supports email or mobile 0728382638 / +94728382638)
     const ADMIN_EMAIL = (process.env.ADMIN_EMAIL || 'chithilamanul1@gmail.com').toLowerCase();
     const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'chithila123@';
+    const ADMIN_PHONE = (process.env.ADMIN_PHONE || '0728382638').replace(/[^0-9]/g, '');
 
-    if (cleanEmail === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
+    const isAdminIdentifier =
+      cleanEmail === ADMIN_EMAIL ||
+      (digitsOnly && (digitsOnly === ADMIN_PHONE || digitsOnly === '94728382638' || localPhone === '0728382638'));
+
+    if (isAdminIdentifier && password === ADMIN_PASSWORD) {
       cookies().set({
         name: 'admin_session',
         value: 'authenticated',
@@ -41,12 +53,28 @@ export async function POST(req: Request) {
       });
     }
 
-    // 2. Check Customer / User in MongoDB or Memory Store
+    // 2. Check Customer / User in MongoDB or Memory Store by Email, Phone, or Card Slug
     let user: any = null;
+    const searchConditions: any[] = [
+      { email: cleanEmail },
+      { cardSlug: cleanEmail },
+    ];
+
+    if (digitsOnly.length >= 7) {
+      searchConditions.push(
+        { phone: rawInput },
+        { phone: localPhone },
+        { phone: intlPhone },
+        { phone: plusIntlPhone }
+      );
+    }
+
     try {
       user = await Promise.race([
-        prisma.user.findUnique({
-          where: { email: cleanEmail },
+        prisma.user.findFirst({
+          where: {
+            OR: searchConditions,
+          },
         }),
         new Promise((_, reject) => setTimeout(() => reject(new Error('DB Timeout')), 3500)),
       ]) as any;
@@ -60,7 +88,10 @@ export async function POST(req: Request) {
 
     // Check memory store if DB lookup failed
     if (!user) {
-      user = getUserFromMemory(cleanEmail);
+      user =
+        getUserFromMemory(cleanEmail) ||
+        (digitsOnly ? getUserFromMemory(localPhone) : null) ||
+        (digitsOnly ? getUserFromMemory(rawInput) : null);
     }
 
     if (user && verifyPassword(password, user.passwordHash)) {
@@ -88,6 +119,7 @@ export async function POST(req: Request) {
         });
       }
 
+      // Check if user has completed onboarding
       const redirect = user.role === 'ADMIN' ? '/admin' : '/dashboard';
 
       return NextResponse.json({
@@ -98,6 +130,7 @@ export async function POST(req: Request) {
           id: user.id,
           name: user.name,
           email: user.email,
+          phone: user.phone,
           cardSlug: user.cardSlug,
           plan: user.plan,
         },
@@ -105,7 +138,7 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json(
-      { message: 'Invalid email or password' },
+      { message: 'Invalid email, phone number, or password' },
       { status: 401 }
     );
   } catch (error) {

@@ -2,7 +2,7 @@ export interface EmailLog {
   id: string;
   to: string;
   subject: string;
-  type: 'ACTIVATION' | 'ORDER' | 'PROVISION' | 'LEAD' | 'TEST';
+  type: 'ACTIVATION' | 'ORDER' | 'PROVISION' | 'LEAD' | 'TEST' | 'ONBOARDING';
   status: 'SENT' | 'SIMULATED' | 'FAILED';
   error?: string;
   preview: string;

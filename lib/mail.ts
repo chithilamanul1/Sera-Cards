@@ -13,7 +13,7 @@ export interface SendEmailParams {
   subject: string;
   html: string;
   from?: string;
-  type?: 'ACTIVATION' | 'ORDER' | 'PROVISION' | 'LEAD' | 'TEST';
+  type?: 'ACTIVATION' | 'ORDER' | 'PROVISION' | 'LEAD' | 'TEST' | 'ONBOARDING';
 }
 
 export async function sendEmail({
@@ -539,3 +539,238 @@ export async function sendTestEmail({ to }: { to: string }) {
 
   return sendEmail({ to, subject, html, type: 'TEST' });
 }
+
+/**
+ * 6. Onboarding Completion Email (Sent to Cardholder)
+ */
+export async function sendOnboardingCompleteEmail({
+  to,
+  name,
+  slug,
+  title,
+  company,
+  phone,
+}: {
+  to: string;
+  name: string;
+  slug: string;
+  title?: string;
+  company?: string;
+  phone?: string;
+}) {
+  const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'seranex.lk';
+  const customUrl = `https://${slug}.${rootDomain}`;
+  const directUrl = `https://${rootDomain}/c/${slug}`;
+  const dashboardUrl = `https://${rootDomain}/dashboard`;
+  const vcardUrl = `https://${rootDomain}/api/vcard?slug=${slug}`;
+
+  const subject = `🚀 Your Sera Smart Digital Profile is Live! (${name})`;
+
+  const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your Sera Digital Profile is Live</title>
+</head>
+<body style="margin: 0; padding: 24px 12px; background-color: #090a0f; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #f8fafc;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width: 620px; margin: 0 auto; background-color: #12141c; border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; overflow: hidden; box-shadow: 0 30px 60px -15px rgba(0,0,0,0.8);">
+    <!-- Header -->
+    <tr>
+      <td style="padding: 32px 32px 20px; background: linear-gradient(180deg, rgba(16,185,129,0.12) 0%, rgba(18,20,28,0) 100%); border-bottom: 1px solid rgba(255,255,255,0.06); text-align: center;">
+        <div style="display: inline-block; padding: 6px 14px; background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3); border-radius: 9999px; margin-bottom: 12px;">
+          <span style="font-size: 12px; font-weight: 700; color: #10b981; letter-spacing: 0.1em; text-transform: uppercase;">⚡ Profile Activated</span>
+        </div>
+        <h1 style="margin: 0 0 8px; font-size: 26px; font-weight: 700; color: #ffffff; letter-spacing: -0.02em;">Welcome to Sera Cards, ${name}!</h1>
+        <p style="margin: 0; font-size: 14px; color: #94a3b8; line-height: 1.5;">Your smart card and digital presence are fully configured and ready for the world.</p>
+      </td>
+    </tr>
+
+    <!-- Main Content -->
+    <tr>
+      <td style="padding: 28px 32px;">
+        <!-- Live Card Badge & Link Box -->
+        <div style="background-color: #0d0f17; border-radius: 14px; padding: 20px; margin-bottom: 24px; border: 1px solid rgba(16,185,129,0.25);">
+          <p style="margin: 0 0 6px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.15em; color: #10b981;">Your Dedicated Web Subdomain</p>
+          <a href="${customUrl}" target="_blank" style="font-size: 18px; font-weight: 700; color: #ffffff; text-decoration: none; word-break: break-all; display: block; margin-bottom: 8px;">
+            ${customUrl} &rarr;
+          </a>
+          <p style="margin: 0; font-size: 12px; color: #64748b;">
+            Alternate direct link: <a href="${directUrl}" target="_blank" style="color: #94a3b8; text-decoration: underline;">${directUrl}</a>
+          </p>
+        </div>
+
+        <!-- Action Buttons -->
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 28px;">
+          <tr>
+            <td align="center" style="padding-right: 6px;">
+              <a href="${directUrl}" target="_blank" style="display: block; background: #10b981; color: #090a0f; font-weight: 700; font-size: 14px; padding: 14px 20px; border-radius: 12px; text-decoration: none; text-align: center;">
+                🌐 View Digital Profile
+              </a>
+            </td>
+            <td align="center" style="padding-left: 6px;">
+              <a href="${dashboardUrl}" target="_blank" style="display: block; background: rgba(255,255,255,0.06); color: #ffffff; font-weight: 600; font-size: 14px; padding: 14px 20px; border-radius: 12px; text-decoration: none; text-align: center; border: 1px solid rgba(255,255,255,0.12);">
+                ⚙️ Open Dashboard
+              </a>
+            </td>
+          </tr>
+        </table>
+
+        <!-- Profile Snapshot -->
+        <div style="background-color: #0b0c10; border-radius: 12px; padding: 18px; margin-bottom: 28px; border: 1px solid rgba(255,255,255,0.06);">
+          <p style="margin: 0 0 12px; font-size: 12px; font-weight: 700; text-transform: uppercase; color: #a855f7; letter-spacing: 0.1em;">Profile Summary</p>
+          <p style="margin: 4px 0; font-size: 14px; color: #cbd5e1;"><strong>Cardholder:</strong> ${name}</p>
+          ${title ? `<p style="margin: 4px 0; font-size: 14px; color: #cbd5e1;"><strong>Designation:</strong> ${title}</p>` : ''}
+          ${company ? `<p style="margin: 4px 0; font-size: 14px; color: #cbd5e1;"><strong>Company:</strong> ${company}</p>` : ''}
+          ${phone ? `<p style="margin: 4px 0; font-size: 14px; color: #cbd5e1;"><strong>Phone:</strong> ${phone}</p>` : ''}
+          <p style="margin: 4px 0; font-size: 14px; color: #cbd5e1;"><strong>vCard Contact:</strong> <a href="${vcardUrl}" style="color: #10b981; text-decoration: underline;">Download .VCF</a></p>
+        </div>
+
+        <!-- NFC Tapping Guide for iPhone & Android -->
+        <div style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 24px; margin-bottom: 24px;">
+          <h3 style="margin: 0 0 16px; font-size: 16px; font-weight: 700; color: #ffffff;">📱 How to Tap Your Sera Card on Smartphones</h3>
+          
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 12px;">
+            <tr>
+              <td style="padding: 12px 14px; background: rgba(255,255,255,0.02); border-radius: 10px; border: 1px solid rgba(255,255,255,0.06);">
+                <p style="margin: 0 0 4px; font-size: 13px; font-weight: 700; color: #38bdf8;">🍏 For iPhone Users (iOS):</p>
+                <p style="margin: 0; font-size: 13px; color: #94a3b8; line-height: 1.5;">
+                  Tap the top edge of your Sera Card against the <strong>top-back edge of the iPhone</strong> (next to the camera lenses). No app required. Works automatically on iPhone Xs, 11, 12, 13, 14, 15, 16 and newer.
+                </p>
+              </td>
+            </tr>
+          </table>
+
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 12px;">
+            <tr>
+              <td style="padding: 12px 14px; background: rgba(255,255,255,0.02); border-radius: 10px; border: 1px solid rgba(255,255,255,0.06);">
+                <p style="margin: 0 0 4px; font-size: 13px; font-weight: 700; color: #22c55e;">🤖 For Android Users:</p>
+                <p style="margin: 0; font-size: 13px; color: #94a3b8; line-height: 1.5;">
+                  Ensure <strong>NFC is enabled</strong> in phone Settings or Quick Settings toggle. Tap the card against the <strong>center-back</strong> of the smartphone.
+                </p>
+              </td>
+            </tr>
+          </table>
+
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+            <tr>
+              <td style="padding: 12px 14px; background: rgba(255,255,255,0.02); border-radius: 10px; border: 1px solid rgba(255,255,255,0.06);">
+                <p style="margin: 0 0 4px; font-size: 13px; font-weight: 700; color: #fbbf24;">📷 Dynamic QR Code Backup:</p>
+                <p style="margin: 0; font-size: 13px; color: #94a3b8; line-height: 1.5;">
+                  For phones without NFC, simply open the native camera and scan the high-contrast laser-etched QR code on the back of your card.
+                </p>
+              </td>
+            </tr>
+          </table>
+        </div>
+
+        <!-- 2-Way Lead Generation Highlight -->
+        <div style="background: rgba(168,85,247,0.08); border: 1px solid rgba(168,85,247,0.25); border-radius: 12px; padding: 16px; margin-bottom: 24px;">
+          <p style="margin: 0 0 4px; font-size: 13px; font-weight: 700; color: #c084fc;">💼 Built-In Two-Way Lead Capture</p>
+          <p style="margin: 0; font-size: 13px; color: #cbd5e1; line-height: 1.5;">
+            When someone taps your card, they can tap <em>"Exchange Contact"</em> to enter their name and mobile number. You'll receive real-time email notifications and all leads are saved in your dashboard!
+          </p>
+        </div>
+
+        <!-- Help & Support -->
+        <p style="font-size: 13px; color: #64748b; line-height: 1.5; margin: 0; text-align: center;">
+          Need assistance or physical card updates? Reply directly to this email or WhatsApp us at <a href="https://wa.me/94728382638" style="color: #10b981; font-weight: bold; text-decoration: none;">+94 72 838 2638</a>.
+        </p>
+      </td>
+    </tr>
+
+    <!-- Footer -->
+    <tr>
+      <td style="padding: 20px 32px; background-color: #0d0f17; border-top: 1px solid rgba(255,255,255,0.06); text-align: center;">
+        <p style="margin: 0 0 4px; font-size: 12px; color: #475569;">
+          &copy; ${new Date().getFullYear()} Sera Cards · Powered by Seranex Web &amp; Software Solutions
+        </p>
+        <p style="margin: 0; font-size: 11px; color: #334155;">
+          No. 20 A Amuna Rd, Seeduwa, Sri Lanka · <a href="https://${rootDomain}" style="color: #64748b; text-decoration: none;">${rootDomain}</a>
+        </p>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+  `.trim();
+
+  return sendEmail({ to, subject, html, type: 'ONBOARDING' });
+}
+
+/**
+ * 7. Admin Onboarding Alert Email (Sent to Administrator)
+ */
+export async function sendAdminOnboardingAlert({
+  name,
+  email,
+  phone,
+  slug,
+  title,
+  company,
+}: {
+  name: string;
+  email: string;
+  phone?: string;
+  slug: string;
+  title?: string;
+  company?: string;
+}) {
+  const adminEmail = process.env.ADMIN_EMAIL || 'chithilamanul1@gmail.com';
+  const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'seranex.lk';
+  const customUrl = `https://${slug}.${rootDomain}`;
+  const directUrl = `https://${rootDomain}/c/${slug}`;
+  const adminPanelUrl = `https://${rootDomain}/admin`;
+
+  const subject = `✨ New Cardholder Onboarded: ${name} (${slug}.${rootDomain})`;
+
+  const html = `
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"></head>
+<body style="margin: 0; padding: 24px; background-color: #090a0f; font-family: -apple-system, BlinkMacSystemFont, sans-serif; color: #f8fafc;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; margin: 0 auto; background: #12141c; border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 28px;">
+    <tr>
+      <td>
+        <span style="font-size: 12px; font-weight: bold; text-transform: uppercase; color: #a855f7; letter-spacing: 0.1em;">
+          ⚡ Admin Notification
+        </span>
+        <h2 style="font-size: 20px; margin: 12px 0 6px; color: #fff;">New Cardholder Finished Onboarding</h2>
+        <p style="font-size: 14px; color: #94a3b8; margin: 0 0 18px;">
+          A new user just completed the digital setup wizard and activated their card profile.
+        </p>
+
+        <div style="background-color: #0b0c10; border-radius: 12px; padding: 18px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.06);">
+          <p style="margin: 4px 0; font-size: 14px;"><strong>Name:</strong> ${name}</p>
+          <p style="margin: 4px 0; font-size: 14px;"><strong>Email:</strong> <a href="mailto:${email}" style="color: #38bdf8;">${email}</a></p>
+          ${phone ? `<p style="margin: 4px 0; font-size: 14px;"><strong>Mobile / WhatsApp:</strong> <a href="https://wa.me/${phone.replace(/[^0-9]/g, '')}" style="color: #22c55e;">${phone}</a></p>` : ''}
+          ${title ? `<p style="margin: 4px 0; font-size: 14px;"><strong>Title:</strong> ${title}</p>` : ''}
+          ${company ? `<p style="margin: 4px 0; font-size: 14px;"><strong>Company:</strong> ${company}</p>` : ''}
+          <p style="margin: 4px 0; font-size: 14px;"><strong>Subdomain:</strong> <a href="${customUrl}" target="_blank" style="color: #10b981; font-weight: bold;">${customUrl}</a></p>
+          <p style="margin: 4px 0; font-size: 14px;"><strong>Direct Link:</strong> <a href="${directUrl}" target="_blank" style="color: #94a3b8;">${directUrl}</a></p>
+          <p style="margin: 4px 0; font-size: 12px; color: #64748b;"><strong>Timestamp:</strong> ${new Date().toISOString()}</p>
+        </div>
+
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+          <tr>
+            <td align="left">
+              <a href="${directUrl}" target="_blank" style="display: inline-block; background-color: #10b981; color: #090a0f; font-weight: bold; padding: 10px 18px; border-radius: 8px; text-decoration: none; font-size: 13px;">
+                View Live Card &rarr;
+              </a>
+              <a href="${adminPanelUrl}" target="_blank" style="display: inline-block; margin-left: 10px; background-color: rgba(255,255,255,0.08); color: #fff; font-weight: 600; padding: 10px 18px; border-radius: 8px; text-decoration: none; font-size: 13px; border: 1px solid rgba(255,255,255,0.15);">
+                Open Admin Dashboard
+              </a>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+  `.trim();
+
+  return sendEmail({ to: adminEmail, subject, html, type: 'ONBOARDING' });
+}
+
