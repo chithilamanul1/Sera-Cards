@@ -368,6 +368,31 @@ export default function PricingPage() {
                 </motion.div>
               ))}
             </div>
+
+            {/* Corporate Volume Pricing Callout */}
+            <div className="mt-12 rounded-2xl border border-purple-500/30 bg-purple-500/[0.07] p-5 sm:p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="space-y-1 text-center sm:text-left">
+                <span className="text-xs font-bold uppercase tracking-wider text-purple-300">
+                  🏢 Corporate &amp; Bulk Fleet Orders
+                </span>
+                <p className="text-sm font-semibold text-white">
+                  Ordering 5 or more cards for your team or organization?
+                </p>
+                <p className="text-xs text-white/60">
+                  We adjust both physical hardware and software plan pricing with tiered corporate volume discounts.
+                </p>
+              </div>
+              <a
+                href={`https://wa.me/94728382638?text=${encodeURIComponent(
+                  "Hi Sera Cards — I would like to inquire about corporate bulk ordering (large quantities) and receive adjusted volume pricing for our company."
+                )}`}
+                target="_blank"
+                rel="noreferrer"
+                className="shrink-0 rounded-xl bg-purple-600 px-5 py-2.5 text-xs font-bold text-white hover:bg-purple-500 transition shadow-md whitespace-nowrap"
+              >
+                Inquire Corporate Rates &rarr;
+              </a>
+            </div>
           </div>
         </section>
 

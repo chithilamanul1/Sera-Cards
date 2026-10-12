@@ -22,6 +22,7 @@ export interface CardProduct {
   description: string;
   tagline: string;
   bullets: string[];
+  bulkDiscountNotice?: string;
   specs: {
     dimensions: string;
     thickness: string;
@@ -293,7 +294,9 @@ export const CARD_PRODUCTS: CardProduct[] = [
       'Front: Full-size corporate emblem or brand insignia',
       'Back: Employee name, designation & dynamic QR',
       'Central company admin portal compatibility',
+      'Adjusted volume pricing for large corporate quantities (5+ cards)',
     ],
+    bulkDiscountNotice: 'Special volume discounts & adjusted pricing available for corporate orders (5+ cards).',
     specs: {
       dimensions: '85.6mm × 53.98mm (Standard Credit Card)',
       thickness: '0.84 mm',

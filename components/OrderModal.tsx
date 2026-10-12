@@ -386,6 +386,26 @@ export function OrderModal({ isOpen, onClose, initialConfig, preselectedProduct 
                 </span>
               </div>
             </div>
+
+            {/* Corporate Bulk Orders Callout */}
+            <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-3 text-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div className="text-white/60">
+                <span className="font-semibold text-white">🏢 Need cards for your entire team or company?</span>
+                <p className="text-[11px] text-white/50 mt-0.5">
+                  For large corporate quantities (5+ cards), we adjust unit prices with custom volume discounts.
+                </p>
+              </div>
+              <a
+                href={`https://wa.me/${brand.whatsapp}?text=${encodeURIComponent(
+                  "Hi Sera Cards — I would like to inquire about bulk corporate pricing for multiple cards (large quantities)."
+                )}`}
+                target="_blank"
+                rel="noreferrer"
+                className="shrink-0 px-3 py-1.5 rounded-xl border border-purple-500/30 bg-purple-500/10 text-purple-300 font-semibold text-[11px] hover:bg-purple-500/20 transition whitespace-nowrap"
+              >
+                Inquire Bulk Rate &rarr;
+              </a>
+            </div>
           </div>
 
           {/* Section 2: Customer & Shipping Details */}

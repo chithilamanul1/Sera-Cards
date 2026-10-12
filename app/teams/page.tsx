@@ -177,7 +177,7 @@ export default function TeamsPage() {
                   <div className="max-w-xl">
                     <span className="text-[11px] uppercase tracking-[0.28em] text-accent-400">GoSera Teams Plan</span>
                     <h3 className="mt-3 text-3xl font-semibold tracking-tightest text-white">LKR 4,800 / user / year</h3>
-                    <p className="mt-3 text-sm text-white/55">Minimum 3 users. Hardware purchased separately. Includes full Pro features for every employee plus centralized management tools.</p>
+                    <p className="mt-3 text-sm text-white/55">Minimum 3 users. Hardware purchased separately. Includes full Pro features for every employee plus centralized management tools. <strong>For large corporate quantities (10+ users), we adjust hardware and seat pricing with custom volume discounts.</strong></p>
                     <ul className="mt-6 grid gap-2 sm:grid-cols-2">
                       {[
                         'Centralized Admin Dashboard',

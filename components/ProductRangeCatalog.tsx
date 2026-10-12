@@ -14,6 +14,9 @@ import {
   MessageSquareIcon,
   SparklesIcon,
   StarIcon,
+  Building2Icon,
+  UsersIcon,
+  ArrowRightIcon,
 } from 'lucide-react';
 import { CARD_PRODUCTS, PRODUCT_RANGES, CardProduct } from '@/data/products';
 import { brand } from '@/data/content';
@@ -105,9 +108,12 @@ export function ProductRangeCatalog() {
       `*Material:* ${product.materialType}`,
       `*Design Type:* ${product.designType}`,
       `*Price:* LKR ${product.priceLkr.toLocaleString()} (or 3 x LKR ${installment} with Mintpay)`,
+      product.id === 'company-card' || product.bulkDiscountNotice
+        ? `*Quantity / Corporate Note:* We are also interested in corporate bulk pricing / adjusted rates for multiple team cards.`
+        : '',
       ``,
       `Please guide me with the design & delivery details.`,
-    ].join('\n');
+    ].filter(Boolean).join('\n');
     return `https://wa.me/${brand.whatsapp}?text=${encodeURIComponent(text)}`;
   };
 
@@ -258,6 +264,18 @@ export function ProductRangeCatalog() {
                       <CheckIcon className="h-4 w-4 text-emerald-400 shrink-0" />
                       <span>{product.materialType}</span>
                     </p>
+
+                    {product.bulkDiscountNotice && (
+                      <div className="mt-3 rounded-xl bg-purple-500/10 border border-purple-500/25 px-3 py-2 text-center">
+                        <p className="text-[11px] font-bold text-purple-300 flex items-center justify-center gap-1.5">
+                          <SparklesIcon className="h-3 w-3 text-purple-400" />
+                          Corporate Bulk Orders (5+ Cards)
+                        </p>
+                        <p className="text-[10px] text-white/70 mt-0.5 leading-tight">
+                          {product.bulkDiscountNotice}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -307,6 +325,56 @@ export function ProductRangeCatalog() {
               </motion.div>
             );
           })}
+        </div>
+
+        {/* ─── CORPORATE FLEET & BULK VOLUME PRICING BANNER ─── */}
+        <div className="mt-16 mx-auto max-w-4xl">
+          <div className="relative overflow-hidden rounded-3xl border border-purple-500/30 bg-gradient-to-br from-purple-950/40 via-zinc-950 to-zinc-900/90 p-6 sm:p-8 shadow-2xl backdrop-blur-xl">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+              <div className="text-center md:text-left space-y-2">
+                <div className="inline-flex items-center gap-1.5 rounded-full border border-purple-400/30 bg-purple-500/15 px-3 py-1 text-xs font-bold text-purple-300">
+                  <Building2Icon className="h-3.5 w-3.5" />
+                  Corporate Fleets & Large Quantities
+                </div>
+                <h3 className="text-xl sm:text-2xl font-bold text-white">
+                  Ordering For Your Entire Organization or Team?
+                </h3>
+                <p className="text-xs sm:text-sm text-white/65 max-w-xl leading-relaxed">
+                  For corporate-level deployments and bulk quantities (5, 10, 25, 50+ cards), we adjust unit pricing with custom tiered volume discounts. Includes company logo etching, centralized branding, and unified team management.
+                </p>
+                <div className="pt-2 flex flex-wrap items-center justify-center md:justify-start gap-4 text-xs text-white/50">
+                  <span className="flex items-center gap-1.5">
+                    <CheckIcon className="h-3.5 w-3.5 text-emerald-400" /> Tiered Volume Discounts
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <CheckIcon className="h-3.5 w-3.5 text-emerald-400" /> Free Island-Wide Logistics
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <CheckIcon className="h-3.5 w-3.5 text-emerald-400" /> Central Company Portal
+                  </span>
+                </div>
+              </div>
+              <div className="flex flex-col sm:flex-row md:flex-col gap-3 shrink-0 w-full sm:w-auto">
+                <a
+                  href={`https://wa.me/${brand.whatsapp}?text=${encodeURIComponent(
+                    "Hi Sera Cards — I would like to inquire about corporate bulk ordering (large quantities) and receive adjusted volume pricing for our company."
+                  )}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-purple-500 to-indigo-600 px-6 py-3.5 text-xs sm:text-sm font-bold text-white shadow-lg shadow-purple-500/25 hover:from-purple-400 hover:to-indigo-500 transition active:scale-95"
+                >
+                  <MessageSquareIcon className="h-4 w-4" />
+                  Get Corporate Quote
+                </a>
+                <a
+                  href="/teams"
+                  className="inline-flex items-center justify-center gap-1.5 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-2 text-xs font-semibold text-white/70 hover:bg-white/[0.08] hover:text-white transition"
+                >
+                  Learn About For Teams <ArrowRightIcon className="h-3 w-3" />
+                </a>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* ─── 6 CORE TRUST PILLARS ─── */}
