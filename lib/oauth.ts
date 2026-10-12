@@ -2,6 +2,37 @@
  * Google OAuth Canonical URL and Helper Functions
  */
 
+function cleanEnvVal(val?: string): string {
+  if (!val) return '';
+  return val.trim().replace(/^["']|["']$/g, '').trim();
+}
+
+export function getGoogleCredentials() {
+  const clientId = cleanEnvVal(
+    process.env.GOOGLE_CLIENT_ID ||
+    process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ||
+    process.env.GOOGLE_ID ||
+    process.env.NEXT_PUBLIC_GOOGLE_ID
+  );
+
+  const clientSecret = cleanEnvVal(
+    process.env.GOOGLE_CLIENT_SECRET ||
+    process.env.NEXT_PUBLIC_GOOGLE_CLIENT_SECRET ||
+    process.env.GOOGLE_SECRET ||
+    process.env.GOOGLE_CLIENT_SECRET_KEY
+  );
+
+  const hasClientId = !!clientId && !clientId.includes('your_google_client_id');
+  const hasClientSecret = !!clientSecret && !clientSecret.includes('your_google_client_secret');
+
+  return {
+    clientId,
+    clientSecret,
+    hasClientId,
+    hasClientSecret,
+  };
+}
+
 export function getGoogleRedirectUri(request?: Request): string {
   if (request) {
     const forwardedHost = request.headers.get('x-forwarded-host');
@@ -24,11 +55,7 @@ export function getGoogleRedirectUri(request?: Request): string {
 }
 
 export function getGoogleOAuthStatus(request?: Request) {
-  const clientId = process.env.GOOGLE_CLIENT_ID || '';
-  const clientSecret = process.env.GOOGLE_CLIENT_SECRET || '';
-
-  const hasClientId = !!clientId && !clientId.includes('your_google_client_id');
-  const hasClientSecret = !!clientSecret && !clientSecret.includes('your_google_client_secret');
+  const { clientId, clientSecret, hasClientId, hasClientSecret } = getGoogleCredentials();
 
   const currentRedirectUri = getGoogleRedirectUri(request);
   const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'seranex.lk';
@@ -57,5 +84,12 @@ export function getGoogleOAuthStatus(request?: Request) {
     currentRedirectUri,
     authorizedUris,
     authorizedOrigins,
+    detectedVarNames: {
+      hasGOOGLE_CLIENT_ID: !!process.env.GOOGLE_CLIENT_ID,
+      hasNEXT_PUBLIC_GOOGLE_CLIENT_ID: !!process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
+      hasGOOGLE_CLIENT_SECRET: !!process.env.GOOGLE_CLIENT_SECRET,
+      hasNEXT_PUBLIC_GOOGLE_CLIENT_SECRET: !!process.env.NEXT_PUBLIC_GOOGLE_CLIENT_SECRET,
+    },
   };
 }
+

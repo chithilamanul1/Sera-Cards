@@ -2,7 +2,7 @@
 
 import React, { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { LockIcon, MailIcon, ArrowRightIcon, SparklesIcon, AlertCircleIcon } from 'lucide-react';
+import { LockIcon, MailIcon, ArrowRightIcon, SparklesIcon, AlertCircleIcon, XIcon } from 'lucide-react';
 import { Nav } from '@/components/Nav';
 import { Footer } from '@/components/Footer';
 
@@ -12,6 +12,7 @@ function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [errorDismissed, setErrorDismissed] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -21,7 +22,7 @@ function LoginForm() {
   const errorMessage =
     error ||
     (oauthError === 'google_not_configured'
-      ? 'Google Sign-In Setup: In Vercel, ensure GOOGLE_CLIENT_SECRET has no "Needs Attention" warning, is assigned to Production, and redeploy. Also verify Authorized Redirect URIs in Google Cloud Console.'
+      ? 'Google Sign-In Setup: In Vercel, ensure GOOGLE_CLIENT_ID & GOOGLE_CLIENT_SECRET have the "Production" checkbox checked, and click Redeploy. You can still sign in with credentials below.'
       : oauthError === 'google_token_failed'
       ? 'Google Token Exchange Error: Please verify that GOOGLE_CLIENT_SECRET in Vercel matches your Google Cloud Console Client credentials.'
       : oauthError === 'google_failed'
@@ -75,12 +76,23 @@ function LoginForm() {
         </p>
       </div>
 
-      {errorMessage && (
-        <div className="mb-6 rounded-xl bg-purple-500/10 p-4 text-sm text-purple-300 border border-purple-500/20 flex items-start gap-2.5">
-          <AlertCircleIcon className="h-5 w-5 shrink-0 text-purple-400 mt-0.5" />
-          <span>{errorMessage}</span>
+      {errorMessage && !errorDismissed && (
+        <div className="mb-6 rounded-xl bg-purple-500/10 p-4 text-sm text-purple-300 border border-purple-500/20 flex items-start justify-between gap-2.5">
+          <div className="flex items-start gap-2.5">
+            <AlertCircleIcon className="h-5 w-5 shrink-0 text-purple-400 mt-0.5" />
+            <span className="leading-relaxed">{errorMessage}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setErrorDismissed(true)}
+            className="text-white/40 hover:text-white transition p-1"
+            title="Dismiss message"
+          >
+            <XIcon className="h-4 w-4" />
+          </button>
         </div>
       )}
+
 
       {/* Google OAuth Login Button */}
       <a
