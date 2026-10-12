@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { cookies } from 'next/headers';
+import { getCardFromMemory, deleteCardFromMemory } from '@/lib/cardStore';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,13 +22,20 @@ export async function GET(request: Request, { params }: { params: { id: string }
 
   try {
     const { id } = params;
-    const card = await Promise.race([
-      prisma.client.findUnique({
-        where: { id },
-        select: { id: true, slug: true, htmlContent: true, createdAt: true, updatedAt: true },
-      }),
-      new Promise<any>((_, reject) => setTimeout(() => reject(new Error('DB Timeout')), 4000)),
-    ]);
+    let card: any = null;
+    try {
+      card = await Promise.race([
+        prisma.client.findUnique({
+          where: { id },
+          select: { id: true, slug: true, htmlContent: true, createdAt: true, updatedAt: true },
+        }),
+        new Promise<any>((_, reject) => setTimeout(() => reject(new Error('DB Timeout')), 3500)),
+      ]);
+    } catch {}
+
+    if (!card) {
+      card = getCardFromMemory(id);
+    }
 
     if (!card) {
       return NextResponse.json({ error: 'Card not found' }, { status: 404 });
@@ -50,22 +58,29 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
     const { id } = params;
 
     // Delete all leads for this card first (cascade)
-    const card = await Promise.race([
-      prisma.client.findUnique({ where: { id }, select: { slug: true } }),
-      new Promise<any>((_, reject) => setTimeout(() => reject(new Error('DB Timeout')), 4000)),
-    ]);
-
-    if (card) {
-      await Promise.race([
-        prisma.lead.deleteMany({ where: { clientSlug: card.slug } }),
-        new Promise<any>((_, reject) => setTimeout(() => reject(new Error('DB Timeout')), 4000)),
+    try {
+      const card = await Promise.race([
+        prisma.client.findUnique({ where: { id }, select: { slug: true } }),
+        new Promise<any>((_, reject) => setTimeout(() => reject(new Error('DB Timeout')), 3000)),
       ]);
-    }
 
-    await Promise.race([
-      prisma.client.delete({ where: { id } }),
-      new Promise<any>((_, reject) => setTimeout(() => reject(new Error('DB Timeout')), 4000)),
-    ]);
+      if (card?.slug) {
+        await Promise.race([
+          prisma.lead.deleteMany({ where: { clientSlug: card.slug } }),
+          new Promise<any>((_, reject) => setTimeout(() => reject(new Error('DB Timeout')), 3000)),
+        ]).catch(() => {});
+        deleteCardFromMemory(card.slug);
+      }
+    } catch {}
+
+    try {
+      await Promise.race([
+        prisma.client.delete({ where: { id } }),
+        new Promise<any>((_, reject) => setTimeout(() => reject(new Error('DB Timeout')), 3000)),
+      ]);
+    } catch {}
+
+    deleteCardFromMemory(id);
 
     return NextResponse.json({ success: true });
   } catch (error) {
@@ -73,3 +88,4 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
     return NextResponse.json({ error: 'Failed to delete card' }, { status: 500 });
   }
 }
+

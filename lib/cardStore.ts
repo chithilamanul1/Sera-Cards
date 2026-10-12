@@ -63,3 +63,21 @@ export function getAllCardsFromMemory(): StoredCard[] {
   const store = getStore();
   return Array.from(store.values());
 }
+
+/**
+ * Remove card from memory store by slug or ID
+ */
+export function deleteCardFromMemory(slugOrId: string): boolean {
+  const store = getStore();
+  const cleanSlug = slugOrId.toLowerCase().trim().replace(/[^a-z0-9-]/g, '');
+  if (store.has(cleanSlug)) {
+    return store.delete(cleanSlug);
+  }
+  for (const [key, card] of store.entries()) {
+    if (card.id === slugOrId || card.slug === cleanSlug) {
+      return store.delete(key);
+    }
+  }
+  return false;
+}
+

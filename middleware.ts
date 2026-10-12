@@ -13,7 +13,20 @@ export const config = {
   ],
 };
 
-const RESERVED_SUBDOMAINS = new Set(['www', 'card', 'cards', 'app', 'api', 'admin', 'mail', 'auth']);
+const RESERVED_SUBDOMAINS = new Set([
+  'www',
+  'card',
+  'cards',
+  'app',
+  'api',
+  'admin',
+  'mail',
+  'auth',
+  'dashboard',
+  'login',
+  'register',
+]);
+
 const RESERVED_ROOT_PATHS = new Set([
   'admin',
   'dashboard',
@@ -25,11 +38,16 @@ const RESERVED_ROOT_PATHS = new Set([
   'teams',
   'order',
   'activate',
+  'onboarding',
+  'refund',
+  'terms',
+  'privacy',
   'api',
   'c',
   '_next',
   'robots.txt',
   'sitemap.xml',
+  'site.webmanifest',
 ]);
 
 export default function middleware(req: NextRequest) {
@@ -60,8 +78,24 @@ export default function middleware(req: NextRequest) {
 
   // Handle client card subdomain
   if (subdomain && !RESERVED_SUBDOMAINS.has(subdomain)) {
-    // Prevent client subdomains from accessing /admin, /dashboard, or /teams on the subdomain
-    if (url.pathname.startsWith('/admin') || url.pathname.startsWith('/dashboard') || url.pathname.startsWith('/teams')) {
+    // Prevent client subdomains from accessing main app & marketing pages on the subdomain
+    const isPublicSitePath =
+      url.pathname.startsWith('/admin') ||
+      url.pathname.startsWith('/dashboard') ||
+      url.pathname.startsWith('/teams') ||
+      url.pathname.startsWith('/pricing') ||
+      url.pathname.startsWith('/products') ||
+      url.pathname.startsWith('/how-it-works') ||
+      url.pathname.startsWith('/refund') ||
+      url.pathname.startsWith('/terms') ||
+      url.pathname.startsWith('/privacy') ||
+      url.pathname.startsWith('/login') ||
+      url.pathname.startsWith('/register') ||
+      url.pathname.startsWith('/onboarding') ||
+      url.pathname.startsWith('/activate') ||
+      url.pathname.startsWith('/order');
+
+    if (isPublicSitePath) {
       const appHost = hostname.includes('cards.') ? `cards.${rootDomain}` : rootDomain;
       return NextResponse.redirect(new URL(`https://${appHost}${url.pathname}`));
     }

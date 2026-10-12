@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { cookies } from 'next/headers';
+import { getOrderFromMemory, saveOrderToMemory, deleteOrderFromMemory } from '@/lib/orderStore';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,10 +24,17 @@ export async function GET(
   }
 
   try {
-    const order = await Promise.race([
-      prisma.order.findUnique({ where: { id: params.id } }),
-      new Promise<any>((_, reject) => setTimeout(() => reject(new Error('DB Timeout')), 4000)),
-    ]);
+    let order: any = null;
+    try {
+      order = await Promise.race([
+        prisma.order.findUnique({ where: { id: params.id } }),
+        new Promise<any>((_, reject) => setTimeout(() => reject(new Error('DB Timeout')), 3500)),
+      ]);
+    } catch {}
+
+    if (!order) {
+      order = getOrderFromMemory(params.id);
+    }
 
     if (!order) {
       return NextResponse.json({ error: 'Order not found' }, { status: 404 });
@@ -62,13 +70,30 @@ export async function PATCH(
     }
     if (notes !== undefined) dataToUpdate.notes = notes;
 
-    const updated = await Promise.race([
-      prisma.order.update({
-        where: { id: params.id },
-        data: dataToUpdate,
-      }),
-      new Promise<any>((_, reject) => setTimeout(() => reject(new Error('DB Timeout')), 4000)),
-    ]);
+    let updated: any = null;
+    try {
+      updated = await Promise.race([
+        prisma.order.update({
+          where: { id: params.id },
+          data: dataToUpdate,
+        }),
+        new Promise<any>((_, reject) => setTimeout(() => reject(new Error('DB Timeout')), 3500)),
+      ]);
+    } catch (dbErr: any) {
+      console.warn('[Orders/[id] PATCH] DB update fallback:', dbErr?.message);
+    }
+
+    // Always update memory store
+    const memOrder = getOrderFromMemory(params.id);
+    if (memOrder) {
+      const merged = { ...memOrder, ...dataToUpdate, updatedAt: new Date().toISOString() };
+      saveOrderToMemory(merged);
+      if (!updated) updated = merged;
+    }
+
+    if (!updated) {
+      return NextResponse.json({ error: 'Order not found' }, { status: 404 });
+    }
 
     return NextResponse.json(updated);
   } catch (error: any) {
@@ -87,10 +112,16 @@ export async function DELETE(
   }
 
   try {
-    await Promise.race([
-      prisma.order.delete({ where: { id: params.id } }),
-      new Promise<any>((_, reject) => setTimeout(() => reject(new Error('DB Timeout')), 4000)),
-    ]);
+    try {
+      await Promise.race([
+        prisma.order.delete({ where: { id: params.id } }),
+        new Promise<any>((_, reject) => setTimeout(() => reject(new Error('DB Timeout')), 3500)),
+      ]);
+    } catch (dbErr: any) {
+      console.warn('[Orders/[id] DELETE] DB delete warning:', dbErr?.message);
+    }
+
+    deleteOrderFromMemory(params.id);
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
@@ -98,3 +129,4 @@ export async function DELETE(
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
+

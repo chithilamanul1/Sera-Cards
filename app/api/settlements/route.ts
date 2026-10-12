@@ -7,6 +7,7 @@ import {
   getWeekDateRange,
   PRODUCTION_COST_PER_CARD,
 } from '@/lib/settlement';
+import { getAllOrdersFromMemory } from '@/lib/orderStore';
 
 function isAuthorized(request: Request) {
   const session = cookies().get('admin_session');
@@ -25,15 +26,20 @@ export async function GET(request: Request) {
     const currentWeekId = getCurrentWeekId();
     const { start: weekStart, end: weekEnd } = getWeekDateRange(currentWeekId);
 
+
     // Fetch all orders to compute operational metrics (with timeout)
     let allOrders: any[] = [];
     try {
       allOrders = await Promise.race([
         prisma.order.findMany({ orderBy: { createdAt: 'desc' } }),
-        new Promise<any[]>((_, reject) => setTimeout(() => reject(new Error('DB Timeout')), 4000)),
+        new Promise<any[]>((_, reject) => setTimeout(() => reject(new Error('DB Timeout')), 3500)),
       ]);
     } catch (err) {
       console.warn('[Settlements GET] DB orders query fallback:', err);
+    }
+
+    if (!allOrders || allOrders.length === 0) {
+      allOrders = getAllOrdersFromMemory();
     }
 
     // Compute all-time live metrics
