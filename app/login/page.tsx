@@ -2,7 +2,7 @@
 
 import React, { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { LockIcon, MailIcon, ArrowRightIcon, SparklesIcon, AlertCircleIcon, XIcon } from 'lucide-react';
+import { LockIcon, MailIcon, ArrowRightIcon, SparklesIcon, AlertCircleIcon, XIcon, Building2, User } from 'lucide-react';
 import { Nav } from '@/components/Nav';
 import { Footer } from '@/components/Footer';
 
@@ -18,6 +18,13 @@ function LoginForm() {
   const searchParams = useSearchParams();
   const redirectTarget = searchParams.get('redirect');
   const oauthError = searchParams.get('error');
+
+  const [activeTab, setActiveTab] = useState<'personal' | 'teams'>(() => {
+    if (searchParams.get('tab') === 'teams' || redirectTarget?.includes('teams')) {
+      return 'teams';
+    }
+    return 'personal';
+  });
 
   const errorMessage =
     error ||
@@ -42,7 +49,11 @@ function LoginForm() {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({
+          email,
+          password,
+          redirect: activeTab === 'teams' ? '/teams/portal' : redirectTarget,
+        }),
       });
 
       const data = await res.json();
@@ -51,7 +62,12 @@ function LoginForm() {
         throw new Error(data.message || 'Invalid credentials');
       }
 
-      const destination = redirectTarget || data.redirect || (data.role === 'ADMIN' ? '/admin' : '/dashboard');
+      const destination =
+        (activeTab === 'teams' ? '/teams/portal' : null) ||
+        redirectTarget ||
+        data.redirect ||
+        (data.role === 'ADMIN' ? '/admin' : '/dashboard');
+
       router.push(destination);
       router.refresh();
     } catch (err: any) {
@@ -63,18 +79,96 @@ function LoginForm() {
 
   return (
     <div className="w-full max-w-md rounded-3xl border border-white/10 bg-ink-900/80 p-6 sm:p-10 shadow-[0_30px_70px_-20px_rgba(0,0,0,0.8)] backdrop-blur-xl">
-      <div className="text-center mb-8">
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-accent-500/25 bg-accent-500/[0.08] px-3.5 py-1 text-xs font-semibold text-accent-400">
-          <SparklesIcon className="h-3.5 w-3.5" />
-          GoSera Portal
+      <div className="text-center mb-6">
+        <span
+          className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1 text-xs font-semibold ${
+            activeTab === 'teams'
+              ? 'border-sky-500/30 bg-sky-500/10 text-sky-400'
+              : 'border-accent-500/25 bg-accent-500/[0.08] text-accent-400'
+          }`}
+        >
+          {activeTab === 'teams' ? (
+            <>
+              <Building2 className="h-3.5 w-3.5 text-sky-400" />
+              GoSera Enterprise Hub
+            </>
+          ) : (
+            <>
+              <SparklesIcon className="h-3.5 w-3.5" />
+              GoSera Portal
+            </>
+          )}
         </span>
         <h1 className="mt-4 text-3xl font-bold tracking-tight text-white">
-          Welcome Back
+          {activeTab === 'teams' ? 'Corporate Fleet Hub' : 'Welcome Back'}
         </h1>
         <p className="mt-2 text-sm text-white/50">
-          Sign in to manage your digital card, leads, or admin dashboard.
+          {activeTab === 'teams'
+            ? 'Sign in to manage company card fleets, pooled leads, and organization brand locks.'
+            : 'Sign in to manage your digital card, leads, or admin dashboard.'}
         </p>
       </div>
+
+      {/* Segmented Mode Switcher */}
+      <div className="grid grid-cols-2 p-1 bg-white/[0.04] border border-white/10 rounded-2xl mb-6">
+        <button
+          type="button"
+          onClick={() => {
+            setActiveTab('personal');
+            setError('');
+          }}
+          className={`flex items-center justify-center gap-2 py-2 px-3 rounded-xl text-xs font-semibold transition-all ${
+            activeTab === 'personal'
+              ? 'bg-accent-500 text-ink-950 shadow-md font-bold'
+              : 'text-white/60 hover:text-white hover:bg-white/[0.03]'
+          }`}
+        >
+          <User className="h-3.5 w-3.5" />
+          Personal Card
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setActiveTab('teams');
+            setError('');
+          }}
+          className={`flex items-center justify-center gap-2 py-2 px-3 rounded-xl text-xs font-semibold transition-all ${
+            activeTab === 'teams'
+              ? 'bg-sky-500 text-zinc-950 shadow-md font-bold'
+              : 'text-white/60 hover:text-white hover:bg-white/[0.03]'
+          }`}
+        >
+          <Building2 className="h-3.5 w-3.5" />
+          Enterprise Teams
+        </button>
+      </div>
+
+      {/* Enterprise Demo Auto-Fill helper */}
+      {activeTab === 'teams' && (
+        <div className="mb-6 rounded-2xl border border-sky-500/30 bg-sky-500/10 p-3.5 text-xs">
+          <div className="flex items-center justify-between text-sky-300 font-bold mb-1">
+            <span className="flex items-center gap-1.5">
+              <Building2 className="h-3.5 w-3.5" /> Apex Capital Partners Demo
+            </span>
+            <span className="text-[10px] bg-sky-500/20 px-2 py-0.5 rounded-full border border-sky-500/30 text-sky-200">
+              1-Click Fill
+            </span>
+          </div>
+          <p className="text-[11px] text-zinc-400 mb-2.5">
+            Test as Managing Director Kasun Jayawardena (Corporate B2B Fleet):
+          </p>
+          <button
+            type="button"
+            onClick={() => {
+              setEmail('kasun.j@apexcapital.lk');
+              setPassword('apex1234');
+            }}
+            className="w-full flex items-center justify-center gap-2 rounded-xl bg-sky-500 py-2 px-3 text-xs font-bold text-zinc-950 hover:bg-sky-400 transition active:scale-[0.98] shadow-sm"
+          >
+            Auto-Fill Credentials (kasun.j@apexcapital.lk)
+          </button>
+        </div>
+      )}
 
       {errorMessage && !errorDismissed && (
         <div className="mb-6 rounded-xl bg-purple-500/10 p-4 text-sm text-purple-300 border border-purple-500/20 flex items-start justify-between gap-2.5">
@@ -130,7 +224,7 @@ function LoginForm() {
       <form onSubmit={handleLogin} className="space-y-4">
         <div>
           <label className="block text-xs font-medium text-white/70 uppercase tracking-wider mb-1.5">
-            Email Address or Mobile Number
+            {activeTab === 'teams' ? 'Corporate Work Email' : 'Email Address or Mobile Number'}
           </label>
           <div className="relative">
             <MailIcon className="absolute left-3.5 top-3.5 h-4 w-4 text-white/30" />
@@ -138,7 +232,7 @@ function LoginForm() {
               type="text"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@company.com or 0728382638"
+              placeholder={activeTab === 'teams' ? 'kasun.j@apexcapital.lk' : 'you@company.com or 0728382638'}
               className="w-full rounded-xl border border-white/10 bg-white/[0.03] pl-10 pr-4 py-3 text-sm text-white placeholder-white/20 focus:border-accent-500 focus:outline-none transition-colors"
               required
             />
@@ -165,9 +259,13 @@ function LoginForm() {
         <button
           type="submit"
           disabled={loading}
-          className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-accent-500 py-3.5 text-sm font-semibold text-ink-950 shadow-[0_0_30px_-8px_rgba(168,85,247,0.8)] transition-all hover:bg-accent-400 active:scale-[0.98] disabled:opacity-50"
+          className={`mt-6 flex w-full items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-bold text-ink-950 transition-all active:scale-[0.98] disabled:opacity-50 ${
+            activeTab === 'teams'
+              ? 'bg-sky-500 hover:bg-sky-400 shadow-[0_0_30px_-8px_rgba(14,165,233,0.8)]'
+              : 'bg-accent-500 hover:bg-accent-400 shadow-[0_0_30px_-8px_rgba(168,85,247,0.8)]'
+          }`}
         >
-          {loading ? 'Signing in...' : 'Sign In'}
+          {loading ? 'Authenticating...' : activeTab === 'teams' ? 'Sign In to Enterprise Fleet' : 'Sign In to Card Portal'}
           <ArrowRightIcon className="h-4 w-4" />
         </button>
       </form>
@@ -180,12 +278,29 @@ function LoginForm() {
           </a>
         </div>
         <div className="pt-2">
-          <a
-            href="/teams/portal"
-            className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-sky-500/30 bg-sky-500/10 py-2.5 text-xs font-bold text-sky-300 hover:bg-sky-500/20 transition-all"
-          >
-            🏢 Launch Enterprise Teams Portal (Live B2B Demo) &rarr;
-          </a>
+          {activeTab === 'personal' ? (
+            <button
+              type="button"
+              onClick={() => {
+                setActiveTab('teams');
+                setError('');
+              }}
+              className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-sky-500/30 bg-sky-500/10 py-2.5 text-xs font-bold text-sky-300 hover:bg-sky-500/20 transition-all"
+            >
+              🏢 Switch to Enterprise Fleet Portal Sign In &rarr;
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => {
+                setActiveTab('personal');
+                setError('');
+              }}
+              className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] py-2.5 text-xs font-semibold text-white/70 hover:bg-white/[0.08] transition-all"
+            >
+              👤 Switch to Individual Card Portal Sign In &rarr;
+            </button>
+          )}
         </div>
       </div>
     </div>

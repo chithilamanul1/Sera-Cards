@@ -32,10 +32,10 @@ import {
   CheckCircle2,
   AlertCircle,
   Briefcase,
+  LogOut,
+  User,
 } from 'lucide-react';
 
-import { Nav } from '@/components/Nav';
-import { Footer } from '@/components/Footer';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -61,6 +61,8 @@ export default function EnterpriseTeamsPortal() {
   const [leads, setLeads] = useState<any[]>([]);
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   // Active Tab
   const [activeTab, setActiveTab] = useState<'fleet' | 'brand' | 'leads' | 'hardware'>('fleet');
@@ -180,7 +182,31 @@ export default function EnterpriseTeamsPortal() {
 
   useEffect(() => {
     fetchTeamData();
+    // Verify authenticated user session
+    fetch('/api/auth/me')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.authenticated && data.user) {
+          setCurrentUser(data.user);
+          // Auto-align company if user belongs to apex
+          if (data.user.email?.includes('apex') || data.user.cardSlug?.startsWith('apex')) {
+            setSelectedCompanySlug('apex');
+          }
+        }
+      })
+      .catch((err) => console.warn('Teams portal auth session check:', err));
   }, []);
+
+  const handleLogout = async () => {
+    try {
+      setIsLoggingOut(true);
+      await fetch('/api/auth/logout', { method: 'POST' });
+      toast.success('Signed out of enterprise portal');
+      window.location.href = '/login?tab=teams';
+    } catch {
+      window.location.href = '/login?tab=teams';
+    }
+  };
 
   // Create New Company Handler
   const handleCreateCompany = async (e: React.FormEvent) => {
@@ -459,9 +485,93 @@ export default function EnterpriseTeamsPortal() {
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col font-sans selection:bg-sky-600 selection:text-white">
       <Toaster position="top-right" />
-      <Nav />
 
-      <main className="flex-1 pt-24 pb-16 px-4 sm:px-8 max-w-7xl mx-auto w-full">
+      {/* Enterprise Fleet Top Navigation Bar */}
+      <header className="sticky top-0 z-50 border-b border-zinc-800 bg-zinc-950/90 backdrop-blur-xl">
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-8">
+          {/* Left: Brand & Fleet Identity */}
+          <div className="flex items-center gap-3.5">
+            <a href="/" className="flex items-center gap-2 hover:opacity-90 transition" title="GoSera Home">
+              <img src="/logo-white.png" alt="GoSera" className="h-8 w-auto object-contain" />
+            </a>
+            <div className="h-4 w-px bg-zinc-800 hidden sm:block" />
+            <div className="flex items-center gap-2">
+              <span className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-sky-500/30 bg-sky-500/10 px-2.5 py-0.5 text-[11px] font-bold text-sky-400">
+                <Building2 className="h-3 w-3" /> Enterprise Fleet Hub
+              </span>
+              <span className="text-xs font-semibold text-zinc-400 truncate max-w-[140px] sm:max-w-[220px]">
+                {team?.name || 'Apex Capital Partners'}
+              </span>
+            </div>
+          </div>
+
+          {/* Center: Live Sync Status */}
+          <div className="hidden lg:flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-900 border border-zinc-800 text-[11px] text-zinc-400">
+            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span>Fleet Cloud Synced</span>
+            <span className="text-zinc-600">·</span>
+            <span className="text-zinc-300 font-mono font-semibold">{stats?.activeMembers ?? members.length} Active Cards</span>
+          </div>
+
+          {/* Right: Personal Switcher & User Profile & Logout */}
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            <a
+              href="/dashboard"
+              className="hidden sm:inline-flex items-center gap-1.5 rounded-xl border border-zinc-800 bg-zinc-900/80 px-3 py-1.5 text-xs font-semibold text-zinc-300 hover:text-white hover:border-zinc-700 transition"
+              title="Switch to your personal card dashboard"
+            >
+              <CreditCard className="h-3.5 w-3.5 text-purple-400" />
+              <span>Personal Card</span>
+              <ArrowUpRight className="h-3 w-3 text-zinc-500" />
+            </a>
+
+            {currentUser ? (
+              <div className="flex items-center gap-2 pl-2 border-l border-zinc-800">
+                <div className="flex items-center gap-2 bg-zinc-900/90 border border-zinc-800 rounded-xl px-2.5 py-1">
+                  <div className="h-6 w-6 rounded-full bg-gradient-to-tr from-sky-600 to-indigo-600 flex items-center justify-center text-[10px] font-bold text-white shadow">
+                    {currentUser.name ? currentUser.name.slice(0, 2).toUpperCase() : 'EP'}
+                  </div>
+                  <div className="hidden md:block text-left text-[11px] leading-tight">
+                    <div className="font-semibold text-white truncate max-w-[120px]">
+                      {currentUser.name}
+                    </div>
+                    <div className="text-[10px] text-sky-400 font-medium">
+                      {currentUser.role === 'ADMIN' ? 'Super Admin' : 'Enterprise Admin'}
+                    </div>
+                  </div>
+                </div>
+
+                <Button
+                  variant="ghost"
+                  size="xs"
+                  onClick={handleLogout}
+                  disabled={isLoggingOut}
+                  className="text-zinc-400 hover:text-rose-400 hover:bg-rose-500/10 text-xs px-2 h-7"
+                  title="Sign out of enterprise portal"
+                >
+                  <LogOut className="h-3.5 w-3.5 sm:mr-1" />
+                  <span className="hidden sm:inline">{isLoggingOut ? 'Signing out...' : 'Sign Out'}</span>
+                </Button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Badge variant="amber" className="text-[10px] hidden sm:inline-flex">
+                  Demo Fleet
+                </Badge>
+                <a
+                  href="/login?tab=teams&redirect=/teams/portal"
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-zinc-950 font-bold px-3 py-1.5 text-xs shadow transition"
+                >
+                  <User className="h-3.5 w-3.5" />
+                  Fleet Login
+                </a>
+              </div>
+            )}
+          </div>
+        </div>
+      </header>
+
+      <main className="flex-1 pt-8 pb-16 px-4 sm:px-8 max-w-7xl mx-auto w-full">
         {/* Enterprise Cockpit Header */}
         <div className="mb-8 flex flex-col md:flex-row justify-between items-start md:items-end gap-6 border-b border-zinc-800/80 pb-6">
           <div className="flex items-center gap-4">
@@ -1610,7 +1720,22 @@ export default function EnterpriseTeamsPortal() {
         </DialogContent>
       </Dialog>
 
-      <Footer />
+      {/* Enterprise Fleet Footer */}
+      <footer className="border-t border-zinc-800/80 bg-zinc-950 py-8 text-xs text-zinc-500">
+        <div className="mx-auto flex max-w-7xl flex-col sm:flex-row items-center justify-between gap-4 px-4 sm:px-8">
+          <div className="flex items-center gap-3">
+            <img src="/logo-white.png" alt="GoSera" className="h-6 w-auto object-contain opacity-70" />
+            <span>GoSera Enterprise Multi-Card Fleet Engine</span>
+          </div>
+          <div className="flex items-center gap-6 text-[11px]">
+            <a href="/dashboard" className="hover:text-zinc-300 transition">Personal Dashboard</a>
+            <a href="/teams" className="hover:text-zinc-300 transition">Fleet Overview</a>
+            <a href="https://wa.me/94728382638" target="_blank" rel="noreferrer" className="text-sky-400 hover:underline">
+              Enterprise Support (+94 72 838 2638)
+            </a>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

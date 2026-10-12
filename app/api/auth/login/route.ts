@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(req: Request) {
   try {
-    const { email, password } = await req.json();
+    const { email, password, redirect: requestedRedirect } = await req.json();
 
     if (!email || !password) {
       return NextResponse.json(
@@ -49,7 +49,7 @@ export async function POST(req: Request) {
       return NextResponse.json({
         success: true,
         role: 'ADMIN',
-        redirect: '/admin',
+        redirect: requestedRedirect || '/admin',
       });
     }
 
@@ -119,8 +119,21 @@ export async function POST(req: Request) {
         });
       }
 
-      // Check if user has completed onboarding
-      const redirect = user.role === 'ADMIN' ? '/admin' : '/dashboard';
+      // Smart destination determination: Enterprise/Teams accounts route directly to /teams/portal
+      const isEnterpriseOrTeam =
+        user.plan === 'ENTERPRISE' ||
+        user.plan === 'TEAMS' ||
+        user.role === 'TEAM_ADMIN' ||
+        (user.email && user.email.toLowerCase().includes('apex')) ||
+        (user.cardSlug && user.cardSlug.toLowerCase().startsWith('apex'));
+
+      const defaultRedirect = isEnterpriseOrTeam
+        ? '/teams/portal'
+        : user.role === 'ADMIN'
+        ? '/admin'
+        : '/dashboard';
+
+      const redirect = requestedRedirect || defaultRedirect;
 
       return NextResponse.json({
         success: true,
