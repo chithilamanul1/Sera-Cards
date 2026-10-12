@@ -30,7 +30,9 @@ import { TEMPLATE_PRESETS, TemplateData } from '@/lib/templates';
 import { Nav } from '@/components/Nav';
 import { Footer } from '@/components/Footer';
 
-export default function OnboardingPage() {
+export const dynamic = 'force-dynamic';
+
+function OnboardingWizardContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -867,5 +869,26 @@ export default function OnboardingPage() {
 
       <Footer />
     </div>
+  );
+}
+
+export default function OnboardingPage() {
+  return (
+    <React.Suspense
+      fallback={
+        <div className="min-h-screen w-full bg-ink-950 font-sans text-white antialiased flex flex-col justify-between">
+          <Nav />
+          <main className="flex-1 flex items-center justify-center px-4 pt-28 pb-16">
+            <div className="w-full max-w-md rounded-3xl border border-white/10 bg-ink-900/80 p-10 text-center text-white/50">
+              <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-accent-400 border-t-transparent mb-3" />
+              Loading setup wizard...
+            </div>
+          </main>
+          <Footer />
+        </div>
+      }
+    >
+      <OnboardingWizardContent />
+    </React.Suspense>
   );
 }
