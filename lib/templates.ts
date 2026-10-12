@@ -6,11 +6,11 @@ export interface TemplateData {
   phone: string;
   whatsapp: string;
   email: string;
-  avatarUrl: string;
+  avatarUrl?: string;
   coverUrl?: string;
-  bio: string;
-  location: string;
-  website: string;
+  bio?: string;
+  location?: string;
+  website?: string;
   googleReviewUrl?: string;
   lankaQrText?: string;
   facebook?: string;

@@ -161,6 +161,7 @@ export async function GET(request: Request) {
             phone: user.phone || '',
             whatsapp: (user.phone || '').replace(/[^0-9]/g, ''),
             email: user.email || '',
+            avatarUrl: user.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=600&q=80',
             bio: `Welcome to ${user.name}'s official digital card profile.`,
             location: 'Colombo, Sri Lanka',
             website: `https://${cleanSlug}.${rootDomain}`,
