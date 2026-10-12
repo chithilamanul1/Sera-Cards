@@ -593,18 +593,46 @@ export default function CustomerDashboard() {
             <p className="text-xs text-white/40 mt-1">Two-way contact submissions</p>
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-ink-900/60 p-5">
-            <div className="flex items-center justify-between">
-              <span className="text-xs uppercase tracking-wider font-semibold text-white/40">Hardware Card</span>
-              <CreditCardIcon className="h-4 w-4 text-accent-400" />
+          {orders.length === 0 ? (
+            <div className="rounded-2xl border border-amber-500/30 bg-gradient-to-b from-amber-500/10 to-transparent p-5 flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs uppercase tracking-wider font-semibold text-amber-400">Hardware Card</span>
+                  <CreditCardIcon className="h-4 w-4 text-amber-400" />
+                </div>
+                <div className="mt-2 flex items-center gap-2">
+                  <p className="text-base font-bold text-white">No Card Linked</p>
+                  <span className="rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-bold px-2 py-0.5 border border-amber-500/30">
+                    Unlinked
+                  </span>
+                </div>
+                <p className="text-xs text-white/50 mt-1">
+                  Pair a physical NFC card to tap phones in real life.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsOrderModalOpen(true)}
+                className="mt-3 w-full rounded-xl bg-accent-500 hover:bg-accent-400 text-ink-950 font-bold text-xs py-2 transition-all shadow-md active:scale-95 flex items-center justify-center gap-1.5"
+              >
+                <CreditCardIcon className="h-3.5 w-3.5" />
+                Order Physical Card &rarr;
+              </button>
             </div>
-            <p className="mt-2 text-lg font-bold text-white">
-              {latestOrder ? latestOrder.finish : 'GoSera NFC Card'}
-            </p>
-            <p className="text-xs text-accent-400 mt-1">
-              {latestOrder ? `Status: ${latestOrder.fulfillmentStatus || 'ORDER_RECEIVED'}` : 'NTAG215 Contactless Chip'}
-            </p>
-          </div>
+          ) : (
+            <div className="rounded-2xl border border-white/10 bg-ink-900/60 p-5">
+              <div className="flex items-center justify-between">
+                <span className="text-xs uppercase tracking-wider font-semibold text-white/40">Hardware Card</span>
+                <CreditCardIcon className="h-4 w-4 text-accent-400" />
+              </div>
+              <p className="mt-2 text-lg font-bold text-white">
+                {latestOrder ? latestOrder.finish : 'GoSera NFC Card'}
+              </p>
+              <p className="text-xs text-accent-400 mt-1">
+                {latestOrder ? `Status: ${latestOrder.fulfillmentStatus || 'ORDER_RECEIVED'}` : 'NTAG215 Contactless Chip'}
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Tabs Bar */}
@@ -657,8 +685,40 @@ export default function CustomerDashboard() {
 
         {/* TAB 1: Profile Editor & Live Phone Simulator */}
         {activeTab === 'profile' && (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            <div className="lg:col-span-8 bg-ink-900/80 border border-white/10 rounded-3xl p-6 sm:p-8">
+          <div className="space-y-6">
+            {orders.length === 0 && (
+              <div className="rounded-2xl border border-amber-500/30 bg-gradient-to-r from-amber-500/15 via-amber-500/5 to-transparent p-5 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="flex items-start gap-3.5">
+                  <div className="h-10 w-10 shrink-0 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400">
+                    <CreditCardIcon className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3 className="text-sm font-bold text-white">
+                        No Physical NFC Card Linked to This Profile Yet
+                      </h3>
+                      <span className="rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-semibold px-2 py-0.5 border border-amber-500/30">
+                        Digital Only
+                      </span>
+                    </div>
+                    <p className="text-xs text-white/60 mt-1 max-w-xl">
+                      Your digital profile is live at <strong className="text-accent-400 font-mono">{liveUrl}</strong>! To tap clients&apos; phones in person with 0.2s instant response, order your custom physical NFC card. It will arrive pre-programmed and permanently linked to this profile.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsOrderModalOpen(true)}
+                  className="shrink-0 rounded-xl bg-accent-500 hover:bg-accent-400 text-ink-950 font-bold text-xs px-4 py-2.5 shadow-md active:scale-95 transition-all flex items-center gap-2"
+                >
+                  <CreditCardIcon className="h-4 w-4" />
+                  Order Card to Link Profile &rarr;
+                </button>
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+              <div className="lg:col-span-8 bg-ink-900/80 border border-white/10 rounded-3xl p-6 sm:p-8">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                 <div>
                   <h2 className="text-lg font-bold text-white">Digital Profile Settings</h2>
@@ -1029,6 +1089,7 @@ export default function CustomerDashboard() {
                 </a>
               </div>
             </div>
+          </div>
           </div>
         )}
 
@@ -1452,6 +1513,8 @@ export default function CustomerDashboard() {
           title: profileForm.title || '',
           slug: profileForm.slug || user?.cardSlug || '',
           materialId: 'matte',
+          phone: profileForm.phone || user?.phone || '',
+          email: profileForm.email || user?.email || '',
         }}
       />
     </div>

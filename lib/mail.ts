@@ -420,6 +420,9 @@ export async function sendOrderConfirmationEmail({
   totalAmount,
   finish,
   slug,
+  accountEmail,
+  temporaryPassword,
+  loginUrl,
 }: {
   to: string;
   name: string;
@@ -427,6 +430,9 @@ export async function sendOrderConfirmationEmail({
   totalAmount: number;
   finish: string;
   slug?: string;
+  accountEmail?: string;
+  temporaryPassword?: string;
+  loginUrl?: string;
 }) {
   const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'seranex.lk';
   const subject = `📦 Order Confirmed: GoSera Smart NFC Card #${orderNumber}`;
@@ -456,6 +462,18 @@ export async function sendOrderConfirmationEmail({
           ${slug ? `<p style="margin: 4px 0; font-size: 14px;"><strong>Target Profile:</strong> https://${slug}.${rootDomain}</p>` : ''}
           <p style="margin: 4px 0; font-size: 14px;"><strong>Delivery:</strong> Free Island-Wide Delivery (3–5 Days)</p>
         </div>
+
+        ${loginUrl && accountEmail ? `
+        <div style="background-color: #0b0c10; border-radius: 12px; padding: 18px; margin: 20px 0; border: 1px solid rgba(168,85,247,0.3);">
+          <p style="margin: 0 0 10px; font-size: 12px; font-weight: bold; text-transform: uppercase; color: #a855f7;">Your GoSera Portal Account</p>
+          <p style="margin: 4px 0; font-size: 14px;"><strong>Portal Login:</strong> <a href="${loginUrl}" target="_blank" style="color: #38bdf8; text-decoration: none; font-weight: 600;">${loginUrl} ↗</a></p>
+          <p style="margin: 4px 0; font-size: 14px;"><strong>Email / Username:</strong> <span style="font-family: monospace; color: #ffffff;">${accountEmail}</span></p>
+          ${temporaryPassword ? `<p style="margin: 4px 0; font-size: 14px;"><strong>Temporary Password:</strong> <span style="font-family: monospace; color: #fbbf24; font-weight: bold;">${temporaryPassword}</span></p>` : ''}
+          <p style="margin: 12px 0 0; font-size: 12px; color: #94a3b8; line-height: 1.5;">
+            Your live profile is already active at <strong style="color: #ffffff;">${slug}.${rootDomain}</strong>. You can customize your bio, links, and contact buttons at any time in your dashboard!
+          </p>
+        </div>
+        ` : ''}
 
         <p style="font-size: 13px; color: #64748b;">
           Our dispatch team will provide tracking updates via WhatsApp prior to handover to the courier.

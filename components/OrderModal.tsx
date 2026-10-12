@@ -95,6 +95,15 @@ export function OrderModal({ isOpen, onClose, initialConfig, preselectedProduct 
   const [submittedOrder, setSubmittedOrder] = useState<{
     orderNumber: string;
     whatsappUrl: string;
+    accountDetails?: {
+      isNewUser: boolean;
+      email: string;
+      password?: string | null;
+      slug: string;
+      dashboardUrl: string;
+      loginUrl: string;
+      liveProfileUrl: string;
+    } | null;
   } | null>(null);
 
   // Sync state when preselectedProduct changes
@@ -103,6 +112,22 @@ export function OrderModal({ isOpen, onClose, initialConfig, preselectedProduct 
       setCurrentProduct(initialProduct);
     }
   }, [initialProduct]);
+
+  // Sync state when initialConfig changes or modal opens
+  useEffect(() => {
+    if (initialConfig && isOpen) {
+      if (initialConfig.name) {
+        setCustomerName((prev) => prev || initialConfig.name);
+        setNameOnCard((prev) => (prev === 'Chithila Manul' ? initialConfig.name : prev || initialConfig.name));
+      }
+      if (initialConfig.business) setBrandName((prev) => (prev === 'SERANEX' ? initialConfig.business : prev || initialConfig.business));
+      if (initialConfig.tagline) setTagline((prev) => (prev === 'Web & Software Solutions' ? initialConfig.tagline : prev || initialConfig.tagline));
+      if (initialConfig.title) setDesignation((prev) => (prev === 'Founder & CEO' ? initialConfig.title : prev || initialConfig.title));
+      if (initialConfig.slug) setSlug((prev) => (prev === 'chithila' ? initialConfig.slug : prev || initialConfig.slug));
+      if (initialConfig.phone) setCustomerPhone((prev) => prev || initialConfig.phone || '');
+      if (initialConfig.email) setCustomerEmail((prev) => prev || initialConfig.email || '');
+    }
+  }, [initialConfig, isOpen]);
 
   if (!isOpen) return null;
 
@@ -248,11 +273,16 @@ export function OrderModal({ isOpen, onClose, initialConfig, preselectedProduct 
         setSubmittedOrder({
           orderNumber: data.order?.orderNumber || 'SERA',
           whatsappUrl: data.whatsappUrl,
+          accountDetails: data.accountDetails || null,
         });
         setIsSubmitting(false);
 
-        // Immediate redirect to WhatsApp
-        window.location.assign(data.whatsappUrl);
+        // Open WhatsApp in new tab so credentials remain accessible
+        try {
+          window.open(data.whatsappUrl, '_blank');
+        } catch {
+          // fallback
+        }
       }
     } catch (err: any) {
       console.error(err);
@@ -288,9 +318,9 @@ export function OrderModal({ isOpen, onClose, initialConfig, preselectedProduct 
         </div>
 
         {submittedOrder ? (
-          <div className="flex flex-1 flex-col items-center justify-center p-8 text-center space-y-6">
-            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-purple-500/20 text-purple-400 shadow-[0_0_40px_rgba(168,85,247,0.35)] ring-1 ring-purple-500/30">
-              <CheckIcon className="h-10 w-10" />
+          <div className="flex flex-1 flex-col items-center justify-center p-6 sm:p-8 text-center space-y-5">
+            <div className="flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-full bg-purple-500/20 text-purple-400 shadow-[0_0_40px_rgba(168,85,247,0.35)] ring-1 ring-purple-500/30">
+              <CheckIcon className="h-8 w-8 sm:h-10 sm:w-10" />
             </div>
             <div>
               <span className="text-[11px] font-bold uppercase tracking-widest text-purple-400">
@@ -300,8 +330,38 @@ export function OrderModal({ isOpen, onClose, initialConfig, preselectedProduct 
                 #{submittedOrder.orderNumber}
               </h3>
               <p className="mt-2 text-sm text-white/60 max-w-sm mx-auto">
-                Your order for {currentProduct.name} ({quantity} {quantity === 1 ? 'card' : 'cards'}) is confirmed. Opening WhatsApp to connect with our design team.
+                Your order for {currentProduct.name} ({quantity} {quantity === 1 ? 'card' : 'cards'}) is recorded.
               </p>
+
+              {/* Auto Provisioned Account Information */}
+              {submittedOrder.accountDetails && (
+                <div className="mt-4 rounded-2xl border border-emerald-500/30 bg-emerald-500/[0.08] p-4 text-left max-w-md mx-auto">
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-400 text-xs">✓</span>
+                    <span className="text-xs font-bold uppercase tracking-wider text-emerald-400">
+                      {submittedOrder.accountDetails.isNewUser ? 'GoSera Account Auto-Created & Logged In!' : 'GoSera Account Linked!'}
+                    </span>
+                  </div>
+                  <p className="text-xs text-white/70 leading-relaxed">
+                    Your digital profile is live at{' '}
+                    <a
+                      href={submittedOrder.accountDetails.liveProfileUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="font-mono text-accent-400 underline"
+                    >
+                      {submittedOrder.accountDetails.slug}.seranex.lk ↗
+                    </a>
+                    . You can start customizing your card and profile anytime.
+                  </p>
+                  {submittedOrder.accountDetails.password && (
+                    <div className="mt-2.5 rounded-xl border border-white/10 bg-black/50 p-2.5 font-mono text-[11px] space-y-1">
+                      <p className="text-white/50">Login Email: <strong className="text-white">{submittedOrder.accountDetails.email}</strong></p>
+                      <p className="text-white/50">Temporary Password: <strong className="text-amber-400">{submittedOrder.accountDetails.password}</strong></p>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {logoPreview && (
                 <div className="mt-3 flex items-center gap-3 rounded-2xl border border-purple-500/20 bg-purple-500/[0.07] p-3 text-left max-w-sm mx-auto">
@@ -313,26 +373,34 @@ export function OrderModal({ isOpen, onClose, initialConfig, preselectedProduct 
                   <div className="text-xs">
                     <span className="font-semibold text-purple-400 block">✓ Logo Attached to Order</span>
                     <span className="text-white/60 text-[11px] leading-tight block">
-                      A direct view/download link is in your WhatsApp message.
+                      A direct download link is also included in your WhatsApp message.
                     </span>
                   </div>
                 </div>
               )}
             </div>
-            <div className="w-full max-w-sm pt-2 space-y-3">
+
+            <div className="w-full max-w-md pt-2 space-y-2.5">
               <a
                 href={submittedOrder.whatsappUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-500 py-3.5 text-sm font-bold text-black hover:bg-emerald-400 transition"
+                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-500 py-3.5 text-sm font-bold text-black hover:bg-emerald-400 transition shadow-lg"
               >
                 <MessageSquareIcon className="h-4 w-4" />
-                Continue on WhatsApp &rarr;
+                Open WhatsApp to Confirm Design &rarr;
+              </a>
+              <a
+                href="/dashboard"
+                className="flex w-full items-center justify-center gap-2 rounded-2xl border border-accent-500/40 bg-accent-500/10 py-3 text-xs font-bold text-accent-300 hover:bg-accent-500/20 transition"
+              >
+                <CreditCardIcon className="h-3.5 w-3.5" />
+                Go to My Dashboard 📊
               </a>
               <button
                 type="button"
                 onClick={onClose}
-                className="w-full rounded-2xl border border-white/10 py-3 text-xs text-white/50 hover:bg-white/5"
+                className="w-full rounded-2xl border border-white/10 py-2.5 text-xs text-white/50 hover:bg-white/5"
               >
                 Close Order Window
               </button>

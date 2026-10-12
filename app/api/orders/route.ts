@@ -5,8 +5,11 @@ import { generatePayHereHash, PAYHERE_CONFIG } from '@/lib/payhere';
 import { saveLogo } from '@/lib/logoStore';
 import { sendOrderConfirmationEmail } from '@/lib/mail';
 
-import { getUserFromMemory } from '@/lib/userStore';
+import { getUserFromMemory, saveUserToMemory } from '@/lib/userStore';
 import { saveOrderToMemory, getAllOrdersFromMemory } from '@/lib/orderStore';
+import { hashPassword } from '@/lib/auth';
+import { saveCardToMemory, getCardFromMemory } from '@/lib/cardStore';
+import { generateTemplateHtml } from '@/lib/templates';
 
 // Helper to check authorization
 async function getOrderAuth(request: Request) {
@@ -279,13 +282,220 @@ export async function POST(request: Request) {
     // Always persist to resilient memory store
     saveOrderToMemory(finalOrder as any);
 
+    // ─── AUTO-SIGNUP & ACCOUNT PROVISIONING ───
+    // When a customer orders a card, provision/link their GoSera account
+    const auth = await getOrderAuth(request);
+    let matchedUser: any = auth?.user || null;
+    let isNewUser = false;
+    let plainPassword = '';
+
+    const digitsOnly = cPhone.replace(/[^0-9]/g, '');
+    const localPhone = digitsOnly.startsWith('94') ? '0' + digitsOnly.slice(2) : digitsOnly;
+    const intlPhone = digitsOnly.startsWith('0') ? '94' + digitsOnly.slice(1) : digitsOnly;
+    const plusIntlPhone = '+' + intlPhone;
+
+    // 1. If not already logged in, check if user already exists (by email, phone variations, or cardSlug)
+    if (!matchedUser) {
+      const orConditions: any[] = [
+        { cardSlug: { equals: cleanSlug, mode: 'insensitive' } },
+      ];
+      if (cEmail) {
+        orConditions.push({ email: { equals: cEmail.toLowerCase(), mode: 'insensitive' } });
+      }
+      if (digitsOnly.length >= 7) {
+        orConditions.push(
+          { phone: { equals: cPhone } },
+          { phone: { equals: digitsOnly } },
+          { phone: { equals: localPhone } },
+          { phone: { equals: intlPhone } },
+          { phone: { equals: plusIntlPhone } }
+        );
+      }
+
+      try {
+        matchedUser = await Promise.race([
+          prisma.user.findFirst({
+            where: { OR: orConditions },
+          }),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('DB Timeout')), 2500)),
+        ]);
+      } catch {}
+
+      if (!matchedUser && cEmail) {
+        matchedUser = getUserFromMemory(cEmail);
+      }
+      if (!matchedUser && digitsOnly) {
+        matchedUser = getUserFromMemory(localPhone) || getUserFromMemory(digitsOnly);
+      }
+      if (!matchedUser) {
+        matchedUser = getUserFromMemory(cleanSlug);
+      }
+    }
+
+    let userEmail = cEmail || (matchedUser?.email ? matchedUser.email : `${cleanSlug}@seranex.lk`);
+
+    if (matchedUser) {
+      // User exists — link cardSlug if unassigned or upgrading
+      try {
+        if (!matchedUser.cardSlug || matchedUser.cardSlug === 'seracard') {
+          await prisma.user.update({
+            where: { id: matchedUser.id },
+            data: { cardSlug: cleanSlug, plan: 'PRO' },
+          });
+        }
+      } catch {}
+      saveUserToMemory({
+        ...matchedUser,
+        cardSlug: matchedUser.cardSlug || cleanSlug,
+        plan: 'PRO',
+      });
+    } else {
+      // New customer — Auto sign-up with generated credentials!
+      isNewUser = true;
+      plainPassword = cleanSlug.length >= 4 ? `${cleanSlug}1234` : `${cleanSlug}2026`;
+      const passwordHash = hashPassword(plainPassword);
+
+      // Verify email doesn't collide
+      try {
+        const existingEmailUser = await prisma.user.findUnique({
+          where: { email: userEmail.toLowerCase() },
+        });
+        if (existingEmailUser) {
+          userEmail = `${cleanSlug}${digitsOnly.slice(-4) || Math.floor(100 + Math.random() * 900)}@seranex.lk`;
+        }
+      } catch {}
+
+      try {
+        matchedUser = await Promise.race([
+          prisma.user.create({
+            data: {
+              name: nOnCard || cName,
+              email: userEmail.toLowerCase(),
+              phone: cPhone,
+              passwordHash,
+              role: 'USER',
+              plan: 'PRO',
+              cardSlug: cleanSlug,
+            },
+          }),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('DB Timeout')), 3000)),
+        ]);
+      } catch (createErr: any) {
+        console.warn('[Orders API] Database user creation fallback engaged:', createErr?.message);
+      }
+
+      if (!matchedUser) {
+        matchedUser = {
+          id: `usr_${cleanSlug}_${Date.now()}`,
+          name: nOnCard || cName,
+          email: userEmail.toLowerCase(),
+          phone: cPhone,
+          passwordHash,
+          role: 'USER',
+          plan: 'PRO',
+          cardSlug: cleanSlug,
+          createdAt: new Date().toISOString(),
+        };
+      }
+
+      saveUserToMemory({
+        id: matchedUser.id,
+        name: matchedUser.name,
+        email: matchedUser.email,
+        phone: matchedUser.phone,
+        passwordHash: matchedUser.passwordHash,
+        role: matchedUser.role,
+        plan: matchedUser.plan,
+        cardSlug: matchedUser.cardSlug,
+        createdAt: matchedUser.createdAt?.toString() || new Date().toISOString(),
+      });
+    }
+
+    // Set user session cookie (30 days) so customer is immediately authenticated
+    try {
+      const cookieStore = cookies();
+      cookieStore.set({
+        name: 'user_session',
+        value: String(matchedUser.id),
+        httpOnly: true,
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 60 * 60 * 24 * 30,
+        sameSite: 'lax',
+      });
+    } catch (cookieErr) {
+      console.warn('[Orders API] Cookie session set warning:', cookieErr);
+    }
+
+    // ─── AUTO-DEPLOY DIGITAL CARD PROFILE (PRESERVE IF ALREADY EXISTS) ───
+    const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'seranex.lk';
+    const origin = request.headers.get('origin') || `https://${rootDomain}`;
+
+    let existingClient: any = null;
+    try {
+      existingClient = await Promise.race([
+        prisma.client.findUnique({ where: { slug: cleanSlug } }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('DB Timeout')), 2500)),
+      ]);
+    } catch {}
+    const existingMemCard = getCardFromMemory(cleanSlug);
+
+    // Only create/generate digital profile if user does not already have an active profile
+    if (!existingClient?.htmlContent && !existingMemCard?.htmlContent) {
+      try {
+        const generatedCardHtml = generateTemplateHtml('personal_hero', {
+          slug: cleanSlug,
+          name: nOnCard || cName,
+          title: cDesignation || 'Professional',
+          company: bName || 'GoSera',
+          phone: cPhone,
+          whatsapp: cPhone.replace(/[^0-9]/g, ''),
+          email: cEmail || '',
+          avatarUrl: logoUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=600&q=80',
+          bio: bio || (cTagline ? `${bName} — ${cTagline}` : `Welcome to ${nOnCard || cName}'s official GoSera digital profile.`),
+          location: cCity ? `${cCity}, Sri Lanka` : 'Colombo, Sri Lanka',
+          website: `https://${cleanSlug}.${rootDomain}`,
+          instagram: instagram || undefined,
+          linkedin: linkedin || undefined,
+          facebook: facebook || undefined,
+          tiktok: tiktok || undefined,
+        });
+
+        // Upsert Client profile in DB
+        try {
+          await Promise.race([
+            prisma.client.upsert({
+              where: { slug: cleanSlug },
+              update: {},
+              create: {
+                slug: cleanSlug,
+                htmlContent: generatedCardHtml,
+              },
+            }),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('DB Timeout')), 3000)),
+          ]);
+        } catch (clientDbErr) {
+          console.warn('[Orders API] Client profile DB upsert fallback:', clientDbErr);
+        }
+
+        // Save in resilient in-memory card store
+        saveCardToMemory(cleanSlug, generatedCardHtml, {
+          name: nOnCard || cName,
+          title: cDesignation,
+          company: bName,
+          phone: cPhone,
+          email: cEmail,
+        });
+      } catch (tmplErr) {
+        console.warn('[Orders API] Template generation warning:', tmplErr);
+      }
+    }
+
     // Prepare response based on payment method
     let payhereParams = null;
     let whatsappUrl = null;
 
     const brandWhatsapp = process.env.NEXT_PUBLIC_WHATSAPP || process.env.OWNER_WHATSAPP_NUMBER || '94728382638';
-    const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'seranex.lk';
-    const origin = request.headers.get('origin') || `https://${rootDomain}`;
     const logoViewUrl = `${origin}/api/orders/logo?id=${orderNumber}`;
 
     if (paymentMethod === 'PAYHERE') {
@@ -315,7 +525,7 @@ export async function POST(request: Request) {
       };
     }
 
-    // Build WhatsApp Order Link
+    // Build WhatsApp Order Link with Credentials & Portal Link
     const waMessage = [
       `*NEW SERA CARD ORDER #${orderNumber}*`,
       `---------------------------------`,
@@ -342,6 +552,14 @@ export async function POST(request: Request) {
       `*Payment Method:* ${paymentMethod === 'MINTPAY' ? `Mintpay (3x Installments: 3 x LKR ${(totalAmount / 3).toFixed(2)})` : paymentMethod}`,
       notes ? `*Notes:* ${notes}` : '',
       `---------------------------------`,
+      `*PORTAL & PROFILE ACCESS:*`,
+      `*Live Profile:* https://${cleanSlug}.${rootDomain}`,
+      `*Portal Login:* ${origin}/login`,
+      `*Username / Email:* ${userEmail}`,
+      isNewUser
+        ? `*Temporary Password:* ${plainPassword}\n*(You can change this anytime in your dashboard)*`
+        : `*(Linked to your existing GoSera account)*`,
+      `---------------------------------`,
       paymentMethod === 'MINTPAY'
         ? `Please send me the Mintpay payment link and confirm my card design proof!`
         : `Please confirm my order and share design preview!`,
@@ -359,6 +577,10 @@ export async function POST(request: Request) {
         orderNumber,
         totalAmount,
         finish: cFinish,
+        slug: cleanSlug,
+        accountEmail: userEmail,
+        temporaryPassword: isNewUser ? plainPassword : undefined,
+        loginUrl: `${origin}/login`,
       }).catch((emailErr) => {
         console.warn('[Orders API] Email confirmation delivery warning:', emailErr?.message);
       });
@@ -370,6 +592,16 @@ export async function POST(request: Request) {
       payhereParams,
       whatsappUrl,
       dbStatus: dbErrorMsg ? 'fallback' : 'saved',
+      accountCreated: isNewUser,
+      accountDetails: {
+        isNewUser,
+        email: userEmail,
+        password: isNewUser ? plainPassword : null,
+        slug: cleanSlug,
+        dashboardUrl: `${origin}/dashboard`,
+        loginUrl: `${origin}/login`,
+        liveProfileUrl: `https://${cleanSlug}.${rootDomain}`,
+      },
     });
   } catch (error: any) {
     console.error('Failed to create order:', error);

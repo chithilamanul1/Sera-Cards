@@ -25,4 +25,6 @@ export interface CardConfig {
   title: string
   slug: string
   materialId: MaterialId
+  phone?: string
+  email?: string
 }
