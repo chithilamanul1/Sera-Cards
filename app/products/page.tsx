@@ -40,7 +40,7 @@ export default function ProductsPage() {
             <div className="mt-8 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-xs sm:text-sm text-white/50">
               <span className="flex items-center gap-2">
                 <ShieldCheckIcon className="h-4 w-4 text-accent-400" />
-                1-Year Free Replacement Guarantee
+                1-Year Chip Replacement (10+ Units)
               </span>
               <span className="flex items-center gap-2">
                 <TruckIcon className="h-4 w-4 text-accent-400" />

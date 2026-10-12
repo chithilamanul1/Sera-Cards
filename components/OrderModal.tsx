@@ -900,6 +900,18 @@ export function OrderModal({ isOpen, onClose, initialConfig, preselectedProduct 
                 </>
               )}
             </button>
+
+            <p className="text-center text-[11px] text-white/40 leading-relaxed pt-1">
+              By confirming this order, you agree to our{' '}
+              <a href="/terms" target="_blank" className="text-purple-400 underline hover:text-purple-300">
+                Terms
+              </a>{' '}
+              and{' '}
+              <a href="/refund" target="_blank" className="text-purple-400 underline hover:text-purple-300">
+                Refund &amp; Warranty Policy
+              </a>{' '}
+              (1-Year replacement on 10+ units; physical print wear excluded).
+            </p>
           </form>
         )}
       </div>

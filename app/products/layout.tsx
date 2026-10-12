@@ -40,7 +40,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Official NFC Smart Card Range | Sera Cards Sri Lanka',
     description:
-      'Explore 8 premium NFC cards. 1-Year free replacement warranty, NXP NTAG215 microchips, and free island-wide tracked delivery.',
+      'Explore 8 premium NFC cards. 1-Year chip warranty on bulk orders (10+ units), NXP NTAG215 microchips, and free island-wide delivery.',
     images: ['/card-mockup.png'],
   },
 }

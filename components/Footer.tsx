@@ -17,12 +17,12 @@ export function Footer() {
             </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-8 sm:grid-cols-3">
+          <div className="grid grid-cols-2 gap-8 sm:grid-cols-4">
             <div>
               <h3 className="text-xs font-semibold uppercase tracking-widest text-white/30">Product</h3>
               <ul className="mt-4 space-y-2 text-sm text-white/50">
-                <li><a href="/products" className="hover:text-white transition-colors">Card Range (10 Cards)</a></li>
-                <li><a href="/pricing" className="hover:text-white transition-colors">Pricing</a></li>
+                <li><a href="/products" className="hover:text-white transition-colors">Official Card Range</a></li>
+                <li><a href="/pricing" className="hover:text-white transition-colors">Pricing &amp; Plans</a></li>
                 <li><a href="/how-it-works" className="hover:text-white transition-colors">How It Works</a></li>
                 <li><a href="/teams" className="hover:text-white transition-colors">For Teams</a></li>
               </ul>
@@ -36,24 +36,48 @@ export function Footer() {
               </ul>
             </div>
             <div>
+              <h3 className="text-xs font-semibold uppercase tracking-widest text-white/30">Legal &amp; Policy</h3>
+              <ul className="mt-4 space-y-2 text-sm text-white/50">
+                <li><a href="/terms" className="hover:text-white transition-colors">Terms &amp; Conditions</a></li>
+                <li><a href="/privacy" className="hover:text-white transition-colors">Privacy Policy</a></li>
+                <li><a href="/refund" className="hover:text-white transition-colors">Refund &amp; 1-Year Warranty</a></li>
+              </ul>
+            </div>
+            <div>
               <h3 className="text-xs font-semibold uppercase tracking-widest text-white/30">Contact</h3>
               <ul className="mt-4 space-y-2 text-sm text-white/50">
                 <li className="flex items-center gap-2">
                   <MapPinIcon className="h-3.5 w-3.5 shrink-0 text-white/30" />
-                  Colombo, Sri Lanka
+                  Seeduwa, Colombo, LK
                 </li>
                 <li className="flex items-center gap-2">
                   <MailIcon className="h-3.5 w-3.5 shrink-0 text-white/30" />
-                  <a href="mailto:hello@seranex.lk" className="hover:text-white transition-colors">hello@seranex.lk</a>
+                  <a href="mailto:info@seranex.lk" className="hover:text-white transition-colors">info@seranex.lk</a>
+                </li>
+                <li>
+                  <a
+                    href="https://wa.me/94728382638"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-emerald-400 hover:text-emerald-300 transition-colors text-xs font-semibold"
+                  >
+                    WhatsApp: +94 72 838 2638
+                  </a>
                 </li>
               </ul>
             </div>
           </div>
         </div>
 
-        <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t border-white/[0.07] pt-8 sm:flex-row">
-          <p className="text-xs text-white/30">© {new Date().getFullYear()} Seranex · GoSera. All rights reserved.</p>
-          <p className="text-xs text-white/30">NFC smart networking platform · seranex.lk</p>
+        <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t border-white/[0.07] pt-8 sm:flex-row text-xs text-white/40">
+          <p>© {new Date().getFullYear()} Seranex · Sera Cards. All rights reserved.</p>
+          <div className="flex items-center gap-4">
+            <a href="/terms" className="hover:text-white transition-colors">Terms</a>
+            <span>·</span>
+            <a href="/privacy" className="hover:text-white transition-colors">Privacy</a>
+            <span>·</span>
+            <a href="/refund" className="hover:text-white transition-colors">Refund &amp; Warranty Policy</a>
+          </div>
         </div>
       </div>
     </footer>

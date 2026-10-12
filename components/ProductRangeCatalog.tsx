@@ -29,9 +29,9 @@ import { useCardConfig } from '@/hooks/useCardConfig';
 const valuePillars = [
   {
     icon: ShieldCheckIcon,
-    title: '1-Year Full Warranty',
-    body: 'If your card develops any manufacturing defect, we will replace it with a brand new card 100% free of charge.',
-    tag: 'Guaranteed',
+    title: '1-Year Chip Warranty (10+ Cards)',
+    body: 'For corporate & bulk orders of 10+ cards, we provide a 1-year replacement warranty on internal NFC chip defects (excludes physical print wear/damage).',
+    tag: '10+ Units',
   },
   {
     icon: AwardIcon,
