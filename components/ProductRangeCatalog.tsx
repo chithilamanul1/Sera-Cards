@@ -65,7 +65,21 @@ const valuePillars = [
   },
 ];
 
-export function ProductRangeCatalog() {
+export interface ProductRangeCatalogProps {
+  id?: string;
+  phaseBadge?: string;
+  title?: string;
+  subtitle?: string;
+  hideTrustPillars?: boolean;
+}
+
+export function ProductRangeCatalog({
+  id = 'products',
+  phaseBadge,
+  title,
+  subtitle,
+  hideTrustPillars = false,
+}: ProductRangeCatalogProps = {}) {
   const cardApi = useCardConfig();
   const [selectedRange, setSelectedRange] = useState<string>('all');
   const [activeSpecProduct, setActiveSpecProduct] = useState<CardProduct | null>(null);
@@ -118,7 +132,7 @@ export function ProductRangeCatalog() {
   };
 
   return (
-    <section id="products" className="relative border-t border-white/[0.07] bg-black py-20 lg:py-28">
+    <section id={id} className="relative border-t border-white/[0.07] bg-black py-20 lg:py-28">
       {/* Background Radial Glow */}
       <div
         aria-hidden
@@ -128,11 +142,19 @@ export function ProductRangeCatalog() {
       <div className="relative mx-auto max-w-content px-5 sm:px-8">
         {/* ─── SECTION TITLE (Matching user screenshot) ─── */}
         <div className="mx-auto max-w-3xl text-center">
+          {phaseBadge && (
+            <div className="mb-4">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-purple-500/30 bg-purple-500/10 px-3.5 py-1 text-xs font-bold uppercase tracking-wider text-purple-300">
+                <SparklesIcon className="h-3.5 w-3.5 text-purple-400" />
+                {phaseBadge}
+              </span>
+            </div>
+          )}
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-white">
-            Pick the card that matches your style and business.
+            {title || 'Pick the card that matches your style and business.'}
           </h2>
           <p className="mt-3 text-sm sm:text-base text-white/50 max-w-xl mx-auto">
-            High-speed NFC smart business cards engineered for modern Sri Lankan professionals. Zero monthly subscriptions and free island-wide delivery.
+            {subtitle || 'High-speed NFC smart business cards engineered for modern Sri Lankan professionals. Zero monthly subscriptions and free island-wide delivery.'}
           </p>
         </div>
 
@@ -378,38 +400,40 @@ export function ProductRangeCatalog() {
         </div>
 
         {/* ─── 6 CORE TRUST PILLARS ─── */}
-        <div className="mt-24 border-t border-white/10 pt-16">
-          <div className="mx-auto max-w-2xl text-center mb-12">
-            <span className="text-xs font-bold uppercase tracking-widest text-purple-400">
-              Executive Guarantee
-            </span>
-            <h3 className="mt-2 text-2xl sm:text-3xl font-bold text-white">
-              Why Sri Lankan Leaders Choose Sera Cards
-            </h3>
-          </div>
+        {!hideTrustPillars && (
+          <div className="mt-24 border-t border-white/10 pt-16">
+            <div className="mx-auto max-w-2xl text-center mb-12">
+              <span className="text-xs font-bold uppercase tracking-widest text-purple-400">
+                Executive Guarantee
+              </span>
+              <h3 className="mt-2 text-2xl sm:text-3xl font-bold text-white">
+                Why Sri Lankan Leaders Choose Sera Cards
+              </h3>
+            </div>
 
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {valuePillars.map((pillar) => (
-              <div
-                key={pillar.title}
-                className="flex flex-col justify-between rounded-2xl border border-white/10 bg-[#12141a] p-6 hover:border-white/20 transition"
-              >
-                <div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-500/10 text-purple-400">
-                      <pillar.icon className="h-5 w-5" />
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {valuePillars.map((pillar) => (
+                <div
+                  key={pillar.title}
+                  className="flex flex-col justify-between rounded-2xl border border-white/10 bg-[#12141a] p-6 hover:border-white/20 transition"
+                >
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-500/10 text-purple-400">
+                        <pillar.icon className="h-5 w-5" />
+                      </div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-purple-300 rounded-full border border-purple-500/30 px-2.5 py-0.5">
+                        {pillar.tag}
+                      </span>
                     </div>
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-purple-300 rounded-full border border-purple-500/30 px-2.5 py-0.5">
-                      {pillar.tag}
-                    </span>
+                    <h4 className="mt-4 text-base font-bold text-white">{pillar.title}</h4>
+                    <p className="mt-2 text-xs leading-relaxed text-white/50">{pillar.body}</p>
                   </div>
-                  <h4 className="mt-4 text-base font-bold text-white">{pillar.title}</h4>
-                  <p className="mt-2 text-xs leading-relaxed text-white/50">{pillar.body}</p>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* ─── TECH SPECS MODAL ─── */}

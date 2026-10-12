@@ -20,80 +20,11 @@ import {
 import { Nav } from '@/components/Nav'
 import { Footer } from '@/components/Footer'
 import { OrderModal } from '@/components/OrderModal'
+import { ProductRangeCatalog } from '@/components/ProductRangeCatalog'
 import { CARD_PRODUCTS, CardProduct } from '@/data/products'
 import type { CardConfig } from '@/types/card'
 
 const ease = [0.23, 1, 0.32, 1] as const
-
-interface HardwareItem {
-  id: 'pvc' | 'premium' | 'metal'
-  name: string
-  price: number | null
-  originalPrice?: number
-  priceDisplay?: string
-  tag: string
-  description: string
-  bestFor: string
-  accent?: boolean
-  features: string[]
-}
-
-const hardware: HardwareItem[] = [
-  {
-    id: 'pvc',
-    name: 'Standard Matte PVC',
-    price: 3500,
-    originalPrice: 5000,
-    tag: 'Limited-Time Discount',
-    description: 'Sleek, durable, and waterproof matte finish. Available in Black or White with custom name printing.',
-    bestFor: 'Everyday professional networking on a budget',
-    accent: false,
-    features: [
-      'Genuine NXP NTAG215 high-speed NFC chip',
-      'Waterproof, scratch-resistant matte composite',
-      'Available in Black or Arctic White base',
-      'Custom name & designation printing',
-      'Dynamic laser-etched QR code on reverse',
-      'Free island-wide Sri Lanka delivery',
-    ],
-  },
-  {
-    id: 'premium',
-    name: 'Sera Premium Matte Finish',
-    price: 5000,
-    originalPrice: 7000,
-    tag: 'Most Popular · Limited-Time',
-    description: 'Enhanced ultra-matte texture with high durability, scratch resistance, and premium UV laser branding.',
-    bestFor: 'Professionals wanting a luxurious, standout feel',
-    accent: true,
-    features: [
-      'Everything in Standard Matte PVC',
-      'Ultra-matte velvet texture with anti-fingerprint coating',
-      'High-definition UV laser brand logo & wordmark printing',
-      'Custom brand color styling on front & back',
-      'Sub-surface embedded antenna for faster 0.2s read range',
-      'Free island-wide Sri Lanka delivery & priority shipping',
-    ],
-  },
-  {
-    id: 'metal',
-    name: 'Executive Metal Card',
-    price: null,
-    priceDisplay: 'Custom / Premium',
-    tag: 'Executive Tier',
-    description: 'Brushed stainless steel with embedded NFC chip, custom laser engraving, and weight that demands attention.',
-    bestFor: 'Senior executives, founders, and high-end sales closers',
-    accent: false,
-    features: [
-      'Solid aircraft-grade brushed stainless steel (24g weight)',
-      'Precision fiber laser engraved branding & typography',
-      'Sub-surface isolated contactless NFC antenna module',
-      'Unmatched prestige and tactile hand-feel',
-      'Dynamic QR code micro-etched on reverse',
-      'VIP concierge onboarding & custom domain guidance',
-    ],
-  },
-]
 
 const plans = [
   {
@@ -264,144 +195,14 @@ export default function PricingPage() {
           </div>
         </section>
 
-        {/* Phase 1: Choose Your Physical Card */}
-        <section id="hardware" className="border-t border-white/[0.07] py-16 lg:py-24">
-          <div className="mx-auto max-w-content px-5 sm:px-8">
-            <div className="mb-12">
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-accent-500/25 bg-accent-500/[0.06] px-3 py-1 text-xs font-semibold uppercase tracking-wider text-accent-400">
-                Phase 1
-              </span>
-              <h2 className="mt-3 text-2xl font-bold tracking-tight text-white sm:text-3xl lg:text-4xl">
-                Choose Your Physical Card (One-Time Payment)
-              </h2>
-              <p className="mt-2 text-sm text-white/50">
-                Crafted for durability, equipped with high-speed NXP NFC chips, and shipped free across Sri Lanka.
-              </p>
-            </div>
-
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {hardware.map((h, i) => (
-                <motion.div
-                  key={h.id}
-                  initial={{ opacity: 0, y: 14 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, amount: 0.3 }}
-                  transition={{ duration: 0.28, delay: i * 0.05, ease }}
-                  className={`relative flex flex-col justify-between rounded-3xl border p-7 transition-all ${
-                    h.accent
-                      ? 'border-accent-500/50 bg-accent-500/[0.08] shadow-[0_0_70px_-25px_rgba(168,85,247,0.7)]'
-                      : 'border-white/10 bg-ink-900/60 hover:border-white/20'
-                  }`}
-                >
-                  {/* Badge */}
-                  <span
-                    className={`absolute -top-3 left-6 rounded-full px-3 py-1 text-[11px] font-bold ${
-                      h.accent ? 'bg-accent-500 text-ink-950' : 'bg-white/15 text-white/80'
-                    }`}
-                  >
-                    {h.tag}
-                  </span>
-
-                  <div>
-                    <h3 className="text-xl font-bold text-white">{h.name}</h3>
-                    <p className="mt-2 text-xs font-medium text-accent-300">
-                      Best For: <span className="text-white/70">{h.bestFor}</span>
-                    </p>
-                    <p className="mt-3 text-sm leading-relaxed text-white/55">{h.description}</p>
-
-                    {/* Price Block */}
-                    <div className="mt-6 flex items-baseline gap-2 border-y border-white/[0.08] py-4">
-                      {h.price ? (
-                        <>
-                          <span className="text-xs font-medium text-white/40 uppercase">LKR</span>
-                          <span className="text-4xl font-extrabold text-white">{h.price.toLocaleString()}</span>
-                          {h.originalPrice && (
-                            <span className="text-sm text-white/30 line-through">
-                              LKR {h.originalPrice.toLocaleString()}
-                            </span>
-                          )}
-                          <span className="text-xs text-white/40">one-time</span>
-                        </>
-                      ) : (
-                        <div className="flex flex-col">
-                          <span className="text-3xl font-extrabold text-white">{h.priceDisplay}</span>
-                          <span className="text-xs text-white/40">Inquire for custom production</span>
-                        </div>
-                      )}
-                    </div>
-
-                    <p className="mt-3 flex items-center gap-2 text-xs font-medium text-accent-400">
-                      <TruckIcon className="h-4 w-4" />
-                      Free island-wide delivery included
-                    </p>
-
-                    {/* Feature list */}
-                    <ul className="mt-6 space-y-2.5">
-                      {h.features.map((feat) => (
-                        <li key={feat} className="flex items-start gap-2.5 text-xs text-white/70">
-                          <CheckIcon className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent-400" />
-                          <span>{feat}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  {/* Actions */}
-                  <div className="mt-8 space-y-2">
-                    <button
-                      type="button"
-                      onClick={() => openOrderWithEdition(h.id)}
-                      className={`flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold transition-all active:scale-98 ${
-                        h.accent
-                          ? 'bg-accent-500 text-ink-950 shadow-[0_0_30px_-5px_rgba(168,85,247,0.8)] hover:bg-accent-400'
-                          : 'border border-white/20 bg-white/5 text-white hover:bg-white/10'
-                      }`}
-                    >
-                      {h.id === 'metal' ? 'Inquire for Metal Tier' : 'Order This Card'}
-                      <ArrowRightIcon className="h-4 w-4" />
-                    </button>
-                    <a
-                      href={`https://wa.me/94728382638?text=Hi%2C%20I%27d%20like%20to%20order%20the%20${encodeURIComponent(
-                        h.name
-                      )}%20card.`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="flex w-full items-center justify-center gap-2 py-1.5 text-xs text-white/50 transition-colors hover:text-white"
-                    >
-                      <MessageSquareIcon className="h-3.5 w-3.5" />
-                      Order via WhatsApp instead
-                    </a>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-
-            {/* Corporate Volume Pricing Callout */}
-            <div className="mt-12 rounded-2xl border border-purple-500/30 bg-purple-500/[0.07] p-5 sm:p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="space-y-1 text-center sm:text-left">
-                <span className="text-xs font-bold uppercase tracking-wider text-purple-300">
-                  🏢 Corporate &amp; Bulk Fleet Orders
-                </span>
-                <p className="text-sm font-semibold text-white">
-                  Ordering 5 or more cards for your team or organization?
-                </p>
-                <p className="text-xs text-white/60">
-                  We adjust both physical hardware and software plan pricing with tiered corporate volume discounts.
-                </p>
-              </div>
-              <a
-                href={`https://wa.me/94728382638?text=${encodeURIComponent(
-                  "Hi Sera Cards — I would like to inquire about corporate bulk ordering (large quantities) and receive adjusted volume pricing for our company."
-                )}`}
-                target="_blank"
-                rel="noreferrer"
-                className="shrink-0 rounded-xl bg-purple-600 px-5 py-2.5 text-xs font-bold text-white hover:bg-purple-500 transition shadow-md whitespace-nowrap"
-              >
-                Inquire Corporate Rates &rarr;
-              </a>
-            </div>
-          </div>
-        </section>
+        {/* Phase 1: Choose Your Physical Card — Official Hardware Catalog */}
+        <ProductRangeCatalog
+          id="hardware"
+          phaseBadge="Phase 1: Choose Your Physical Card"
+          title="Pick Your Physical NFC Smart Card (One-Time Payment)"
+          subtitle="Crafted with genuine NXP NTAG215 microchips, durable waterproof composite layers, and laser-precision branding. Pay once, use for life with free island-wide delivery."
+          hideTrustPillars={true}
+        />
 
         {/* Phase 2: Choose Your Software Plan */}
         <section id="software" className="border-t border-white/[0.07] bg-ink-900/40 py-16 lg:py-24">
