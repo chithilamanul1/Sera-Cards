@@ -71,29 +71,29 @@ export function Nav() {
 
       {open ? (
         <div className="border-t border-white/[0.07] bg-ink-950/95 backdrop-blur-xl lg:hidden">
-          <nav aria-label="Site navigation" className="mx-auto flex max-w-content flex-col px-5 py-2 sm:px-8">
+          <nav aria-label="Site navigation" className="mx-auto flex max-w-content flex-col px-5 py-3 sm:px-8">
             {links.map((l) => (
               <a
                 key={l.href}
                 href={l.href}
                 onClick={() => setOpen(false)}
-                className="focus-ring rounded-sm border-b border-white/[0.05] py-3 text-sm text-white/70 last:border-0"
+                className="focus-ring rounded-lg border-b border-white/[0.05] py-3.5 text-base font-medium text-white/80 active:text-white last:border-0"
               >
                 {l.label}
               </a>
             ))}
-            <div className="py-3 flex flex-col gap-2">
+            <div className="py-3.5 flex flex-col gap-2.5">
               <a
                 href="/login"
                 onClick={() => setOpen(false)}
-                className="flex items-center justify-center rounded-xl border border-white/10 py-2.5 text-sm font-semibold text-white/80 hover:text-white"
+                className="flex items-center justify-center rounded-xl border border-white/10 py-3 text-sm font-semibold text-white/90 hover:text-white active:scale-[0.98] transition"
               >
                 Log In to My Portal
               </a>
               <a
                 href="/register"
                 onClick={() => setOpen(false)}
-                className="flex items-center justify-center rounded-xl bg-accent-500 py-2.5 text-sm font-bold text-ink-950 shadow-lg"
+                className="flex items-center justify-center rounded-xl bg-accent-500 py-3 text-sm font-bold text-ink-950 shadow-lg active:scale-[0.98] transition"
               >
                 Get Free Card &rarr;
               </a>

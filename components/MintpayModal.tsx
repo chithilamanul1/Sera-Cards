@@ -25,7 +25,7 @@ export function MintpayModal({ isOpen, onClose, productPrice = 3590, productName
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in">
-      <div className="relative w-full max-w-md overflow-hidden rounded-3xl border border-white/10 bg-[#111317] p-6 sm:p-8 shadow-2xl text-white">
+      <div className="relative w-full max-w-md max-h-[92dvh] overflow-y-auto touch-scroll rounded-3xl border border-white/10 bg-[#111317] p-6 sm:p-8 shadow-2xl text-white">
         {/* Close Button */}
         <button
           type="button"

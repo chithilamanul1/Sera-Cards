@@ -292,10 +292,10 @@ export function OrderModal({ isOpen, onClose, initialConfig, preselectedProduct 
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-3 sm:p-4 backdrop-blur-md overflow-y-auto">
-      <div className="relative flex max-h-[94vh] w-full max-w-2xl flex-col overflow-hidden rounded-3xl border border-white/10 bg-[#0a0a0c] shadow-[0_25px_60px_rgba(0,0,0,0.95)] my-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-2 sm:p-4 backdrop-blur-md overflow-y-auto touch-scroll">
+      <div className="relative flex max-h-[96dvh] sm:max-h-[92vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl sm:rounded-3xl border border-white/10 bg-[#0a0a0c] shadow-[0_25px_60px_rgba(0,0,0,0.95)] my-auto">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-white/10 px-5 sm:px-6 py-4 sm:py-5">
+        <div className="flex items-center justify-between border-b border-white/10 px-4 sm:px-6 py-3.5 sm:py-5">
           <div className="flex items-center gap-2.5">
             <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-purple-500/15 text-purple-400">
               <SparklesIcon className="h-4 w-4" />
@@ -407,7 +407,7 @@ export function OrderModal({ isOpen, onClose, initialConfig, preselectedProduct 
             </div>
           </div>
         ) : (
-          <form onSubmit={handleSubmitOrder} className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-6">
+          <form onSubmit={handleSubmitOrder} className="flex-1 overflow-y-auto touch-scroll p-4 sm:p-6 space-y-5 sm:space-y-6 pb-safe">
             {errorMessage && (
               <div className="flex items-center gap-2 rounded-2xl border border-red-500/20 bg-red-500/10 p-3.5 text-xs text-red-300">
                 <AlertCircleIcon className="h-4 w-4 shrink-0 text-red-400" />

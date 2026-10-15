@@ -78,7 +78,7 @@ function LoginForm() {
   };
 
   return (
-    <div className="w-full max-w-md rounded-3xl border border-white/10 bg-ink-900/80 p-6 sm:p-10 shadow-[0_30px_70px_-20px_rgba(0,0,0,0.8)] backdrop-blur-xl">
+    <div className="w-full max-w-md rounded-2xl sm:rounded-3xl border border-white/10 bg-ink-900/80 p-5 sm:p-10 shadow-[0_30px_70px_-20px_rgba(0,0,0,0.8)] backdrop-blur-xl">
       <div className="text-center mb-6">
         <span
           className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1 text-xs font-semibold ${

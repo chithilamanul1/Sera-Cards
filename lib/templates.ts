@@ -146,8 +146,8 @@ function toggleLeadModal(show) {
 function buildLeadModal(data: TemplateData): string {
   const firstName = (data.name || data.company || 'Us').trim().split(/\s+/)[0] || 'Us';
   return `
-<div id="leadModal" style="position:fixed;inset:0;background:rgba(0,0,0,0.85);display:none;align-items:flex-end;justify-content:center;z-index:9999;backdrop-filter:blur(4px);" onclick="if(event.target===this)toggleLeadModal(false)">
-  <div style="width:100%;max-width:448px;background:#111116;border-top-left-radius:24px;border-top-right-radius:24px;border:1px solid rgba(255,255,255,0.1);padding:1.75rem;text-align:left;color:#fff;">
+<div id="leadModal" style="position:fixed;inset:0;background:rgba(0,0,0,0.85);display:none;align-items:flex-end;justify-content:center;z-index:9999;backdrop-filter:blur(4px);padding-bottom:env(safe-area-inset-bottom, 0px);" onclick="if(event.target===this)toggleLeadModal(false)">
+  <div style="width:100%;max-width:448px;max-height:88vh;overflow-y:auto;-webkit-overflow-scrolling:touch;background:#111116;border-top-left-radius:24px;border-top-right-radius:24px;border:1px solid rgba(255,255,255,0.1);padding:1.75rem;text-align:left;color:#fff;">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;">
       <h3 style="margin:0;font-size:1.1rem;font-weight:700;color:#fff;">Connect with ${firstName}</h3>
       <button onclick="toggleLeadModal(false)" style="background:none;border:none;color:#94a3b8;font-size:1.5rem;cursor:pointer;line-height:1;">&times;</button>
@@ -155,15 +155,15 @@ function buildLeadModal(data: TemplateData): string {
     <form id="leadForm" onsubmit="submitLead(event)">
       <div style="margin-bottom:0.75rem;">
         <label style="display:block;font-size:0.75rem;font-weight:600;color:#94a3b8;margin-bottom:0.25rem;">Your Full Name</label>
-        <input type="text" id="leadName" placeholder="e.g. John Doe" required style="width:100%;padding:0.85rem;border-radius:12px;background:#050506;border:1px solid rgba(255,255,255,0.12);color:#fff;font-size:0.9rem;box-sizing:border-box;" />
+        <input type="text" id="leadName" placeholder="e.g. John Doe" required style="width:100%;padding:0.85rem;border-radius:12px;background:#050506;border:1px solid rgba(255,255,255,0.12);color:#fff;font-size:16px;box-sizing:border-box;" />
       </div>
       <div style="margin-bottom:0.75rem;">
         <label style="display:block;font-size:0.75rem;font-weight:600;color:#94a3b8;margin-bottom:0.25rem;">Your Mobile / WhatsApp Number (For callback)</label>
-        <input type="tel" id="leadPhone" placeholder="e.g. 077 123 4567" required style="width:100%;padding:0.85rem;border-radius:12px;background:#050506;border:1px solid rgba(255,255,255,0.12);color:#fff;font-size:0.9rem;box-sizing:border-box;" />
+        <input type="tel" id="leadPhone" placeholder="e.g. 077 123 4567" required style="width:100%;padding:0.85rem;border-radius:12px;background:#050506;border:1px solid rgba(255,255,255,0.12);color:#fff;font-size:16px;box-sizing:border-box;" />
       </div>
       <div style="margin-bottom:1rem;">
         <label style="display:block;font-size:0.75rem;font-weight:600;color:#94a3b8;margin-bottom:0.25rem;">Company / Note (Optional)</label>
-        <input type="text" id="leadNotes" placeholder="e.g. Inquiry / Meeting follow-up" style="width:100%;padding:0.85rem;border-radius:12px;background:#050506;border:1px solid rgba(255,255,255,0.12);color:#fff;font-size:0.9rem;box-sizing:border-box;" />
+        <input type="text" id="leadNotes" placeholder="e.g. Inquiry / Meeting follow-up" style="width:100%;padding:0.85rem;border-radius:12px;background:#050506;border:1px solid rgba(255,255,255,0.12);color:#fff;font-size:16px;box-sizing:border-box;" />
       </div>
       <button type="submit" id="leadSubmitBtn" style="width:100%;padding:0.9rem;background:#f97316;color:#fff;border:none;border-radius:14px;font-size:0.95rem;font-weight:700;cursor:pointer;">Send Contact Details &rarr;</button>
     </form>
@@ -232,7 +232,7 @@ function buildSmartReviewModal(data: TemplateData): string {
 
   return `
 <div id="smartReviewModal" style="position:fixed;inset:0;background:rgba(0,0,0,0.85);display:none;align-items:center;justify-content:center;z-index:9999;backdrop-filter:blur(6px);padding:1rem;" onclick="if(event.target===this)closeSmartReviewModal()">
-  <div style="width:100%;max-width:390px;background:#111116;border-radius:24px;border:1px solid rgba(255,255,255,0.12);padding:1.75rem;text-align:center;color:#fff;box-shadow:0 25px 50px -12px rgba(0,0,0,0.8);">
+  <div style="width:100%;max-width:390px;max-height:90vh;overflow-y:auto;-webkit-overflow-scrolling:touch;background:#111116;border-radius:24px;border:1px solid rgba(255,255,255,0.12);padding:1.75rem;text-align:center;color:#fff;box-shadow:0 25px 50px -12px rgba(0,0,0,0.8);">
     <div style="display:flex;justify-content:flex-end;margin-bottom:0.25rem;">
       <button onclick="closeSmartReviewModal()" style="background:none;border:none;color:#94a3b8;font-size:1.5rem;cursor:pointer;line-height:1;">&times;</button>
     </div>
@@ -271,7 +271,7 @@ function buildSmartReviewModal(data: TemplateData): string {
       <h3 style="text-align:center;font-size:1.15rem;font-weight:700;margin:0 0 0.4rem 0;">We Want to Make It Right</h3>
       <p style="text-align:center;font-size:0.8rem;color:#94a3b8;margin:0 0 1.25rem 0;">Please share your feedback privately so we can assist you directly:</p>
       
-      <textarea id="privateFeedbackText" rows="3" placeholder="Tell us what went wrong..." style="width:100%;padding:0.85rem;background:#050506;border:1px solid rgba(255,255,255,0.15);border-radius:12px;color:#fff;font-size:0.85rem;resize:none;margin-bottom:1rem;outline:none;box-sizing:border-box;"></textarea>
+      <textarea id="privateFeedbackText" rows="3" placeholder="Tell us what went wrong..." style="width:100%;padding:0.85rem;background:#050506;border:1px solid rgba(255,255,255,0.15);border-radius:12px;color:#fff;font-size:16px;resize:none;margin-bottom:1rem;outline:none;box-sizing:border-box;"></textarea>
       
       <button onclick="submitPrivateFeedback()" style="display:block;width:100%;padding:0.85rem;background:#a855f7;color:#fff;font-weight:700;font-size:0.9rem;border-radius:14px;border:none;cursor:pointer;">
         Send Private Feedback

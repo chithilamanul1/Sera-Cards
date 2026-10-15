@@ -984,57 +984,59 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        <div className="flex items-center gap-3 w-full md:w-auto justify-between md:justify-end">
+        <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-3 w-full lg:w-auto justify-between lg:justify-end">
           {/* Main Navigation Tabs */}
-          <Tabs value={activeTab} onValueChange={(val: any) => setActiveTab(val)}>
-            <TabsList className="bg-zinc-900 border border-zinc-800">
-              <TabsTrigger value="orders" className="flex items-center gap-1.5">
-                <ShoppingCart className="h-3.5 w-3.5" />
-                <span>Orders</span>
-                <Badge variant="secondary" className="ml-1 h-4 px-1.5 text-[10px]">
-                  {orders.length}
-                </Badge>
-              </TabsTrigger>
-              <TabsTrigger value="studio" className="flex items-center gap-1.5">
-                <Sparkles className="h-3.5 w-3.5 text-amber-400" />
-                <span>Studio</span>
-              </TabsTrigger>
-              <TabsTrigger value="cards" className="flex items-center gap-1.5">
-                <CreditCard className="h-3.5 w-3.5" />
-                <span>Profiles</span>
-                <Badge variant="secondary" className="ml-1 h-4 px-1.5 text-[10px]">
-                  {cards.length}
-                </Badge>
-              </TabsTrigger>
-              <TabsTrigger value="leads" className="flex items-center gap-1.5">
-                <Users className="h-3.5 w-3.5" />
-                <span>Leads</span>
-                <Badge variant="secondary" className="ml-1 h-4 px-1.5 text-[10px]">
-                  {leads.length}
-                </Badge>
-              </TabsTrigger>
-              <TabsTrigger value="settlements" className="flex items-center gap-1.5">
-                <Scale className="h-3.5 w-3.5" />
-                <span>Ledger</span>
-              </TabsTrigger>
-              <TabsTrigger value="activations" className="flex items-center gap-1.5">
-                <Zap className="h-3.5 w-3.5 text-amber-400" />
-                <span>Codes</span>
-                <Badge variant="secondary" className="ml-1 h-4 px-1.5 text-[10px]">
-                  {activations.length}
-                </Badge>
-              </TabsTrigger>
-              <TabsTrigger value="users" className="flex items-center gap-1.5">
-                <Key className="h-3.5 w-3.5 text-emerald-400" />
-                <span>Accounts</span>
-                <Badge variant="secondary" className="ml-1 h-4 px-1.5 text-[10px]">
-                  {users.length}
-                </Badge>
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
+          <div className="max-w-full overflow-x-auto no-scrollbar touch-scroll pb-1 lg:pb-0">
+            <Tabs value={activeTab} onValueChange={(val: any) => setActiveTab(val)}>
+              <TabsList className="bg-zinc-900 border border-zinc-800">
+                <TabsTrigger value="orders" className="flex items-center gap-1.5">
+                  <ShoppingCart className="h-3.5 w-3.5" />
+                  <span>Orders</span>
+                  <Badge variant="secondary" className="ml-1 h-4 px-1.5 text-[10px]">
+                    {orders.length}
+                  </Badge>
+                </TabsTrigger>
+                <TabsTrigger value="studio" className="flex items-center gap-1.5">
+                  <Sparkles className="h-3.5 w-3.5 text-amber-400" />
+                  <span>Studio</span>
+                </TabsTrigger>
+                <TabsTrigger value="cards" className="flex items-center gap-1.5">
+                  <CreditCard className="h-3.5 w-3.5" />
+                  <span>Profiles</span>
+                  <Badge variant="secondary" className="ml-1 h-4 px-1.5 text-[10px]">
+                    {cards.length}
+                  </Badge>
+                </TabsTrigger>
+                <TabsTrigger value="leads" className="flex items-center gap-1.5">
+                  <Users className="h-3.5 w-3.5" />
+                  <span>Leads</span>
+                  <Badge variant="secondary" className="ml-1 h-4 px-1.5 text-[10px]">
+                    {leads.length}
+                  </Badge>
+                </TabsTrigger>
+                <TabsTrigger value="settlements" className="flex items-center gap-1.5">
+                  <Scale className="h-3.5 w-3.5" />
+                  <span>Ledger</span>
+                </TabsTrigger>
+                <TabsTrigger value="activations" className="flex items-center gap-1.5">
+                  <Zap className="h-3.5 w-3.5 text-amber-400" />
+                  <span>Codes</span>
+                  <Badge variant="secondary" className="ml-1 h-4 px-1.5 text-[10px]">
+                    {activations.length}
+                  </Badge>
+                </TabsTrigger>
+                <TabsTrigger value="users" className="flex items-center gap-1.5">
+                  <Key className="h-3.5 w-3.5 text-emerald-400" />
+                  <span>Accounts</span>
+                  <Badge variant="secondary" className="ml-1 h-4 px-1.5 text-[10px]">
+                    {users.length}
+                  </Badge>
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 justify-end shrink-0">
             <Button
               variant="outline"
               size="sm"
@@ -1048,7 +1050,7 @@ export default function AdminDashboard() {
               variant="outline"
               size="sm"
               onClick={handleLogout}
-              className="text-zinc-400 hover:text-white border-zinc-800 hover:bg-zinc-900"
+              className="text-zinc-400 hover:text-white border-zinc-800 hover:bg-zinc-900 text-xs"
             >
               <LogOut className="h-3.5 w-3.5 mr-1.5" />
               Logout

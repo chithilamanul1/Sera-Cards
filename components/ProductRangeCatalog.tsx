@@ -440,7 +440,7 @@ export function ProductRangeCatalog({
       <AnimatePresence>
         {activeSpecProduct && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-            <div className="relative w-full max-w-lg rounded-3xl border border-white/10 bg-[#111317] p-6 sm:p-8 text-white">
+            <div className="relative w-full max-w-lg max-h-[92dvh] overflow-y-auto touch-scroll rounded-3xl border border-white/10 bg-[#111317] p-6 sm:p-8 text-white">
               <button
                 type="button"
                 onClick={() => setActiveSpecProduct(null)}

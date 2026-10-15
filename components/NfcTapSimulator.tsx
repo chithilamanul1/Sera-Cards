@@ -136,7 +136,7 @@ export function NfcTapSimulator() {
   const currentMat = materialStyles[cardMaterial]
 
   return (
-    <div className="relative mx-auto w-full max-w-6xl rounded-3xl border border-white/10 bg-ink-900/70 p-4 sm:p-8 lg:p-10 shadow-[0_20px_80px_-20px_rgba(168,85,247,0.25)] backdrop-blur-xl">
+    <div className="relative mx-auto w-full max-w-6xl rounded-2xl sm:rounded-3xl border border-white/10 bg-ink-900/70 p-3 sm:p-8 lg:p-10 shadow-[0_20px_80px_-20px_rgba(168,85,247,0.25)] backdrop-blur-xl">
       {/* Decorative background glow */}
       <div
         aria-hidden
@@ -308,20 +308,21 @@ export function NfcTapSimulator() {
         {/* RIGHT COLUMN: Interactive Smartphone Display (7 cols) */}
         <div className="flex flex-col items-center lg:col-span-7">
           {/* Persona Switcher Pill */}
-          <div className="mb-4 flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 p-1 text-xs">
+          <div className="mb-4 flex max-w-full items-center justify-center gap-1 sm:gap-1.5 rounded-full border border-white/10 bg-white/5 p-1 text-[11px] sm:text-xs overflow-x-auto no-scrollbar touch-scroll">
             <button
               type="button"
               onClick={() => {
                 setSelectedProfileId('kosala')
                 setActiveTab('profile')
               }}
-              className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 font-semibold transition-all ${
+              className={`flex shrink-0 items-center gap-1.5 rounded-full px-2.5 sm:px-3.5 py-1.5 font-semibold transition-all ${
                 selectedProfileId === 'kosala'
                   ? 'bg-accent-500 text-ink-950 shadow-md font-bold'
                   : 'text-white/50 hover:text-white'
               }`}
             >
-              <span>⭐ Mr. Kosala (CODEAERON)</span>
+              <span className="hidden sm:inline">⭐ Mr. Kosala (CODEAERON)</span>
+              <span className="sm:hidden">⭐ Mr. Kosala</span>
             </button>
             <button
               type="button"
@@ -329,26 +330,27 @@ export function NfcTapSimulator() {
                 setSelectedProfileId('chithila')
                 setActiveTab('profile')
               }}
-              className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 font-semibold transition-all ${
+              className={`flex shrink-0 items-center gap-1.5 rounded-full px-2.5 sm:px-3.5 py-1.5 font-semibold transition-all ${
                 selectedProfileId === 'chithila'
                   ? 'bg-accent-500 text-ink-950 shadow-md font-bold'
                   : 'text-white/50 hover:text-white'
               }`}
             >
-              <span>Chithila Manul (Seranex)</span>
+              <span className="hidden sm:inline">Chithila Manul (Seranex)</span>
+              <span className="sm:hidden">Chithila M.</span>
             </button>
           </div>
 
-          <div className="relative w-full max-w-[390px] rounded-[44px] border-[5px] border-zinc-800 bg-black p-3 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.9)] ring-1 ring-white/15">
+          <div className="relative w-full max-w-[390px] rounded-[36px] sm:rounded-[44px] border-[3px] sm:border-[5px] border-zinc-800 bg-black p-2 sm:p-3 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.9)] ring-1 ring-white/15">
             
             {/* iPhone Dynamic Island / Speaker */}
-            <div className="absolute top-5 left-1/2 z-30 flex h-6 w-28 -translate-x-1/2 items-center justify-between rounded-full bg-black px-2 shadow-sm ring-1 ring-white/10">
-              <div className="h-2.5 w-2.5 rounded-full bg-zinc-900" />
-              <div className="h-3 w-3 rounded-full bg-accent-500/40 ring-1 ring-accent-400" />
+            <div className="absolute top-4 sm:top-5 left-1/2 z-30 flex h-5 sm:h-6 w-24 sm:w-28 -translate-x-1/2 items-center justify-between rounded-full bg-black px-2 shadow-sm ring-1 ring-white/10">
+              <div className="h-2 sm:h-2.5 w-2 sm:w-2.5 rounded-full bg-zinc-900" />
+              <div className="h-2.5 sm:h-3 w-2.5 sm:w-3 rounded-full bg-accent-500/40 ring-1 ring-accent-400" />
             </div>
 
             {/* Inner Phone Screen */}
-            <div className="relative min-h-[580px] w-full overflow-hidden rounded-[36px] bg-ink-950 text-white">
+            <div className="relative min-h-[520px] sm:min-h-[580px] w-full overflow-hidden rounded-[28px] sm:rounded-[36px] bg-ink-950 text-white">
               
               {/* Native Browser Top Bar */}
               <div className="flex items-center justify-between border-b border-white/10 bg-ink-900/90 px-4 pt-9 pb-2 text-[11px] text-white/60">
@@ -422,13 +424,13 @@ export function NfcTapSimulator() {
                     </div>
 
                     {/* Feature Navigation Tabs inside Phone */}
-                    <div className="grid grid-cols-4 gap-1 rounded-xl border border-white/10 bg-ink-900/70 p-1 text-[10px]">
+                    <div className="grid grid-cols-4 gap-1 rounded-xl border border-white/10 bg-ink-900/70 p-1 text-[9px] sm:text-[10px]">
                       <button
                         type="button"
                         onClick={() => setActiveTab('profile')}
-                        className={`rounded-lg py-1.5 font-medium transition-all ${
+                        className={`rounded-lg py-1.5 px-1 font-medium transition-all truncate ${
                           activeTab === 'profile'
-                            ? 'bg-accent-500/20 text-accent-400'
+                            ? 'bg-accent-500/20 text-accent-400 font-semibold'
                             : 'text-white/50 hover:text-white'
                         }`}
                       >
@@ -437,9 +439,9 @@ export function NfcTapSimulator() {
                       <button
                         type="button"
                         onClick={() => setActiveTab('leadCapture')}
-                        className={`rounded-lg py-1.5 font-medium transition-all ${
+                        className={`rounded-lg py-1.5 px-1 font-medium transition-all truncate ${
                           activeTab === 'leadCapture'
-                            ? 'bg-accent-500/20 text-accent-400'
+                            ? 'bg-accent-500/20 text-accent-400 font-semibold'
                             : 'text-white/50 hover:text-white'
                         }`}
                       >
@@ -448,9 +450,9 @@ export function NfcTapSimulator() {
                       <button
                         type="button"
                         onClick={() => setActiveTab('lankaQr')}
-                        className={`rounded-lg py-1.5 font-medium transition-all ${
+                        className={`rounded-lg py-1.5 px-1 font-medium transition-all truncate ${
                           activeTab === 'lankaQr'
-                            ? 'bg-accent-500/20 text-accent-400'
+                            ? 'bg-accent-500/20 text-accent-400 font-semibold'
                             : 'text-white/50 hover:text-white'
                         }`}
                       >
@@ -459,9 +461,9 @@ export function NfcTapSimulator() {
                       <button
                         type="button"
                         onClick={() => setActiveTab('reviews')}
-                        className={`rounded-lg py-1.5 font-medium transition-all ${
+                        className={`rounded-lg py-1.5 px-1 font-medium transition-all truncate ${
                           activeTab === 'reviews'
-                            ? 'bg-accent-500/20 text-accent-400'
+                            ? 'bg-accent-500/20 text-accent-400 font-semibold'
                             : 'text-white/50 hover:text-white'
                         }`}
                       >

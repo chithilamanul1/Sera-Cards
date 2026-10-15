@@ -133,7 +133,7 @@ export function LandingPage() {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.35, delay: 0.05, ease }}
-              className="mx-auto max-w-5xl text-[2.6rem] font-bold leading-[1.05] tracking-tightest text-white sm:text-6xl lg:text-[4.35rem]"
+              className="mx-auto max-w-5xl text-[2.2rem] xs:text-[2.6rem] font-bold leading-[1.08] tracking-tightest text-white sm:text-6xl lg:text-[4.35rem]"
             >
               The Last Business Card <br className="hidden sm:block" />
               <span className="text-accent-400">You Will Ever Need.</span>
@@ -153,18 +153,18 @@ export function LandingPage() {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: 0.15, ease }}
-              className="mt-9 flex flex-wrap items-center justify-center gap-3 sm:gap-4"
+              className="mt-9 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 max-w-md sm:max-w-none mx-auto w-full"
             >
               <a
                 href="#simulator"
-                className="group inline-flex items-center gap-2 rounded-full bg-accent-500 px-7 py-3.5 text-sm font-bold text-ink-950 shadow-[0_0_50px_-10px_rgba(168,85,247,0.9)] transition-all hover:bg-accent-400 active:scale-[0.97]"
+                className="group inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-full bg-accent-500 px-7 py-3.5 text-sm font-bold text-ink-950 shadow-[0_0_50px_-10px_rgba(168,85,247,0.9)] transition-all hover:bg-accent-400 active:scale-[0.97]"
               >
                 Watch 0.2s Tap Demo
                 <ArrowRightIcon className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
               </a>
               <a
                 href="/pricing"
-                className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/[0.04] px-7 py-3.5 text-sm font-semibold text-white transition-all hover:border-white/40 hover:bg-white/[0.08] active:scale-[0.97]"
+                className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-full border border-white/20 bg-white/[0.04] px-7 py-3.5 text-sm font-semibold text-white transition-all hover:border-white/40 hover:bg-white/[0.08] active:scale-[0.97]"
               >
                 View Plans & Pricing (From LKR 3,500)
               </a>
@@ -562,10 +562,10 @@ export function LandingPage() {
               Join thousands of forward-thinking executives, business owners, and founders in Sri Lanka. Order your card today with free island-wide delivery.
             </p>
 
-            <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
+            <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 max-w-md sm:max-w-none mx-auto w-full">
               <a
                 href="/pricing"
-                className="group inline-flex items-center gap-2 rounded-full bg-accent-500 px-8 py-4 text-sm font-bold text-ink-950 shadow-[0_0_50px_-10px_rgba(168,85,247,0.9)] transition-all hover:bg-accent-400 active:scale-[0.97]"
+                className="group inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-full bg-accent-500 px-8 py-4 text-sm font-bold text-ink-950 shadow-[0_0_50px_-10px_rgba(168,85,247,0.9)] transition-all hover:bg-accent-400 active:scale-[0.97]"
               >
                 Order Your Card Now (From LKR 3,500)
                 <ArrowRightIcon className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
@@ -574,7 +574,7 @@ export function LandingPage() {
                 href="https://wa.me/94728382638?text=Hi%20GoSera%2C%20I%20have%20a%20question%20before%20ordering."
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-7 py-4 text-sm font-semibold text-white transition-all hover:border-white/40 hover:bg-white/10 active:scale-[0.97]"
+                className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-full border border-white/20 bg-white/5 px-7 py-4 text-sm font-semibold text-white transition-all hover:border-white/40 hover:bg-white/10 active:scale-[0.97]"
               >
                 <MessageSquareIcon className="h-4 w-4 text-accent-400" />
                 Chat on WhatsApp

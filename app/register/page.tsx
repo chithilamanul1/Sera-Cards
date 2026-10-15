@@ -78,7 +78,7 @@ export default function RegisterPage() {
       <Nav />
 
       <main className="flex-1 flex items-center justify-center px-4 pt-28 pb-16">
-        <div className="w-full max-w-lg rounded-3xl border border-white/10 bg-ink-900/80 p-6 sm:p-10 shadow-[0_30px_70px_-20px_rgba(0,0,0,0.8)] backdrop-blur-xl">
+        <div className="w-full max-w-lg rounded-2xl sm:rounded-3xl border border-white/10 bg-ink-900/80 p-5 sm:p-10 shadow-[0_30px_70px_-20px_rgba(0,0,0,0.8)] backdrop-blur-xl">
           
           {/* Header */}
           <div className="text-center mb-8">

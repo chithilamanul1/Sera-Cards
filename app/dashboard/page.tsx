@@ -493,25 +493,25 @@ export default function CustomerDashboard() {
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
+          <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 sm:gap-2.5 w-full sm:w-auto">
             {(isCorporateLocked || user?.plan === 'TEAMS' || user?.plan === 'ENTERPRISE' || user?.role === 'ADMIN') && (
               <a
                 href="/teams/portal"
-                className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 rounded-xl border border-sky-500/30 bg-sky-500/10 px-4 py-2.5 text-xs font-bold text-sky-300 hover:bg-sky-500/20 transition-colors active:scale-95 shadow-sm"
+                className="col-span-2 sm:col-auto inline-flex items-center justify-center gap-2 rounded-xl border border-sky-500/30 bg-sky-500/10 px-3.5 py-2.5 text-xs font-bold text-sky-300 hover:bg-sky-500/20 transition-colors active:scale-95 shadow-sm"
               >
                 🏢 Enterprise Fleet Hub &rarr;
               </a>
             )}
             <button
               onClick={() => setShowQrModal(true)}
-              className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 rounded-xl border border-white/12 bg-white/[0.04] px-4 py-2.5 text-xs font-semibold text-white hover:bg-white/[0.08] transition-colors active:scale-95"
+              className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-white/12 bg-white/[0.04] px-3 py-2.5 text-xs font-semibold text-white hover:bg-white/[0.08] transition-colors active:scale-95"
             >
               <QrCodeIcon className="h-3.5 w-3.5 text-accent-400" />
-              Show QR Code
+              Show QR
             </button>
             <button
               onClick={handleCopyLink}
-              className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 rounded-xl border border-white/12 bg-white/[0.04] px-4 py-2.5 text-xs font-semibold text-white hover:bg-white/[0.08] transition-colors active:scale-95"
+              className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-white/12 bg-white/[0.04] px-3 py-2.5 text-xs font-semibold text-white hover:bg-white/[0.08] transition-colors active:scale-95"
             >
               {copied ? <CheckIcon className="h-3.5 w-3.5 text-accent-400" /> : <CopyIcon className="h-3.5 w-3.5" />}
               {copied ? 'Copied!' : 'Copy Link'}
@@ -520,25 +520,26 @@ export default function CustomerDashboard() {
               href={`/c/${profileForm.slug || user?.cardSlug || 'demo'}`}
               target="_blank"
               rel="noreferrer"
-              className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 rounded-xl bg-accent-500 px-4 py-2.5 text-xs font-bold text-ink-950 hover:bg-accent-400 transition-colors shadow-md active:scale-95"
+              className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-accent-500 px-3 py-2.5 text-xs font-bold text-ink-950 hover:bg-accent-400 transition-colors shadow-md active:scale-95"
             >
               <ExternalLinkIcon className="h-3.5 w-3.5" />
-              View Live Card
+              View Card
             </a>
             <a
               href={`/onboarding?slug=${profileForm.slug || user?.cardSlug || ''}&name=${encodeURIComponent(user?.name || '')}&email=${encodeURIComponent(user?.email || '')}`}
-              className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.04] px-3.5 py-2.5 text-xs font-semibold text-white/80 hover:bg-white/[0.08] hover:text-white transition-colors"
+              className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2.5 text-xs font-semibold text-white/80 hover:bg-white/[0.08] hover:text-white transition-colors"
               title="Launch Onboarding Studio"
             >
               <SparklesIcon className="h-3.5 w-3.5 text-accent-400" />
-              Onboarding Studio
+              Studio
             </a>
             <button
               onClick={handleLogout}
-              className="inline-flex items-center justify-center rounded-xl border border-red-500/20 bg-red-500/10 p-2.5 text-red-400 hover:bg-red-500/20 transition-colors"
+              className="col-span-2 sm:col-auto inline-flex items-center justify-center gap-1.5 rounded-xl border border-red-500/20 bg-red-500/10 py-2.5 px-3 text-xs font-medium text-red-400 hover:bg-red-500/20 transition-colors"
               title="Logout"
             >
-              <LogOutIcon className="h-4 w-4" />
+              <LogOutIcon className="h-3.5 w-3.5" />
+              <span className="sm:hidden">Log Out</span>
             </button>
           </div>
         </div>
@@ -636,10 +637,10 @@ export default function CustomerDashboard() {
         </div>
 
         {/* Tabs Bar */}
-        <div className="flex border-b border-white/10 mb-6 overflow-x-auto no-scrollbar gap-2">
+        <div className="flex border-b border-white/10 mb-6 overflow-x-auto no-scrollbar touch-scroll gap-2">
           <button
             onClick={() => setActiveTab('profile')}
-            className={`flex items-center gap-2 pb-3 px-4 text-sm font-semibold border-b-2 whitespace-nowrap transition-colors ${
+            className={`flex shrink-0 items-center gap-2 pb-3 px-3 sm:px-4 text-xs sm:text-sm font-semibold border-b-2 whitespace-nowrap transition-colors ${
               activeTab === 'profile'
                 ? 'border-accent-500 text-white'
                 : 'border-transparent text-white/40 hover:text-white'
@@ -650,7 +651,7 @@ export default function CustomerDashboard() {
           </button>
           <button
             onClick={() => setActiveTab('leads')}
-            className={`flex items-center gap-2 pb-3 px-4 text-sm font-semibold border-b-2 whitespace-nowrap transition-colors ${
+            className={`flex shrink-0 items-center gap-2 pb-3 px-3 sm:px-4 text-xs sm:text-sm font-semibold border-b-2 whitespace-nowrap transition-colors ${
               activeTab === 'leads'
                 ? 'border-accent-500 text-white'
                 : 'border-transparent text-white/40 hover:text-white'
@@ -661,18 +662,18 @@ export default function CustomerDashboard() {
           </button>
           <button
             onClick={() => setActiveTab('order')}
-            className={`flex items-center gap-2 pb-3 px-4 text-sm font-semibold border-b-2 whitespace-nowrap transition-colors ${
+            className={`flex shrink-0 items-center gap-2 pb-3 px-3 sm:px-4 text-xs sm:text-sm font-semibold border-b-2 whitespace-nowrap transition-colors ${
               activeTab === 'order'
                 ? 'border-accent-500 text-white'
                 : 'border-transparent text-white/40 hover:text-white'
             }`}
           >
             <TruckIcon className="h-4 w-4" />
-            Hardware & Order Tracker {orders.length > 0 && `(${orders.length})`}
+            Hardware & Orders {orders.length > 0 && `(${orders.length})`}
           </button>
           <button
             onClick={() => setActiveTab('security')}
-            className={`flex items-center gap-2 pb-3 px-4 text-sm font-semibold border-b-2 whitespace-nowrap transition-colors ${
+            className={`flex shrink-0 items-center gap-2 pb-3 px-3 sm:px-4 text-xs sm:text-sm font-semibold border-b-2 whitespace-nowrap transition-colors ${
               activeTab === 'security'
                 ? 'border-accent-500 text-white'
                 : 'border-transparent text-white/40 hover:text-white'
@@ -1044,7 +1045,7 @@ export default function CustomerDashboard() {
             </div>
 
             {/* Live Card Preview Box */}
-            <div className="lg:col-span-4 bg-ink-900/80 border border-white/10 rounded-3xl p-6 text-center sticky top-28">
+            <div className="lg:col-span-4 bg-ink-900/80 border border-white/10 rounded-2xl sm:rounded-3xl p-4 sm:p-6 text-center lg:sticky lg:top-28">
               <h3 className="text-xs uppercase tracking-wider font-bold text-white/40 mb-4">Live Preview</h3>
               <div className="w-full max-w-[290px] mx-auto rounded-[36px] border-[4px] border-zinc-800 bg-black p-3.5 shadow-2xl ring-1 ring-white/10">
                 {/* Mini Browser Bar */}

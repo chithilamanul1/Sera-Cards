@@ -113,23 +113,23 @@ export default function TeamsPage() {
                 initial={{ opacity: 0, y: 14 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: 0.15, ease }}
-                className="mt-8 flex flex-wrap gap-3"
+                className="mt-8 flex flex-col sm:flex-row flex-wrap gap-3 max-w-lg sm:max-w-none"
               >
                 <a
                   href="/teams/portal"
-                  className="inline-flex items-center gap-2 rounded-full bg-accent-500 px-7 py-3.5 text-sm font-semibold text-ink-950 shadow-[0_0_40px_-10px_rgba(168,85,247,0.8)] hover:bg-accent-400 transition-colors active:scale-[0.97]"
+                  className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-full bg-accent-500 px-7 py-3.5 text-sm font-semibold text-ink-950 shadow-[0_0_40px_-10px_rgba(168,85,247,0.8)] hover:bg-accent-400 transition-colors active:scale-[0.97]"
                 >
                   🏢 Launch Enterprise Portal &rarr;
                 </a>
                 <a
                   href="#contact"
-                  className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/[0.03] px-7 py-3.5 text-sm font-medium text-white hover:border-white/30 hover:bg-white/[0.06] transition-all active:scale-[0.97]"
+                  className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-full border border-white/12 bg-white/[0.03] px-7 py-3.5 text-sm font-medium text-white hover:border-white/30 hover:bg-white/[0.06] transition-all active:scale-[0.97]"
                 >
                   Request a Custom Quote
                 </a>
                 <a
                   href="/pricing"
-                  className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/[0.03] px-7 py-3.5 text-sm font-medium text-white hover:border-white/30 hover:bg-white/[0.06] transition-all active:scale-[0.97]"
+                  className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-full border border-white/12 bg-white/[0.03] px-7 py-3.5 text-sm font-medium text-white hover:border-white/30 hover:bg-white/[0.06] transition-all active:scale-[0.97]"
                 >
                   View Team Pricing
                 </a>

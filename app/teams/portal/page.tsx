@@ -607,39 +607,41 @@ export default function EnterpriseTeamsPortal() {
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2.5">
+          <div className="w-full sm:w-auto flex flex-wrap items-center gap-2">
             {/* Multi-Company Selector Dropdown */}
-            <div className="flex items-center gap-2 bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-1.5 text-xs">
-              <Building2 className="h-4 w-4 text-sky-400 shrink-0" />
-              <select
-                value={selectedCompanySlug}
-                onChange={(e) => {
-                  const newSlug = e.target.value;
-                  setSelectedCompanySlug(newSlug);
-                  fetchTeamData(newSlug);
-                }}
-                className="bg-transparent text-white font-bold outline-none cursor-pointer text-xs"
-                title="Select active company"
-              >
-                {companies.length > 0 ? (
-                  companies.map((c) => (
-                    <option key={c.id || c.slug} value={c.slug} className="bg-zinc-900 text-white">
-                      {c.name} ({c.slug})
+            <div className="w-full sm:w-auto flex items-center justify-between sm:justify-start gap-2 bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-1.5 text-xs">
+              <div className="flex items-center gap-2 min-w-0">
+                <Building2 className="h-4 w-4 text-sky-400 shrink-0" />
+                <select
+                  value={selectedCompanySlug}
+                  onChange={(e) => {
+                    const newSlug = e.target.value;
+                    setSelectedCompanySlug(newSlug);
+                    fetchTeamData(newSlug);
+                  }}
+                  className="bg-transparent text-white font-bold outline-none cursor-pointer text-xs truncate max-w-[150px] sm:max-w-[200px]"
+                  title="Select active company"
+                >
+                  {companies.length > 0 ? (
+                    companies.map((c) => (
+                      <option key={c.id || c.slug} value={c.slug} className="bg-zinc-900 text-white">
+                        {c.name} ({c.slug})
+                      </option>
+                    ))
+                  ) : (
+                    <option value={team?.slug || 'apex'} className="bg-zinc-900 text-white">
+                      {team?.name || 'Apex Capital Partners'}
                     </option>
-                  ))
-                ) : (
-                  <option value={team?.slug || 'apex'} className="bg-zinc-900 text-white">
-                    {team?.name || 'Apex Capital Partners'}
-                  </option>
-                )}
-              </select>
+                  )}
+                </select>
+              </div>
               <Button
                 variant="outline"
                 size="xs"
                 onClick={() => setIsAddCompanyModalOpen(true)}
-                className="border-sky-500/30 bg-sky-500/10 text-sky-400 hover:bg-sky-500/20 text-[11px] h-7 font-semibold"
+                className="border-sky-500/30 bg-sky-500/10 text-sky-400 hover:bg-sky-500/20 text-[11px] h-7 font-semibold shrink-0"
               >
-                + New Company
+                + New
               </Button>
             </div>
 
