@@ -48,6 +48,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 
 import { TEMPLATE_PRESETS, generateTemplateHtml, TemplateData } from '@/lib/templates';
+import { NfcCardWriterModal } from '@/components/NfcCardWriterModal';
 
 type CardItem = {
   id: string;
@@ -152,6 +153,26 @@ export default function AdminDashboard() {
     paymentStatus: 'PAID',
     fulfillmentStatus: 'ORDER_RECEIVED',
   });
+
+  // Physical NFC Card Writer State
+  const [nfcWriterState, setNfcWriterState] = useState<{
+    isOpen: boolean;
+    slug: string;
+    name?: string;
+    customUrl?: string;
+  }>({
+    isOpen: false,
+    slug: '',
+  });
+
+  const handleOpenNfcWriter = (targetSlug: string, targetName?: string, targetCustomUrl?: string) => {
+    setNfcWriterState({
+      isOpen: true,
+      slug: targetSlug,
+      name: targetName,
+      customUrl: targetCustomUrl,
+    });
+  };
 
   // Studio & Builder State
   const [editorMode, setEditorMode] = useState<'visual' | 'raw'>('visual');
@@ -1287,6 +1308,16 @@ export default function AdminDashboard() {
                           <TableCell className="align-top text-right">
                             <div className="flex items-center justify-end gap-1.5">
                               <Button
+                                variant="outline"
+                                size="xs"
+                                onClick={() => handleOpenNfcWriter(order.slug, order.nameOnCard || order.customerName)}
+                                className="border-purple-500/40 text-purple-300 hover:bg-purple-500/10 hover:text-white font-bold"
+                                title="Program physical NFC card with phone"
+                              >
+                                <Zap className="h-3 w-3 mr-1 text-amber-400" />
+                                Write NFC
+                              </Button>
+                              <Button
                                 variant="amber"
                                 size="xs"
                                 onClick={() => handleGenerateProfileFromOrder(order)}
@@ -1789,6 +1820,16 @@ export default function AdminDashboard() {
                 {/* Quick Actions Below Simulator */}
                 <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
                   <Button
+                    variant="purple"
+                    size="sm"
+                    onClick={() => handleOpenNfcWriter(slug, templateForm.name || slug)}
+                    className="bg-purple-600 hover:bg-purple-500 font-bold shadow-md shadow-purple-600/20 text-white"
+                    title="Write this profile directly to a physical NFC card"
+                  >
+                    <Zap className="h-3.5 w-3.5 mr-1 text-amber-300" />
+                    ⚡ Write to NFC Card
+                  </Button>
+                  <Button
                     variant="outline"
                     size="sm"
                     onClick={() => window.open(`/c/${slug}`, '_blank')}
@@ -1917,14 +1958,24 @@ export default function AdminDashboard() {
                           </TableCell>
 
                           <TableCell>
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-1.5">
+                              <Button
+                                variant="purple"
+                                size="xs"
+                                onClick={() => handleOpenNfcWriter(card.slug)}
+                                className="bg-purple-600 hover:bg-purple-500 font-bold"
+                                title="Write to physical NFC card with phone"
+                              >
+                                <Zap className="h-3 w-3 mr-1 text-amber-300" />
+                                Write NFC
+                              </Button>
                               <Button
                                 variant="amber"
                                 size="xs"
                                 onClick={() => setNfcModalCard(card)}
                               >
                                 <QrCode className="h-3 w-3 mr-1" />
-                                Flash NFC
+                                Flash QR
                               </Button>
                               <Button
                                 variant="outline"
@@ -2370,6 +2421,16 @@ export default function AdminDashboard() {
                             </TableCell>
                             <TableCell className="text-right">
                               <div className="flex items-center justify-end gap-1.5">
+                                <Button
+                                  variant="purple"
+                                  size="xs"
+                                  onClick={() => handleOpenNfcWriter('', `Activation ${item.code}`, activationUrl)}
+                                  className="bg-purple-600 hover:bg-purple-500 font-bold"
+                                  title="Write activation code to physical NFC card"
+                                >
+                                  <Zap className="h-3 w-3 mr-1 text-amber-300" />
+                                  Write NFC
+                                </Button>
                                 <Button
                                   variant="outline"
                                   size="xs"
@@ -3247,6 +3308,15 @@ export default function AdminDashboard() {
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* ── Dialog 7: Physical NFC Card Placer & Writer ── */}
+      <NfcCardWriterModal
+        isOpen={nfcWriterState.isOpen}
+        onClose={() => setNfcWriterState({ isOpen: false, slug: '' })}
+        slug={nfcWriterState.slug}
+        name={nfcWriterState.name}
+        customUrl={nfcWriterState.customUrl}
+      />
     </div>
   );
 }

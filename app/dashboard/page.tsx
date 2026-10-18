@@ -32,11 +32,13 @@ import {
   LockIcon,
   KeyIcon,
   DownloadIcon,
+  ZapIcon,
 } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 import { Nav } from '@/components/Nav';
 import { Footer } from '@/components/Footer';
 import { OrderModal } from '@/components/OrderModal';
+import { NfcCardWriterModal } from '@/components/NfcCardWriterModal';
 import { TEMPLATE_PRESETS, generateTemplateHtml, TemplateData } from '@/lib/templates';
 import type { CardConfig } from '@/types/card';
 
@@ -61,6 +63,9 @@ export default function CustomerDashboard() {
 
   // Dynamic QR Code Modal State
   const [showQrModal, setShowQrModal] = useState(false);
+
+  // Physical NFC Card Writer State
+  const [showNfcWriterModal, setShowNfcWriterModal] = useState(false);
 
   // Security & Password Change State
   const [newPassword, setNewPassword] = useState('');
@@ -508,6 +513,14 @@ export default function CustomerDashboard() {
             >
               <QrCodeIcon className="h-3.5 w-3.5 text-accent-400" />
               Show QR
+            </button>
+            <button
+              onClick={() => setShowNfcWriterModal(true)}
+              className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-purple-500/40 bg-purple-500/10 px-3 py-2.5 text-xs font-bold text-purple-300 hover:bg-purple-500/20 transition-colors active:scale-95 shadow-sm"
+              title="Program physical NFC card with phone"
+            >
+              <ZapIcon className="h-3.5 w-3.5 text-amber-400" />
+              Write Card
             </button>
             <button
               onClick={handleCopyLink}
@@ -1549,6 +1562,14 @@ export default function CustomerDashboard() {
           phone: profileForm.phone || user?.phone || '',
           email: profileForm.email || user?.email || '',
         }}
+      />
+
+      {/* 1-Tap Physical NFC Card Placer & Writer */}
+      <NfcCardWriterModal
+        isOpen={showNfcWriterModal}
+        onClose={() => setShowNfcWriterModal(false)}
+        slug={profileForm.slug || user?.cardSlug || 'demo'}
+        name={profileForm.name || user?.name}
       />
     </div>
   );
